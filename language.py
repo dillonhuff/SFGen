@@ -1,23 +1,27 @@
 from bit_vector import *
 
 class Expression:
-    def __init__(self):
-        return None
+    def __init__(self, bit_width):
+        self.bit_width = bit_width
+
+    def width(self):
+        return self.bit_width
 
     def __invert__(self):
-        return Negate(self)
+        return FunctionCall("invert_", [self])
 
     def __add__(self, other):
         return Binop("add", self, other)
     
 class Variable(Expression):
     def __init__(self, name, width):
+        Expression.__init__(self, width)
         self.name = name
-        self.width = width
 
 class Constant(Expression):
     def __init__(self, bv):
         assert(isinstance(bv, QuadValueBitVector))
+        Expression.__init__(self, bv.width())
         self.value = bv
 
 class FunctionCall(Expression):
@@ -74,12 +78,14 @@ def new_function(name):
 class Simulator:
     def __init__(self, function):
         self.f = function
+        self.values = {}
 
     def evaluate(self):
+        
         return None
 
     def set_input(self, name, value):
-        return None
+        self.values[name] = value
 
     def get_output(self, name):
-        return None
+        return self.values[name]
