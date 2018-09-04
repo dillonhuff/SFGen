@@ -3,9 +3,8 @@ from language import *
 
 def test_tc_negate():
     width = 16
-    f = new_function("f")
+    f = new_function("f", Variable("out", ArrayType(width)))
     f.add_input("in", width)
-    f.add_output("out", width)
 
     f.stmt().add_assign(f.get("out"), ~f.get("in") + const(width, 1))
 
