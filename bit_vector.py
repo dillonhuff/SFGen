@@ -159,18 +159,11 @@ def bv(binary_string):
     print( 'value = ', value )
     bits = []
 
-    #for i in range(len(value) - 1, -1, -1):
     for digit in value:
-        #digit = value[i]
-        #print( 'digit = ', digit)
         bits.append(to_qb(digit))
-
 
     bits.reverse()
 
-    print('bits      = ', bits)
-    print('len(bits) = ', len(bits))
-    print('value     = ', value)
     assert(len(bits) == width)
 
     return BV(bits)
@@ -190,3 +183,5 @@ def bv_from_list(lst):
     vec.bits.reverse()
     return vec
     
+def bv_from_int(width, val):
+    return BV([])
