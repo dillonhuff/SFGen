@@ -69,11 +69,18 @@ def to_qb(binary_string):
 class QuadValueBitVector():
     def __init__(self, bits):
         self.bits = bits;
+        #print('First bits       = ', self.bits)
+        #self.bits.reverse()
+
+        #print('Initialized bits = ', self.bits)
 
     def to_string(self):
         strn = ''
-        for b in self.bits:
+        for i in range(len(self.bits) - 1, -1, -1):
+            b = self.bits[i]
             strn += b.to_string()
+        # for b in self.bits:
+        #     strn += b.to_string()
 
         return strn
 
@@ -106,15 +113,22 @@ class QuadValueBitVector():
     def __add__(self, other):
         assert(isinstance(other, QuadValueBitVector))
         assert(self.width() == other.width())
+
+        print('self  =', self)
+        print('other = ', other)
         
         resBits = []
         carry = 0
         for i in range(0, len(other.bits)):
-            ab = self.get(0)
-            bb = other.get(0)
+            ab = self.get(i)
+            bb = other.get(i)
             if (not ab.is_binary() or not bb.is_binary()):
                 return unknown_bv(self.width())
+
+            print('ab = ', ab)
+            print('bb = ', bb)
             val = ab.binary_value() + bb.binary_value() + carry
+            print('val = ', val)
             if (val >= 2):
                 carry = 1
 
@@ -122,6 +136,8 @@ class QuadValueBitVector():
                 resBits.append(QVB(val % 2))
             else:
                 resBits.append(QVB(0))
+
+        #resBits.reverse()
 
         return BV(resBits)
             
@@ -142,10 +158,17 @@ def bv(binary_string):
     print( 'width = ', width )
     print( 'value = ', value )
     bits = []
+
+    #for i in range(len(value) - 1, -1, -1):
     for digit in value:
-        print( 'digit = ', digit)
+        #digit = value[i]
+        #print( 'digit = ', digit)
         bits.append(to_qb(digit))
 
+
+    bits.reverse()
+
+    print('bits      = ', bits)
     print('len(bits) = ', len(bits))
     print('value     = ', value)
     assert(len(bits) == width)
@@ -161,3 +184,9 @@ def invert(bv):
         bits.append(bit.invert())
 
     return BV(bits)
+
+def bv_from_list(lst):
+    vec = BV(lst)
+    vec.bits.reverse()
+    return vec
+    

@@ -13,31 +13,47 @@ def test_quad_value_bit_1_equals_1():
     assert(a == b)
 
 def test_equals():    
-    a = BV([QVB(1), QVB(0)])
-    b = BV([QVB(1), QVB(0)])
+    a = bv_from_list([QVB(1), QVB(0)])
+    b = bv_from_list([QVB(1), QVB(0)])
 
     assert(a == b)
 
 
 def test_invert():
-    a = BV([QVB(1), QVB(0)])
-    correct = BV([QVB(0), QVB(1)])
+    a = bv_from_list([QVB(1), QVB(0)])
+    correct = bv_from_list([QVB(0), QVB(1)])
 
     print('correct = ', correct.to_string())
     print('a       = ', a.to_string())
 
     assert(invert(a) == correct)
 
+def test_get_raw_0():
+    a = bv_from_list([QVB(1), QVB(0)])
+    assert(a.get(0) == QVB(0))
+
+def test_get_raw_1():
+    a = bv_from_list([QVB(1), QVB(0)])
+    assert(a.get(1) == QVB(1))
+    
 def test_string_construction():
-    a = BV([QVB(1), QVB(0)])
+    a = bv_from_list([QVB(1), QVB(0)])
     b = bv("2'b10")
 
     print( 'a = ', a )
     print( 'b = ', b )
     assert(a == b)
 
+def test_get_0():
+    a = bv("2'b01")
+    assert(a.get(0) == QVB(1))
+
+def test_get_1():
+    a = bv("2'b01")
+    assert(a.get(1) == QVB(0))
+    
 def test_add_1():
-    a = bv("2'b10")
+    a = bv("2'b01")
     res = a + a
 
     assert(res == bv("2'b10"))
