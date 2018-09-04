@@ -6,7 +6,11 @@ def test_tc_negate():
     f = new_function("f", Variable("out", ArrayType(width)))
     f.add_input("in", width)
 
-    f.stmt().add_assign(f.get("out"), ~f.get("in") + const(width, 1))
+    assert(len(f.get_formal_args()) == 1)
+    
+    f.add_assign(f.get("out"), ~f.get("in") + const(width, 1))
+
+    assert(len(f.get_stmt().get_stmts()) == 1)
 
     sim = Simulator(f)
     sim.set_input("in", bv("16'b0000000000000001"))
