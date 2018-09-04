@@ -27,3 +27,17 @@ def test_invert():
     print('a       = ', a.to_string())
 
     assert(invert(a) == correct)
+
+def test_string_construction():
+    a = BV([QVB(1), QVB(0)])
+    b = bv("2'b10")
+
+    print( 'a = ', a )
+    print( 'b = ', b )
+    assert(a == b)
+
+def test_add_1():
+    a = bv("2'b10")
+    res = a + a
+
+    assert(res == bv("2'b10"))
