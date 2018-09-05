@@ -110,6 +110,13 @@ class QuadValueBitVector():
     def __str__(self):
         return self.to_string()
 
+    def slice_bits(self, end, start):
+        res_bits = []
+        for i in range(start, end + 1):
+            res_bits.append(self.bits[i])
+        
+        return BV(res_bits)
+
     def __add__(self, other):
         assert(isinstance(other, QuadValueBitVector))
         assert(self.width() == other.width())

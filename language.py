@@ -152,6 +152,9 @@ class FunctionCall(Expression):
     def get_args(self):
         return self.args
 
+    def get_func(self):
+        return self.func
+
     def get_formal_args(self):
         return self.func.get_formal_args()
 
@@ -162,7 +165,12 @@ class CaseExpression(Expression):
         self.switch_cond = switch_cond
         self.results = results
         
-        
+    def condition(self):
+        return self.switch_cond
+
+    def get_cases(self):
+        return self.results
+
 def case_tf(cond, true_res, false_res):
     print('Cond =', cond)
     assert(isinstance(cond, Expression))
@@ -187,9 +195,15 @@ class Simulator:
         if (has_prefix(name, "invert_")):
             return True
 
+        if (has_prefix(name, "equals_")):
+            return True
+        
         if (has_prefix(name, "add_")):
             return True
 
+        if (has_prefix(name, "bits_")):
+            return True
+        
         return False
 
     def evaluate_builtin_function(self, f, args):
@@ -205,9 +219,29 @@ class Simulator:
             in1 = args[1]
             return in0 + in1
 
+        if (has_prefix(name, "equals_")):
+            assert(len(args) == 2);
+            in0 = args[0]
+            in1 = args[1]
+            return bv_from_int(1, 1 if in0 == in1 else 0)
+        
+        if (has_prefix(name, "bits_")):
+            assert(len(args) == 1)
+            in0 = args[0]
+
+            m = re.match(r'bits_((\d)*)_((\d)*)', name)
+            end = int(m.group(1))
+            start = int(m.group(2))
+
+            return in0.slice_bits(end, start)
+        
         else:
-            print('Error: Unsupported builtin: ', f.get_name())
-            assert(False)
+            if len(f.stmt().get_stmts()) == 0:
+                print('Error: Unsupported builtin: ', f.get_name())
+                assert(False)
+            else:
+                print('Error: Unsupported custom function: ', f.get_name())
+                assert(False)
 
     def evaluate_expression(self, expr):
         print('Evaluating ', expr)
@@ -235,10 +269,30 @@ class Simulator:
             if (self.is_builtin(expr.get_name())):
                 return self.evaluate_builtin_function(expr, arg_values)
             else:
-                print('Error: Unsupported function: ', expr.get_name())
-                assert(False)
+                if len(expr.get_func().stmt.get_stmts()) != 0:
+                    sim = Simulator(expr.get_func())
+                    for i in range(0, len(arg_values)):
+                        arg_val = arg_values[i]
+                        sim.set_input(formal_args[i], arg_val)
+
+                    print('Evaluating', expr.get_func().get_name())
+                    sim.evaluate()
+                    print('Done evaluating', expr.get_func().get_name())
+                    return sim.get_output(expr.get_func().output_name())
+                else:
+                    print('Error: Unsupported custom function: ', expr.get_name())
+                    assert(False)
+
         elif (isinstance(expr, Constant)):
             return expr.get_value()
+        elif (isinstance(expr, CaseExpression)):
+            val = self.evaluate_expression(expr.condition())
+            for case in expr.get_cases():
+                if (case[0] == val):
+                    return self.evaluate_expression(case[1])
+
+            print('Error: No matching case for', val)
+            assert(False)
         else:
             print('Error: Illegal expression type', type(expr).__name__)
             assert(False)
