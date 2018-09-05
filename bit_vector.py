@@ -111,11 +111,16 @@ class QuadValueBitVector():
         return self.to_string()
 
     def slice_bits(self, end, start):
+        assert(end >= start)
+        
         res_bits = []
         for i in range(start, end + 1):
             res_bits.append(self.bits[i])
-        
-        return BV(res_bits)
+
+        assert(len(res_bits) == (end - start + 1))
+        res =  BV(res_bits)
+        print('result of slicing', self, '[', str(end), ':', str(start), '] =',res)
+        return res
 
     def __add__(self, other):
         assert(isinstance(other, QuadValueBitVector))
@@ -132,10 +137,10 @@ class QuadValueBitVector():
             if (not ab.is_binary() or not bb.is_binary()):
                 return unknown_bv(self.width())
 
-            print('ab = ', ab)
-            print('bb = ', bb)
+            # print('ab = ', ab)
+            # print('bb = ', bb)
             val = ab.binary_value() + bb.binary_value() + carry
-            print('val = ', val)
+            # print('val = ', val)
             if (val >= 2):
                 carry = 1
 

@@ -52,4 +52,4 @@ def test_tc_abs():
     sim.set_input("in", bv("16'b0000000000000001"))
     sim.evaluate()
     
-    assert(sim.get_output("out") == bv("16'0000000000000001"))
+    assert(sim.get_output("out") == bv("16'b0000000000000001"))

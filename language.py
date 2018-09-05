@@ -48,6 +48,9 @@ class Function:
     def return_type(self):
         return self.output.get_type()
 
+    def return_name(self):
+        return self.output.get_name()
+    
     def var(self, name, width):
         assert(not name in self.values)
         v = Variable(name, ArrayType(width))
@@ -223,6 +226,7 @@ class Simulator:
             assert(len(args) == 2);
             in0 = args[0]
             in1 = args[1]
+            print('Checking if', in0, '==', in1)
             return bv_from_int(1, 1 if in0 == in1 else 0)
         
         if (has_prefix(name, "bits_")):
@@ -230,8 +234,15 @@ class Simulator:
             in0 = args[0]
 
             m = re.match(r'bits_((\d)*)_((\d)*)', name)
-            end = int(m.group(1))
-            start = int(m.group(2))
+            print('slice name =', name)
+            end_n = m.group(1)
+            start_n = m.group(3)
+
+            print('end_n   =', end_n)
+            print('start_n =', start_n)
+
+            end = int(start_n)
+            start = int(end_n)
 
             return in0.slice_bits(end, start)
         
@@ -273,12 +284,13 @@ class Simulator:
                     sim = Simulator(expr.get_func())
                     for i in range(0, len(arg_values)):
                         arg_val = arg_values[i]
-                        sim.set_input(formal_args[i], arg_val)
+                        sim.set_input(formal_args[i].get_name(), arg_val)
 
-                    print('Evaluating', expr.get_func().get_name())
+                    print('Evaluating =', expr.get_func().get_name())
+                    print('With expr  =', expr.get_name())
                     sim.evaluate()
                     print('Done evaluating', expr.get_func().get_name())
-                    return sim.get_output(expr.get_func().output_name())
+                    return sim.get_output(expr.get_func().return_name())
                 else:
                     print('Error: Unsupported custom function: ', expr.get_name())
                     assert(False)
@@ -289,6 +301,8 @@ class Simulator:
             val = self.evaluate_expression(expr.condition())
             for case in expr.get_cases():
                 if (case[0] == val):
+                    print('case[0] =', case[0])
+                    print('val     =', val)
                     return self.evaluate_expression(case[1])
 
             print('Error: No matching case for', val)
@@ -316,6 +330,7 @@ class Simulator:
                 assert(False)
 
     def set_input(self, name, value):
+        assert(isinstance(name, str))
         self.values[name] = value
 
     def get_output(self, name):
