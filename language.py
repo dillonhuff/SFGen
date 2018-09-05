@@ -18,6 +18,8 @@ class BlockStmt(Statement):
         self.stmts = []
 
     def add_assign(self, lhs, rhs):
+        assert(isinstance(rhs, Expression))
+
         self.stmts.append(AssignStmt(lhs, rhs))
         print('New # of stmts =', len(self.stmts))
 
@@ -46,8 +48,15 @@ class Function:
     def return_type(self):
         return self.output.get_type()
 
-    def get(self, valueName):
-        return self.values[valueName]
+    def var(self, name, width):
+        assert(not name in self.values)
+        v = Variable(name, ArrayType(width))
+        self.values[name] = v
+        return v
+
+    def get(self, value_name):
+        assert(value_name in self.values)
+        return self.values[value_name]
 
     def add_input(self, name, width):
         assert(not name in self.values)
@@ -86,6 +95,13 @@ class Expression:
 
     def get_type(self):
         return self.tp
+
+    def bits(self, end, start):
+        out_width = end - start + 1
+        return FunctionCall(Function("bits_" + str(end) + "_" + str(start),
+                                     [Variable("in", self.get_type())],
+                                     Variable("out", ArrayType(out_width))),
+                            [self])
 
     def width(self):
         assert(isinstance(self.tp, ArrayType))
@@ -139,6 +155,23 @@ class FunctionCall(Expression):
     def get_formal_args(self):
         return self.func.get_formal_args()
 
+class CaseExpression(Expression):
+    def __init__(self, switch_cond, results):
+        assert(len(results) > 0)
+        Expression.__init__(self, results[0][1].get_type())
+        self.switch_cond = switch_cond
+        self.results = results
+        
+        
+def case_tf(cond, true_res, false_res):
+    print('Cond =', cond)
+    assert(isinstance(cond, Expression))
+    assert(isinstance(true_res, Expression))
+    assert(isinstance(false_res, Expression))
+
+    results = [(bv("1'b0"), false_res), (bv("1'b1"), true_res)]
+    return CaseExpression(cond, results)
+    
 def const(w, val):
     return Constant(bv_from_int(w, val))
 
@@ -177,6 +210,7 @@ class Simulator:
             assert(False)
 
     def evaluate_expression(self, expr):
+        print('Evaluating ', expr)
         if (isinstance(expr, Variable)):
             return self.values[expr.get_name()];
         elif (isinstance(expr, FunctionCall)):
@@ -232,3 +266,16 @@ class Simulator:
 
     def get_output(self, name):
         return self.values[name]
+
+def unop(func, arg):
+    return FunctionCall(func, [arg])
+
+def eq(a, b):
+    assert(isinstance(a, Expression))
+    assert(isinstance(b, Expression))
+
+    return FunctionCall(Function("equals_" + str(a.width()),
+                                 [Variable("in0", ArrayType(a.width())),
+                                  Variable("in1", ArrayType(b.width()))],
+                                 Variable("out", ArrayType(1))),
+                        [a, b])
