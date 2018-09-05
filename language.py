@@ -121,6 +121,9 @@ class Constant(Expression):
         Expression.__init__(self, ArrayType(bv.width()))
         self.value = bv
 
+    def get_value(self):
+        return self.value
+
 class FunctionCall(Expression):
     def __init__(self, func, args):
         Expression.__init__(self, func.return_type())
@@ -139,10 +142,39 @@ class FunctionCall(Expression):
 def const(w, val):
     return Constant(bv_from_int(w, val))
 
+def has_prefix(name, prefix):
+    return name[:len(prefix)] == prefix
+
 class Simulator:
     def __init__(self, function):
         self.f = function
         self.values = {}
+
+    def is_builtin(self, name):
+        if (has_prefix(name, "invert_")):
+            return True
+
+        if (has_prefix(name, "add_")):
+            return True
+
+        return False
+
+    def evaluate_builtin_function(self, f, args):
+        name = f.get_name();
+        if (has_prefix(name, "invert_")):
+            assert(len(args) == 1);
+            arg = args[0]
+            return invert(arg)
+
+        if (has_prefix(name, "add_")):
+            assert(len(args) == 2);
+            in0 = args[0]
+            in1 = args[1]
+            return in0 + in1
+
+        else:
+            print('Error: Unsupported builtin: ', f.get_name())
+            assert(False)
 
     def evaluate_expression(self, expr):
         if (isinstance(expr, Variable)):
@@ -159,20 +191,27 @@ class Simulator:
 
             assert(len(args) == len(formal_args))
 
+            arg_values = []
             for i in range(0, len(args)):
                 formal_arg = formal_args[i]
                 arg_value = self.evaluate_expression(args[i])
                 print('Arg', formal_arg.get_name(), ' has value = ', arg_value)
-                
+                arg_values.append(arg_value)
 
-            assert(False)
+            if (self.is_builtin(expr.get_name())):
+                return self.evaluate_builtin_function(expr, arg_values)
+            else:
+                print('Error: Unsupported function: ', expr.get_name())
+                assert(False)
         elif (isinstance(expr, Constant)):
             return expr.get_value()
         else:
             print('Error: Illegal expression type', type(expr).__name__)
             assert(False)
 
-    def set_value(lhs, val):
+        assert(False)
+
+    def set_value(self, lhs, val):
         assert(isinstance(val, QuadValueBitVector))
 
         self.values[lhs.get_name()] = val

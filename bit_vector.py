@@ -137,10 +137,20 @@ class QuadValueBitVector():
             else:
                 resBits.append(QVB(0))
 
-        #resBits.reverse()
-
         return BV(resBits)
-            
+
+    def zero_extend(self, width):
+        assert(width >= self.width())
+        
+        resBits = []
+        for bit in self.bits:
+            resBits.append(bit)
+        for i in range(0, width - self.width()):
+            resBits.append(QVB(0))
+
+        assert(len(resBits) == width)
+        
+        return BV(resBits)
         
     def __repr__(self):
         return self.to_string()
@@ -182,6 +192,18 @@ def bv_from_list(lst):
     vec = BV(lst)
     vec.bits.reverse()
     return vec
-    
+
 def bv_from_int(width, val):
-    return BV([])
+    assert(isinstance(val, int))
+    #assert(val >= 0)
+
+    bits = list('{0:0b}'.format(val))
+    bits.reverse()
+
+    bitList = []
+    for b in bits:
+        bitList.append(to_qb(b))
+    print('Bits =', bitList)
+
+    assert(len(bitList) <= width)
+    return BV(bitList).zero_extend(width)
