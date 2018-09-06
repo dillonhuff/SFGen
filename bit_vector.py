@@ -304,9 +304,9 @@ def bv(binary_string):
 
     bits.reverse()
 
-    assert(len(bits) == width)
+    #assert(len(bits) == width)
 
-    return BV(bits)
+    return BV(bits).zero_extend(width)
 
 def twos_complement_absolute_value(bv):
     return plus(invert(bv), BV(bv.length(), 1))

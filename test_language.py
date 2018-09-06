@@ -53,3 +53,24 @@ def test_tc_abs():
     sim.evaluate()
     
     assert(sim.get_output("out") == bv("16'b0000000000000001"))
+
+def test_newton_raphson_divide():
+    width = 16
+
+    tc_abs = build_tc_abs(width)
+
+    div = new_function("newton_raphson_divide_" + str(width), Variable("out", ArrayType(width)))
+    absN = div.var("absN", width)
+    absD = div.var("absD", width)
+    div.asg(absN, div.unop(tc_abs, div.get("N")))
+    div.asg(absD, div.unop(tc_abs, div.get("D")))
+
+    lzc = div.var("lead_zero_count")
+    div.asg(lzc, div.unop(lead_zero_count_width, absD))
+
+    
+    sim = Simulator(div)
+    sim.set_input("N", bv("16'b10010"))
+    sim.set_input("D", bv("16'b110"))
+    sim.evaluate()
+    assert(sim.get_output("Q") == bv("16'11"))

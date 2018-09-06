@@ -85,6 +85,9 @@ class Function:
     def add_assign(self, lhs, rhs):
         self.stmt.add_assign(lhs, rhs)
 
+    def asg(self, lhs, rhs):
+        self.add_assign(lhs, rhs)
+
     def get_stmt(self):
         return self.stmt
 
