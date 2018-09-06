@@ -82,9 +82,9 @@ class QuadValueBitVector():
         count = 0
         for i in range(self.width() - 1, -1, -1):
             b = self.get(i)
-
-            if (b != 0):
-                continue
+            print('b = ', b)
+            if (b != QVB(0)):
+                return count
             else:
                 count += 1
 
