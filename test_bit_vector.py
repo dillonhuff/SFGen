@@ -89,4 +89,14 @@ def test_shift_right():
     res = bv("8'b00000101")
 
     assert((a >> amount) == res)
-    
+
+def test_unsigned_divide():
+    width = 16
+    a = bv_from_int(width, 8)
+    b = bv_from_int(width, 2)
+
+    correct = bv_from_int(width, 4)
+
+    print('a / b =', a / b)
+
+    assert((a / b) == correct)

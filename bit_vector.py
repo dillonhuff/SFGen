@@ -120,6 +120,12 @@ class QuadValueBitVector():
         print('result of slicing', self, '[', str(end), ':', str(start), '] =',res)
         return res
 
+    def __neg__(self):
+        return ~self + bv_from_int(self.width(), 1)
+
+    def __sub__(self, other):
+        return self + (-other)
+
     def __add__(self, other):
         assert(isinstance(other, QuadValueBitVector))
         assert(self.width() == other.width())
@@ -169,6 +175,12 @@ class QuadValueBitVector():
                 r += pow(2, i)
         return r
 
+    def set_bit(self, index, bit):
+        assert(isinstance(index, int))
+        assert(isinstance(bit, QuadValueBit))
+
+        self.bits[index] = bit
+
     def __rshift__(self, other):    
         assert(isinstance(other, QuadValueBitVector))
 
@@ -204,6 +216,50 @@ class QuadValueBitVector():
     def __invert__(self):
         return self.invert()
 
+    def __truediv__(self, other):
+        assert(isinstance(other, QuadValueBitVector))
+        assert(self.width() == other.width())
+
+        quot = zero_bv(self.width())
+        width = self.width()
+
+        a_tmp = self.zero_extend(2*width)
+        b = other.zero_extend(2*width)
+        
+        for i in range(self.width() - 1, -1, -1):
+            shifted_b = b << bv_from_int(width, i)
+            if (shifted_b <= a_tmp):
+                
+                quot.set_bit(i, QVB(1))
+                a_tmp = a_tmp - shifted_b
+                print('Shifted b = ', shifted_b)
+                print('a temp    = ', a_tmp)
+                
+            #total = other * bv_to_int(width, pow(2, i))
+
+        return quot
+        
+
+    def __le__(self, other):
+        return (self < other) or (self == other)
+
+    def __lt__(self, b):
+        assert(isinstance(b, QuadValueBitVector))
+        if (self.width() != b.width()):
+            return False
+
+        for i in range(0, self.width()):
+            ab = self.get(i)
+            bb = b.get(i)
+
+            if ab != bb:
+                if ab.is_binary() and bb.is_binary:
+                    if ab == QVB(1):
+                        return False
+                else:
+                    return False
+        return True
+    
     def __mul__(self, other):
         assert(isinstance(other, QuadValueBitVector))
         assert(self.width() == other.width())
