@@ -235,8 +235,6 @@ class QuadValueBitVector():
                 print('Shifted b = ', shifted_b)
                 print('a temp    = ', a_tmp)
                 
-            #total = other * bv_to_int(width, pow(2, i))
-
         return quot
         
 
