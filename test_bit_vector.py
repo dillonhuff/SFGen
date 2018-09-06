@@ -57,3 +57,16 @@ def test_add_1():
     res = a + a
 
     assert(res == bv("2'b10"))
+
+def test_mul_2x1():
+    a = bv_from_int(32, 2)
+    b = bv_from_int(32, 1)
+
+    assert((a * b) == bv_from_int(32, 2*1))
+
+def test_mul_2x2():
+    a = bv_from_int(32, 2)
+    b = bv_from_int(32, 2)
+
+    assert((a * b) == bv_from_int(32, 2*2))
+    

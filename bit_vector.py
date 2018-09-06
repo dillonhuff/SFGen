@@ -43,7 +43,7 @@ class QuadValueBit():
             return 'x'
         else:
             return 'z'
-        
+
     def __repr__(self):
         return self.to_string()
 
@@ -163,6 +163,42 @@ class QuadValueBitVector():
         assert(len(resBits) == width)
         
         return BV(resBits)
+
+    def to_int(self):
+        r = 0
+        for i in range(0, self.width()):
+            if (self.get(i) == QVB(1)):
+                r += pow(2, i)
+        return r
+
+    def __lshift__(self, other):
+        assert(isinstance(other, QuadValueBitVector))
+
+        shift_amount = other.to_int()
+        res_bits = []
+        for i in range(0, self.width()):
+            src_ind = i - shift_amount
+            if (src_ind >= 0):
+                res_bits.append(self.get(src_ind))
+            else:
+                res_bits.append(QVB(0))
+        return BV(res_bits)
+
+    def __mul__(self, other):
+        assert(isinstance(other, QuadValueBitVector))
+        assert(self.width() == other.width())
+
+        res_bv = zero_bv(self.width())
+
+        for i in range(0, self.width()):
+            other_bit = other.get(i)
+            if (other_bit == QVB(1)):
+                to_add = self << bv_from_int(self.width(), i)
+                res_bv = res_bv + to_add
+
+        print('res_bv =', res_bv)
+        return res_bv
+
         
     def __repr__(self):
         return self.to_string()
@@ -219,3 +255,9 @@ def bv_from_int(width, val):
 
     assert(len(bitList) <= width)
     return BV(bitList).zero_extend(width)
+
+def zero_bv(width):
+    zeros = []
+    for i in range(0, width):
+        zeros.append(QVB(0))
+    return BV(zeros)
