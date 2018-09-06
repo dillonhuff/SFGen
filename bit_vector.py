@@ -79,8 +79,6 @@ class QuadValueBitVector():
         for i in range(len(self.bits) - 1, -1, -1):
             b = self.bits[i]
             strn += b.to_string()
-        # for b in self.bits:
-        #     strn += b.to_string()
 
         return strn
 
@@ -184,6 +182,15 @@ class QuadValueBitVector():
                 res_bits.append(QVB(0))
         return BV(res_bits)
 
+    def invert(self):
+        bits = []
+        for bit in self.bits:
+            bits.append(bit.invert())
+        return BV(bits)
+
+    def __invert__(self):
+        return self.invert()
+
     def __mul__(self, other):
         assert(isinstance(other, QuadValueBitVector))
         assert(self.width() == other.width())
@@ -230,9 +237,7 @@ def twos_complement_absolute_value(bv):
     return plus(invert(bv), BV(bv.length(), 1))
 
 def invert(bv):
-    bits = []
-    for bit in bv.bits:
-        bits.append(bit.invert())
+    return bv.invert()
 
     return BV(bits)
 
@@ -245,8 +250,16 @@ def bv_from_int(width, val):
     assert(isinstance(val, int))
     #assert(val >= 0)
 
+    is_neg = False
+    if (val < 0):
+        is_neg = True
+        val = -val
+
     bits = list('{0:0b}'.format(val))
     bits.reverse()
+
+    # print('Bin  =', bin(val))
+    # print('Bits =', bits)
 
     bitList = []
     for b in bits:
@@ -254,7 +267,11 @@ def bv_from_int(width, val):
     print('Bits =', bitList)
 
     assert(len(bitList) <= width)
-    return BV(bitList).zero_extend(width)
+    res = BV(bitList).zero_extend(width)
+    if (is_neg):
+        return ~res + bv_from_int(width, 1)
+    else:
+        return res
 
 def zero_bv(width):
     zeros = []
