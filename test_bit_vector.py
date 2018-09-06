@@ -100,3 +100,7 @@ def test_unsigned_divide():
     print('a / b =', a / b)
 
     assert((a / b) == correct)
+
+def test_leading_zero_count():
+    a = bv("5'b00010")
+    assert(a.leading_zero_count() == 3)

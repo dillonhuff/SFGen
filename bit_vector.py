@@ -69,10 +69,6 @@ def to_qb(binary_string):
 class QuadValueBitVector():
     def __init__(self, bits):
         self.bits = bits;
-        #print('First bits       = ', self.bits)
-        #self.bits.reverse()
-
-        #print('Initialized bits = ', self.bits)
 
     def to_string(self):
         strn = ''
@@ -81,6 +77,18 @@ class QuadValueBitVector():
             strn += b.to_string()
 
         return strn
+
+    def leading_zero_count(self):
+        count = 0
+        for i in range(self.width() - 1, -1, -1):
+            b = self.get(i)
+
+            if (b != 0):
+                continue
+            else:
+                count += 1
+
+        return count
 
     def __eq__(self, other):
         if (not isinstance(other, QuadValueBitVector)):
