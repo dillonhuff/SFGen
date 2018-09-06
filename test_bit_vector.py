@@ -76,3 +76,17 @@ def test_mul_2x2():
 
     assert((a * b) == bv_from_int(32, -2*2))
     
+def test_shift_left():
+    a = bv("4'b1011")
+    amount = bv("4'b0010")
+    res = bv("4'b1100")
+
+    assert((a << amount) == res)
+
+def test_shift_right():
+    a = bv("8'b10110010")
+    amount = bv("4'b0101")
+    res = bv("8'b00000101")
+
+    assert((a >> amount) == res)
+    

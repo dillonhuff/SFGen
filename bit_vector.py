@@ -169,6 +169,19 @@ class QuadValueBitVector():
                 r += pow(2, i)
         return r
 
+    def __rshift__(self, other):    
+        assert(isinstance(other, QuadValueBitVector))
+
+        shift_amount = other.to_int()
+        res_bits = []
+        for i in range(0, self.width()):
+            src_ind = i + shift_amount
+            if (src_ind < self.width()):
+                res_bits.append(self.get(src_ind))
+            else:
+                res_bits.append(QVB(0))
+        return BV(res_bits)
+
     def __lshift__(self, other):
         assert(isinstance(other, QuadValueBitVector))
 
