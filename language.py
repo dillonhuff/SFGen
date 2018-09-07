@@ -135,10 +135,20 @@ class Expression:
 
     def __truediv__(self, other):
         return FunctionCall(Function("unsigned_divide_" + str(self.width()), [Variable("in0", self.get_type()), Variable("in1", other.get_type())], Variable("out", self.get_type())), [self, other])
+
+    def __lshift__(self, other):
+        return FunctionCall(Function("shl_" + str(self.width()), [Variable("in0", self.get_type()), Variable("in1", other.get_type())], Variable("out", self.get_type())), [self, other])
+
+    def __rshift__(self, other):
+        return FunctionCall(Function("lshr_" + str(self.width()), [Variable("in0", self.get_type()), Variable("in1", other.get_type())], Variable("out", self.get_type())), [self, other])
     
     def __add__(self, other):
         return FunctionCall(Function("add_" + str(self.width()), [Variable("in0", self.get_type()), Variable("in1", other.get_type())], Variable("out", self.get_type())), [self, other])
-        #return FunctionCall("add_" + str(self.width()), [self, other])
+
+    def __mul__(self, other):
+        return FunctionCall(Function("mul_" + str(self.width()), [Variable("in0", self.get_type()), Variable("in1", other.get_type())], Variable("out", self.get_type())), [self, other])
+
+    #return FunctionCall("add_" + str(self.width()), [self, other])
     
 class Variable(Expression):
     
@@ -221,6 +231,9 @@ class Simulator:
         if (has_prefix(name, "invert_")):
             return True
 
+        if (has_prefix(name, "zero_extend_")):
+            return True
+        
         if (has_prefix(name, "lead_zero_count_")):
             return True
         
@@ -236,6 +249,15 @@ class Simulator:
         if (has_prefix(name, "sub_")):
             return True
 
+        if (has_prefix(name, "mul_")):
+            return True
+        
+        if (has_prefix(name, "shl_")):
+            return True
+
+        if (has_prefix(name, "lshr_")):
+            return True
+        
         if (has_prefix(name, "neg_")):
             return True
         
@@ -267,6 +289,24 @@ class Simulator:
             in1 = args[1]
             return in0 + in1
 
+        if (has_prefix(name, "mul_")):
+            assert(len(args) == 2);
+            in0 = args[0]
+            in1 = args[1]
+            return in0 * in1
+        
+        if (has_prefix(name, "shl_")):
+            assert(len(args) == 2);
+            in0 = args[0]
+            in1 = args[1]
+            return in0 << in1
+
+        if (has_prefix(name, "lshr_")):
+            assert(len(args) == 2);
+            in0 = args[0]
+            in1 = args[1]
+            return in0 >> in1;
+        
         if (has_prefix(name, "unsigned_divide_")):
             assert(len(args) == 2);
             in0 = args[0]
@@ -285,6 +325,19 @@ class Simulator:
             in1 = args[1]
             print('Checking if', in0, '==', in1)
             return bv_from_int(1, 1 if in0 == in1 else 0)
+
+        if (has_prefix(name, "zero_extend_")):
+            assert(len(args) == 1)
+            in0 = args[0]
+
+            print('Zext name =', name)
+            m = re.match(r'zero_extend_((\d)*)', name)
+            assert(m)
+            end_n = m.group(1)
+
+            print('end_n zext =', end_n)
+
+            return in0.zero_extend(int(end_n))
         
         if (has_prefix(name, "bits_")):
             assert(len(args) == 1)
@@ -412,4 +465,13 @@ def lead_zero_count(a):
     return FunctionCall(Function("lead_zero_count_" + str(a.width()),
                                  [Variable("in", ArrayType(a.width()))],
                                  Variable("out", ArrayType(a.width()))),
+                        [a])
+
+def zero_extend(w, a):
+    assert(isinstance(w, int))
+    assert(isinstance(a, Expression))
+
+    return FunctionCall(Function("zero_extend_" + str(w),
+                                 [Variable("in", ArrayType(a.width()))],
+                                 Variable("out", ArrayType(w))),
                         [a])

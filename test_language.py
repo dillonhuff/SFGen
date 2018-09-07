@@ -54,6 +54,9 @@ def test_tc_abs():
     
     assert(sim.get_output("out") == bv("16'b0000000000000001"))
 
+def fp_mul():
+    assert(False)
+
 def test_newton_raphson_divide():
     width = 16
 
@@ -77,11 +80,33 @@ def test_newton_raphson_divide():
     D_sgn = div.asg(D[(width - 1):(width - 1)])
 
     q_tmp = div.asg(absN / absD)
-    
+
+    D_ = div.asg(absD << shift_distance)
+    one = div.asg(const(width, 1 << (width - 1)))
+    X = div.asg(one / absD)
+
+    widthC = div.asg(const(width, width))
+    res_shift = div.asg(widthC + (widthC - shiftDistance - const(width, 2)))
+    # After computing X, compute N*X and normalize
+    tmp_res = div.asg(((zero_extend(2*width, N) * zero_extend(2*width, X)) >>
+                       res_shift)[0:(width - 1)])
+
+    # X = div.asg(one) #div.asg(one / D_)
+    # X = div.asg(X + fpmul(X, (one - fp_mul(D_, X, width - 1)), width - 1))
+    # X = div.asg(X + fpmul(X, (one - fp_mul(D_, X, width - 1)), width - 1))
+    # X = div.asg(X + fpmul(X, (one - fp_mul(D_, X, width - 1)), width - 1))
+    # X = div.asg(X + fpmul(X, (one - fp_mul(D_, X, width - 1)), width - 1))
+    # X = div.asg(X + fpmul(X, (one - fp_mul(D_, X, width - 1)), width - 1))    
+
+    #tmp_res = div.asg(zero_extend(2*width, N)*zero_extend(2*width, X))
     div.add_assign(div.get("Q"),
                    case_tf(eq(N_sgn, D_sgn),
-                           q_tmp,
-                           -q_tmp))
+                           tmp_res,
+                           -tmp_res))
+                           # q_tmp,
+                           # X))
+#                           X))
+#                           -q_tmp))
 
     sim = Simulator(div)
     sim.set_input("N", bv("16'b10010"))
