@@ -64,13 +64,24 @@ def test_newton_raphson_divide():
     div.add_input("N", ArrayType(width))
     div.add_input("D", ArrayType(width))
 
+    N = div.get("N")    
+    D = div.get("D")
+
     absN = div.asg(unop(tc_abs, div.get("N")))
     absD = div.asg(unop(tc_abs, div.get("D")))
 
     lzc = div.asg(lead_zero_count(absD))
     shift_distance = div.asg(lzc - const(width, 1))
 
-    div.add_assign(div.get("Q"), absN / absD)
+    N_sgn = div.asg(N[(width - 1):(width - 1)])
+    D_sgn = div.asg(D[(width - 1):(width - 1)])
+
+    q_tmp = div.asg(absN / absD)
+    
+    div.add_assign(div.get("Q"),
+                   case_tf(eq(N_sgn, D_sgn),
+                           q_tmp,
+                           -q_tmp))
 
     sim = Simulator(div)
     sim.set_input("N", bv("16'b10010"))

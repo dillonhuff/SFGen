@@ -121,9 +121,15 @@ class Expression:
         assert(isinstance(self.tp, ArrayType))
         return self.tp.width()
 
+    def __getitem__(self, item):
+        return FunctionCall(Function("bits_" + str(item.start) + "_" + str(item.stop), [Variable("in", self.get_type())], Variable("out", self.get_type())), [self])
+
     def __invert__(self):
         return FunctionCall(Function("invert_" + str(self.width()), [Variable("in", self.get_type())], Variable("out", self.get_type())), [self])
 
+    def __neg__(self):
+        return FunctionCall(Function("neg_" + str(self.width()), [Variable("in", self.get_type())], Variable("out", self.get_type())), [self])
+    
     def __sub__(self, other):
         return FunctionCall(Function("sub_" + str(self.width()), [Variable("in0", self.get_type()), Variable("in1", other.get_type())], Variable("out", self.get_type())), [self, other])
 
@@ -229,6 +235,9 @@ class Simulator:
         
         if (has_prefix(name, "sub_")):
             return True
+
+        if (has_prefix(name, "neg_")):
+            return True
         
         if (has_prefix(name, "bits_")):
             return True
@@ -241,6 +250,11 @@ class Simulator:
             assert(len(args) == 1);
             arg = args[0]
             return invert(arg)
+
+        if (has_prefix(name, "neg_")):
+            assert(len(args) == 1);
+            arg = args[0]
+            return -(arg)
 
         if (has_prefix(name, "lead_zero_count_")):
             assert(len(args) == 1);

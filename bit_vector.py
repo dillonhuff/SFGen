@@ -90,6 +90,23 @@ class QuadValueBitVector():
 
         return count
 
+    def __getitem__(self, item):
+        assert(isinstance(item, slice))
+        print('item =', item)
+        start = item.start
+        stop = item.stop
+        assert(item.step == None)
+
+        assert(start >= 0)
+        assert(stop >= 0)
+        assert(stop >= start)
+
+        res_bits = []
+        for i in range(start, stop + 1):
+            res_bits.append(self.get(i))
+
+        return BV(res_bits)
+
     def __eq__(self, other):
         if (not isinstance(other, QuadValueBitVector)):
             return False

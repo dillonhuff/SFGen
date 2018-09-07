@@ -136,3 +136,14 @@ def test_unsigned_divide_18_by_3():
 def test_leading_zero_count():
     a = bv("5'b00010")
     assert(a.leading_zero_count() == 3)
+
+def test_slice():
+    a = bv("9'b101101001")
+    sl = a[8:8]
+    assert(sl == bv("1'b1"))
+
+def test_slice_longer():
+    a = bv("9'b101101001")
+    sl = a[3:6]
+    assert(sl == bv("4'b1101"))
+    
