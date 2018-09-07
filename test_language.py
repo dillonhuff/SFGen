@@ -75,4 +75,10 @@ def test_newton_raphson_divide():
     sim.set_input("N", bv("16'b10010"))
     sim.set_input("D", bv("16'b110"))
     sim.evaluate()
-    #assert(sim.get_output("Q") == bv("16'b11"))
+    assert(sim.get_output("Q") == bv("16'b11"))
+
+    sim.set_input("N", bv("16'b10010"))
+    sim.set_input("D", -bv("16'b110"))
+    sim.evaluate()
+    assert(sim.get_output("Q") == -bv("16'b11"))
+    
