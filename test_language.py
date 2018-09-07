@@ -59,7 +59,8 @@ def test_newton_raphson_divide():
 
     tc_abs = build_tc_abs(width)
 
-    div = new_function("newton_raphson_divide_" + str(width), Variable("Q", ArrayType(width)))
+    div = new_function("newton_raphson_divide_" + str(width),
+                       Variable("Q", ArrayType(width)))
     div.add_input("N", ArrayType(width))
     div.add_input("D", ArrayType(width))
 
