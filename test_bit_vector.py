@@ -58,6 +58,20 @@ def test_add_1():
 
     assert(res == bv("2'b10"))
 
+def test_neg_0():
+    a = bv("16'b1000")
+    res = -a
+
+    print('res = ', res)
+
+    assert(res == bv("16'b1111111111111000"))
+    
+def test_sub_0():
+    a = bv("16'b1000")
+    res = a - a
+
+    assert(res == bv("16'b0"))
+    
 def test_mul_2x1():
     a = bv_from_int(32, 2)
     b = bv_from_int(32, 1)
@@ -90,6 +104,16 @@ def test_shift_right():
 
     assert((a >> amount) == res)
 
+def test_le():
+    N = bv("16'b10010")
+    D = bv("16'b110")
+    assert(D <= N)
+
+def test_le_same():
+    N = bv("16'b1000")
+    D = bv("16'b1000")
+    assert(D <= N)
+    
 def test_unsigned_divide():
     width = 16
     a = bv_from_int(width, 8)
@@ -100,6 +124,14 @@ def test_unsigned_divide():
     print('a / b =', a / b)
 
     assert((a / b) == correct)
+
+def test_unsigned_divide_18_by_3():
+    a = bv_from_int(16, 18)
+    b = bv_from_int(16, 3)
+
+    res = a / b
+    print('a / b =', res)
+    assert(res == bv_from_int(16, 6))
 
 def test_leading_zero_count():
     a = bv("5'b00010")

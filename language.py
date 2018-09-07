@@ -44,6 +44,7 @@ class Function:
         self.output = output
         self.values = {output.get_name() : output}
         self.stmt = BlockStmt(1)
+        self.unique_num = 0
 
     def return_type(self):
         return self.output.get_type()
@@ -55,6 +56,11 @@ class Function:
         assert(not name in self.values)
         v = Variable(name, ArrayType(width))
         self.values[name] = v
+        return v
+
+    def unique_var(self, tp):
+        v = Variable("uv_" + str(self.unique_num), tp)
+        self.unique_num += 1
         return v
 
     def get(self, value_name):
@@ -85,8 +91,10 @@ class Function:
     def add_assign(self, lhs, rhs):
         self.stmt.add_assign(lhs, rhs)
 
-    def asg(self, lhs, rhs):
+    def asg(self, rhs):
+        lhs = self.unique_var(rhs.get_type())
         self.add_assign(lhs, rhs)
+        return lhs
 
     def get_stmt(self):
         return self.stmt
@@ -116,6 +124,12 @@ class Expression:
     def __invert__(self):
         return FunctionCall(Function("invert_" + str(self.width()), [Variable("in", self.get_type())], Variable("out", self.get_type())), [self])
 
+    def __sub__(self, other):
+        return FunctionCall(Function("sub_" + str(self.width()), [Variable("in0", self.get_type()), Variable("in1", other.get_type())], Variable("out", self.get_type())), [self, other])
+
+    def __truediv__(self, other):
+        return FunctionCall(Function("unsigned_divide_" + str(self.width()), [Variable("in0", self.get_type()), Variable("in1", other.get_type())], Variable("out", self.get_type())), [self, other])
+    
     def __add__(self, other):
         return FunctionCall(Function("add_" + str(self.width()), [Variable("in0", self.get_type()), Variable("in1", other.get_type())], Variable("out", self.get_type())), [self, other])
         #return FunctionCall("add_" + str(self.width()), [self, other])
@@ -201,12 +215,21 @@ class Simulator:
         if (has_prefix(name, "invert_")):
             return True
 
+        if (has_prefix(name, "lead_zero_count_")):
+            return True
+        
         if (has_prefix(name, "equals_")):
             return True
         
         if (has_prefix(name, "add_")):
             return True
 
+        if (has_prefix(name, "unsigned_divide_")):
+            return True
+        
+        if (has_prefix(name, "sub_")):
+            return True
+        
         if (has_prefix(name, "bits_")):
             return True
         
@@ -219,12 +242,29 @@ class Simulator:
             arg = args[0]
             return invert(arg)
 
+        if (has_prefix(name, "lead_zero_count_")):
+            assert(len(args) == 1);
+            arg = args[0]
+            return bv_from_int(arg.width(), arg.leading_zero_count())
+        
         if (has_prefix(name, "add_")):
             assert(len(args) == 2);
             in0 = args[0]
             in1 = args[1]
             return in0 + in1
 
+        if (has_prefix(name, "unsigned_divide_")):
+            assert(len(args) == 2);
+            in0 = args[0]
+            in1 = args[1]
+            return in0 / in1
+        
+        if (has_prefix(name, "sub_")):
+            assert(len(args) == 2);
+            in0 = args[0]
+            in1 = args[1]
+            return in0 - in1
+        
         if (has_prefix(name, "equals_")):
             assert(len(args) == 2);
             in0 = args[0]
@@ -351,3 +391,11 @@ def eq(a, b):
                                   Variable("in1", ArrayType(b.width()))],
                                  Variable("out", ArrayType(1))),
                         [a, b])
+
+def lead_zero_count(a):
+    assert(isinstance(a, Expression))
+
+    return FunctionCall(Function("lead_zero_count_" + str(a.width()),
+                                 [Variable("in", ArrayType(a.width()))],
+                                 Variable("out", ArrayType(a.width()))),
+                        [a])

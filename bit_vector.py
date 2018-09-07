@@ -125,7 +125,7 @@ class QuadValueBitVector():
 
         assert(len(res_bits) == (end - start + 1))
         res =  BV(res_bits)
-        print('result of slicing', self, '[', str(end), ':', str(start), '] =',res)
+        print('result of slicing', self, '[', str(end), ':', str(start), '] =', res)
         return res
 
     def __neg__(self):
@@ -155,6 +155,8 @@ class QuadValueBitVector():
             # print('val = ', val)
             if (val >= 2):
                 carry = 1
+            else:
+                carry = 0
 
             if (val == 1 or val == 3):
                 resBits.append(QVB(val % 2))
@@ -232,11 +234,16 @@ class QuadValueBitVector():
         width = self.width()
 
         a_tmp = self.zero_extend(2*width)
+        print('a_tmp = ', a_tmp)
         b = other.zero_extend(2*width)
+        print('b_tmp = ', b)
         
         for i in range(self.width() - 1, -1, -1):
             shifted_b = b << bv_from_int(width, i)
+            print('shifted_b =', shifted_b)
+            print('a_tmp     =', a_tmp)
             if (shifted_b <= a_tmp):
+                print(shifted_b, '<=', a_tmp)
                 
                 quot.set_bit(i, QVB(1))
                 a_tmp = a_tmp - shifted_b
@@ -254,14 +261,18 @@ class QuadValueBitVector():
         if (self.width() != b.width()):
             return False
 
-        for i in range(0, self.width()):
+        for i in range(self.width() - 1, -1, -1):
             ab = self.get(i)
             bb = b.get(i)
 
+            # print('ab =', ab)
+            # print('bb =', bb)
             if ab != bb:
-                if ab.is_binary() and bb.is_binary:
+                if ab.is_binary() and bb.is_binary():
                     if ab == QVB(1):
                         return False
+                    elif bb == QVB(1):
+                        return True
                 else:
                     return False
         return True
