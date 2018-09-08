@@ -10,8 +10,7 @@ def test_tc_neg_parse():
 
     print(code_gen.get_function("tc_neg").to_string())
 
-    constraints = SynthesisConstraints()
-    fsm = synthesize(code_gen, "tc_neg", [16], constraints)
+    constraints = ScheduleConstraints()
+    sched = schedule(code_gen, "tc_neg", [16], constraints)
 
-    assert(False)
-    assert(fsm.num_states() == 1)
+    assert(sched.num_states() == 1)

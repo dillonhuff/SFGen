@@ -32,7 +32,7 @@ class BinopInstr(LowInstruction):
         self.rhs = rhs
 
     def to_string(self):
-        return '\tbinop' + str(self.op) + ' ' + self.res + ' ' + self.lhs + ' ' + self.rhs + '\n'
+        return '\tbinop ' + str(self.op) + ' ' + self.res + ' ' + self.lhs + ' ' + self.rhs + '\n'
 
 class UnopInstr(LowInstruction):
     def __init__(self, op, res, in_name):
@@ -41,7 +41,7 @@ class UnopInstr(LowInstruction):
         self.in_name = in_name
 
     def to_string(self):
-        return '\tunop' + str(self.op) + ' ' + self.res + ' ' + self.in_name + '\n'
+        return '\tunop ' + str(self.op) + ' ' + self.res + ' ' + self.in_name + '\n'
         
 class CallInstr(LowInstruction):
     def __init__(self, res, func, args):
@@ -195,16 +195,16 @@ class LowCodeGenerator(ast.NodeVisitor):
         print('Error: Unsupported node type', node)
         assert(False)
     
-class SynthesisConstraints:
+class ScheduleConstraints:
     def __init__(self):
         self.num_cycles = 1
 
-class FSM:
+class Schedule:
     def __init__(self):
         return None
 
     def num_states(self):
         return 1
 
-def synthesize(code_gen, func_name, arg_widths, constraints):
-    return FSM()
+def schedule(code_gen, func_name, arg_widths, constraints):
+    return Schedule()
