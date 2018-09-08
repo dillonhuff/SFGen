@@ -54,74 +54,90 @@ def test_tc_abs():
     
     assert(sim.get_output("out") == bv("16'b0000000000000001"))
 
-def fp_mul():
-    assert(False)
+# def test_newton_raphson_divide():
+#     width = 16
 
-def test_newton_raphson_divide():
-    width = 16
+#     tc_abs = build_tc_abs(width)
 
-    tc_abs = build_tc_abs(width)
+#     div = new_function("newton_raphson_divide_" + str(width),
+#                        Variable("Q", ArrayType(width)))
+#     div.add_input("N", ArrayType(width))
+#     div.add_input("D", ArrayType(width))
 
-    div = new_function("newton_raphson_divide_" + str(width),
-                       Variable("Q", ArrayType(width)))
-    div.add_input("N", ArrayType(width))
-    div.add_input("D", ArrayType(width))
+#     N = div.get("N")    
+#     D = div.get("D")
 
-    N = div.get("N")    
-    D = div.get("D")
+#     absN = div.asg(unop(tc_abs, div.get("N")))
+#     absD = div.asg(unop(tc_abs, div.get("D")))
 
-    absN = div.asg(unop(tc_abs, div.get("N")))
-    absD = div.asg(unop(tc_abs, div.get("D")))
+#     lzc = div.asg(lead_zero_count(absD))
+#     shift_distance = div.asg(lzc - const(width, 1))
 
-    lzc = div.asg(lead_zero_count(absD))
-    shift_distance = div.asg(lzc - const(width, 1))
+#     N_sgn = div.asg(N[(width - 1):(width - 1)])
+#     D_sgn = div.asg(D[(width - 1):(width - 1)])
 
-    N_sgn = div.asg(N[(width - 1):(width - 1)])
-    D_sgn = div.asg(D[(width - 1):(width - 1)])
+#     #q_tmp = div.asg(absN / absD)
 
-    q_tmp = div.asg(absN / absD)
+#     D_ = div.asg(absD << shift_distance)
 
-    D_ = div.asg(absD << shift_distance)
-    one = div.asg(const(width, 1 << (width - 1)))
-    oneW = div.asg(const(2*width, 1 << (2*width - 1)))
-    X = div.asg(oneW / zero_extend(2*width, D_))
+#     div.printout('D_ = %b', [D_])
+    
+#     one = div.asg(const(width, 1 << (width - 1)))
 
-    widthC = div.asg(const(width, width))
-    res_shift = div.asg(widthC + (widthC - shift_distance - const(width, 2)))
-    res_mul = div.asg(zero_extend(2*width, N) * zero_extend(2*width, X))
+#     # Approximate 1 / D_
+#     oneW = div.asg(const(2*width, 1 << (2*width - 1)))
+#     div.printout('oneW = %b', [oneW])
 
-    div.printout('X         = %b', [X])
-    div.printout('N         = %b', [N])
-    div.printout('res_mul   = %b', [res_mul])
-    div.printout('res_shift = %b', [res_shift])
+#     X_tmp = div.asg(oneW / zero_extend(2*width, D_))
 
-    tmp_res = div.asg((res_mul >> res_shift)[0:(width - 1)])
+#     div.printout('X_tmp = %b', [X_tmp])
 
-    # X = div.asg(one) #div.asg(one / D_)
-    # X = div.asg(X + fpmul(X, (one - fp_mul(D_, X, width - 1)), width - 1))
-    # X = div.asg(X + fpmul(X, (one - fp_mul(D_, X, width - 1)), width - 1))
-    # X = div.asg(X + fpmul(X, (one - fp_mul(D_, X, width - 1)), width - 1))
-    # X = div.asg(X + fpmul(X, (one - fp_mul(D_, X, width - 1)), width - 1))
-    # X = div.asg(X + fpmul(X, (one - fp_mul(D_, X, width - 1)), width - 1))    
+#     X_norm = div.asg(X_tmp << lead_zero_count(X_tmp))
 
-    #tmp_res = div.asg(zero_extend(2*width, N)*zero_extend(2*width, X))
-    div.add_assign(div.get("Q"),
-                   case_tf(eq(N_sgn, D_sgn),
-                           tmp_res,
-                           -tmp_res))
-                           # q_tmp,
-                           # X))
-#                           X))
-#                           -q_tmp))
+#     div.printout('X_norm = %b', [X_norm])
 
-    sim = Simulator(div)
-    sim.set_input("N", bv("16'b10010"))
-    sim.set_input("D", bv("16'b110"))
-    sim.evaluate()
-    assert(sim.get_output("Q") == bv("16'b11"))
+#     X = X_norm[2*width - width : 2*width - 1]
 
-    sim.set_input("N", bv("16'b10010"))
-    sim.set_input("D", -bv("16'b110"))
-    sim.evaluate()
-    assert(sim.get_output("Q") == -bv("16'b11"))
+#     div.printout('X = %b', [X])
+    
+#     widthC = div.asg(const(width, width))
+#     res_shift = div.asg(widthC + (widthC - shift_distance - const(width, 2)))
+#     res_mul = div.asg(zero_extend(2*width, N) * zero_extend(2*width, X))
+
+#     div.printout('X         = %b', [X])
+#     div.printout('N         = %b', [N])
+#     div.printout('res_mul   = %b', [res_mul])
+#     div.printout('res_shift = %b', [res_shift])
+
+#     tmp_res = div.asg((res_mul << res_shift)[0:(width - 1)])
+
+#     div.printout('tmp_res = %b', [tmp_res])
+
+#     # X = div.asg(one) #div.asg(one / D_)
+#     # X = div.asg(X + fpmul(X, (one - fp_mul(D_, X, width - 1)), width - 1))
+#     # X = div.asg(X + fpmul(X, (one - fp_mul(D_, X, width - 1)), width - 1))
+#     # X = div.asg(X + fpmul(X, (one - fp_mul(D_, X, width - 1)), width - 1))
+#     # X = div.asg(X + fpmul(X, (one - fp_mul(D_, X, width - 1)), width - 1))
+#     # X = div.asg(X + fpmul(X, (one - fp_mul(D_, X, width - 1)), width - 1))    
+
+#     #tmp_res = div.asg(zero_extend(2*width, N)*zero_extend(2*width, X))
+#     div.add_assign(div.get("Q"),
+#                    case_tf(eq(N_sgn, D_sgn),
+#                            tmp_res,
+#                            -tmp_res))
+#                            # q_tmp,
+#                            # X))
+# #                           X))
+# #                           -q_tmp))
+
+#     sim = Simulator(div)
+#     sim.set_input("N", bv("16'b10010"))
+#     sim.set_input("D", bv("16'b110"))
+#     sim.evaluate()
+#     assert(sim.get_output("Q") == bv("16'b11"))
+
+#     sim.set_input("N", bv("16'b10010"))
+#     sim.set_input("D", -bv("16'b110"))
+#     sim.evaluate()
+#     assert(sim.get_output("Q") == -bv("16'b11"))
     

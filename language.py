@@ -379,7 +379,7 @@ class Simulator:
                 assert(False)
 
     def evaluate_expression(self, expr):
-        print('Evaluating ', expr)
+        #print('Evaluating ', expr)
         if (isinstance(expr, Variable)):
             return self.values[expr.get_name()];
         elif (isinstance(expr, FunctionCall)):
