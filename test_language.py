@@ -83,13 +83,19 @@ def test_newton_raphson_divide():
 
     D_ = div.asg(absD << shift_distance)
     one = div.asg(const(width, 1 << (width - 1)))
-    X = div.asg(one / absD)
+    oneW = div.asg(const(2*width, 1 << (2*width - 1)))
+    X = div.asg(oneW / zero_extend(2*width, D_))
 
     widthC = div.asg(const(width, width))
-    res_shift = div.asg(widthC + (widthC - shiftDistance - const(width, 2)))
-    # After computing X, compute N*X and normalize
-    tmp_res = div.asg(((zero_extend(2*width, N) * zero_extend(2*width, X)) >>
-                       res_shift)[0:(width - 1)])
+    res_shift = div.asg(widthC + (widthC - shift_distance - const(width, 2)))
+    res_mul = div.asg(zero_extend(2*width, N) * zero_extend(2*width, X))
+
+    div.printout('X         = %b', [X])
+    div.printout('N         = %b', [N])
+    div.printout('res_mul   = %b', [res_mul])
+    div.printout('res_shift = %b', [res_shift])
+
+    tmp_res = div.asg((res_mul >> res_shift)[0:(width - 1)])
 
     # X = div.asg(one) #div.asg(one / D_)
     # X = div.asg(X + fpmul(X, (one - fp_mul(D_, X, width - 1)), width - 1))

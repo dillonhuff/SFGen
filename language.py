@@ -12,6 +12,14 @@ class AssignStmt(Statement):
         self.lhs = lhs
         self.rhs = rhs
 
+class PrintStmt(Statement):
+    def __init__(self, print_str, args):
+        assert(isinstance(print_str, str))
+
+        Statement.__init__(self)
+        self.print_str = print_str
+        self.args = args
+
 class BlockStmt(Statement):
     def __init__(self, i):
         Statement.__init__(self)
@@ -21,8 +29,11 @@ class BlockStmt(Statement):
         assert(isinstance(rhs, Expression))
 
         self.stmts.append(AssignStmt(lhs, rhs))
-        print('New # of stmts =', len(self.stmts))
+        #print('New # of stmts =', len(self.stmts))
 
+    def add_printout(self, print_str, args):
+        self.stmts.append(PrintStmt(print_str, args))
+        
     def get_stmts(self):
         return self.stmts
 
@@ -91,6 +102,9 @@ class Function:
     def add_assign(self, lhs, rhs):
         self.stmt.add_assign(lhs, rhs)
 
+    def printout(self, print_str, args):
+        self.stmt.add_printout(print_str, args)
+
     def asg(self, rhs):
         lhs = self.unique_var(rhs.get_type())
         self.add_assign(lhs, rhs)
@@ -153,7 +167,7 @@ class Expression:
 class Variable(Expression):
     
     def __init__(self, name, width):
-        print('Width name = ', type(width).__name__)
+        #print('Width name = ', type(width).__name__)
         assert(isinstance(width, ArrayType))
         Expression.__init__(self, width)
         self.name = name
@@ -435,6 +449,26 @@ class Simulator:
                 lhs = stmt.lhs
                 rhs = stmt.rhs
                 self.set_value(lhs, self.evaluate_expression(rhs))
+            elif (isinstance(stmt, PrintStmt)):
+                pstr = stmt.print_str
+                res_str = ''
+                i = 0
+                arg_ind = 0
+                while i < len(pstr):
+                    ci = pstr[i]
+                    if ci != '%':
+                        res_str += ci
+                        i += 1
+                    elif pstr[(i + 1)] == 'b':
+                        arg = stmt.args[0]
+                        arg_ind += 1
+                        i += 2
+                        res_str += self.evaluate_expression(arg).to_string()
+                    else:
+                        print('Error: Unsupported format directive', ci, 'in', pstr)
+                        assert(False)
+
+                print(res_str)
             else:
                 print('Error: Illegal statement type', type(stmt).__name__)
                 assert(False)
