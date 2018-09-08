@@ -50,7 +50,12 @@ class CallInstr(LowInstruction):
         self.args = args
 
     def to_string(self):
-        return '\tcall ' + self.res + ' ' + str(self.func) + '\n'
+        s = '\tcall ' + self.res + ' ' + str(self.func)
+        arg_strs = []
+        for a in self.args:
+            arg_strs.append(str(a))
+        s += comma_list(arg_strs)
+        s += '\n'
         
 class LowFunctionDef:
     def __init__(self, name, args):
