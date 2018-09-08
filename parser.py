@@ -201,10 +201,32 @@ class ScheduleConstraints:
 
 class Schedule:
     def __init__(self):
-        return None
+        self.functional_units = []
+
+    def add_unit(self, unit):
+        self.functional_units.append((unit, []))
 
     def num_states(self):
         return 1
 
+    def num_functional_units(self):
+        return len(self.functional_units)
+
+class FunctionalUnit:
+    def __init__(self, name):
+        self.name = name
+
+    def get_name(self):
+        return self.name
+
+def functional_unit(instr):
+    return FunctionalUnit("add")
+
 def schedule(code_gen, func_name, arg_widths, constraints):
-    return Schedule()
+    f = code_gen.get_function(func_name)
+    s = Schedule()
+    for instr in f.instructions:
+        s.add_unit(functional_unit(instr))
+
+
+    return s

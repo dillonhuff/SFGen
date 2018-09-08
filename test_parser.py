@@ -14,3 +14,5 @@ def test_tc_neg_parse():
     sched = schedule(code_gen, "tc_neg", [16], constraints)
 
     assert(sched.num_states() == 1)
+
+    assert(sched.num_functional_units() == 2)
