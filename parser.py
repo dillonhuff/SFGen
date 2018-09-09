@@ -341,7 +341,9 @@ def unify_types(spec_f, f):
     print('Unified constraints')
     for c in resolved:
         print(c)
-    assert(False)
+        prim = get_primitives(c)
+        spec_f.set_symbol_type(prim[0], prim[1])
+    #assert(False)
                     
 
 def specialize_types(code_gen, func_name, func_arg_types):
@@ -364,5 +366,7 @@ def specialize_types(code_gen, func_name, func_arg_types):
     unify_types(spec_f, func)
 
     print(spec_f.to_string())
+
+    assert(False)
 
     return spec_f
