@@ -272,25 +272,77 @@ def schedule(code_gen, func_name, arg_widths, constraints):
 
     return s
 
-def unify_types(instr, spec_f):
-    constraints = []
-    if isinstance(instr, UnopInstr):
-        res = instr.res
-        operand = instr.in_name
+def get_primitives(c):
+    if isinstance(c[0], l.Type) and isinstance(c[1], str):
+        return (c[1], c[0])
+    if isinstance(c[1], l.Type) and isinstance(c[0], str):
+        return (c[0], c[1])
 
-        # Adjust to deal with slices?
-        in_tp = spec_f.symbol_type(operand)
-        res_tp = spec_f.symbol_type(res)
-        constraints.append((in_tp, res_tp))
-        #spec_f.set_symbol_type(res, in_tp)
+    return None
+
+def substitute(name, tp, c):
+    if c == name:
+        return tp
     else:
-        print('Error: Cannot unify types in instruction', instr.to_string)
-        #assert(False)
+        return c
+
+def substitute_constraint(name, tp, c):
+    return (substitute(name, tp, c[0]), substitute(name, tp, c[1]))
+
+def unify_types(spec_f, f):
+    constraints = []
+    for sym in spec_f.symbol_table:
+        if spec_f.symbol_type(sym) != None:
+            constraints.append((sym, spec_f.symbol_type(sym)))
+
+
+    for instr in f.instructions:
+        if isinstance(instr, UnopInstr):
+            res = instr.res
+            operand = instr.in_name
+            constraints.append((res, operand))
+        elif isinstance(instr, BinopInstr):
+            res = instr.res
+            a = instr.lhs
+            b = instr.rhs
+            constraints.append((res, a))
+            constraints.append((a, b))
+        else:
+            print('Error: Cannot unify types in instruction', instr.to_string)
 
     print('Type constraints')
     for c in constraints:
         print(c)
+
+    resolved = []
+    clen = len(constraints)
+    while len(resolved) < clen:
+        primitives = None
+        for ind in range(0, len(constraints)):
+            c = constraints[ind]
+            primitives = get_primitives(c)
+            if primitives != None:
+                resolved.append(c)
+                print('Resolved', c)
+                break
+
+        
+        new_constraints = []
+        for i in range(0, len(constraints)):
+            if i != ind:
+                other = constraints[i]
+                rs = substitute_constraint(primitives[0], primitives[1], other)
+                new_constraints.append(rs)
+        constraints = new_constraints
+
+    # After unifying resolve all calls to widths and replace the results with
+    # appropriate constants.
+
+    print('Unified constraints')
+    for c in resolved:
+        print(c)
     assert(False)
+                    
 
 def specialize_types(code_gen, func_name, func_arg_types):
     spec_name = func_name
@@ -309,8 +361,8 @@ def specialize_types(code_gen, func_name, func_arg_types):
         spec_f.set_symbol_type(sym, sym_map[sym])
 
     instrs = []
-    for instr in func.instructions:
-        # Build a copy of the instruction and then set the symbol table types?
-        unify_types(instr, spec_f)
+    unify_types(spec_f, func)
+
+    print(spec_f.to_string())
 
     return spec_f
