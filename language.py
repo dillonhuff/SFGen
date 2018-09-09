@@ -44,17 +44,16 @@ class Type:
 class IntegerType(Type):
     def __init__(self):
         Type.__init__(self)
-        return None
 
     def to_string(self):
         return 'Z'
 
+    def __str__(self):
+        return self.to_string()
+
     def __repr__(self):
         return self.to_string()
 
-    def __str__(self):
-        return self.to_string()
-    
 class ArrayType(Type):
     def __init__(self, w):
         Type.__init__(self)
@@ -71,7 +70,7 @@ class ArrayType(Type):
 
     def __repr__(self):
         return self.to_string()
-
+    
 class Function:
     def __init__(self, name, inputs, output):
         self.name = name

@@ -1,6 +1,9 @@
 from bit_vector import *
 from language import *
 
+def test_int_type(width):
+    assert(IntegerType() == IntegerType())
+
 def build_tc_negate(width):
     assert(isinstance(width, int))
     

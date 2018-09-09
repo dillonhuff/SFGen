@@ -318,15 +318,13 @@ def unify_types(spec_f, f):
             constraints.append((a, b))
         elif isinstance(instr, ConstDecl):
             res = instr.res_name
-            constraints.append((res, l.IntegerType))
+            constraints.append((res, l.IntegerType()))
         else:
             print('Error: Cannot unify types in instruction', instr.to_string)
 
     print('Type constraints')
     for c in constraints:
         print(c)
-
-    assert(False)
 
     resolved = []
     clen = len(constraints)
