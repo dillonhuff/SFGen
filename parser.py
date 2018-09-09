@@ -346,6 +346,39 @@ def unify_types(spec_f, f):
     #assert(False)
                     
 
+# TODO: Unpack width calls so that the inner expression is available
+def evaluate_widths(spec_f):
+
+    width_values = {}
+    new_instrs = []
+    for instr in spec_f.instructions:
+        if isinstance(instr, CallInstr):
+            print(instr)
+            f = instr.func
+            if (isinstance(f, ast.Attribute)):
+
+                print('Attribute =', f.attr)
+                assert(f.attr == 'width')
+                res = instr.res
+                target = f.value
+                assert(isinstance(target, ast.Name))
+                print('Value =', ast.dump(target))
+                width_values[res] = spec_f.symbol_type(target.id).width()
+            elif isinstance(f, ast.Name):
+                assert(f.id == 'bv_from_int')
+            else:
+                assert(False)
+        else:
+            new_instrs.append(instr)
+
+    print('Width values')
+    for w in width_values:
+        print(w, ' -> ', width_values[w])
+
+    spec_f.instructions = new_instrs
+
+    return
+
 def specialize_types(code_gen, func_name, func_arg_types):
     spec_name = func_name
     func = code_gen.get_function(func_name)
@@ -369,6 +402,10 @@ def specialize_types(code_gen, func_name, func_arg_types):
 
     print(spec_f.to_string())
 
+    evaluate_widths(spec_f)
+
+    print(spec_f.to_string())
+    
     assert(False)
 
     return spec_f
