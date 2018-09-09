@@ -33,7 +33,7 @@ class ConstBVDecl:
         self.value = b.bv_from_int(width, val)
 
     def to_string(self):
-        return '\tconst ' + self.res_name + ' ' + str(self.value) + '\n'
+        return '\tconstbv ' + self.res_name + ' ' + str(self.value) + '\n'
     
 class ReturnInstr(LowInstruction):
     def __init__(self, name):
