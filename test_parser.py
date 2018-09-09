@@ -1,4 +1,5 @@
 from parser import *
+import language as l
 import ast
 
 def test_tc_neg_parse():
@@ -11,6 +12,10 @@ def test_tc_neg_parse():
     print(code_gen.get_function("tc_neg").to_string())
 
     constraints = ScheduleConstraints()
+    f_spec = specialize_types(code_gen, "tc_neg", [l.ArrayType(16)])
+
+    print(f_spec.to_string())
+    
     sched = schedule(code_gen, "tc_neg", [16], constraints)
 
     assert(sched.num_states() == 1)

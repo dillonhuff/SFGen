@@ -1,4 +1,5 @@
 import ast
+import language as l
 
 def comma_list(strs):
     ls = ''
@@ -16,6 +17,14 @@ class LowInstruction:
 
     def to_string(self):
         return '\tUNKNOWN_INSTR\n'
+
+class ConstDecl:
+    def __init__(self, res_name, num):
+        self.res_name = res_name
+        self.num = num
+
+    def to_string(self):
+        return '\tconst ' + self.res_name + ' ' + str(self.num) + '\n'
 
 class ReturnInstr(LowInstruction):
     def __init__(self, name):
@@ -50,12 +59,14 @@ class CallInstr(LowInstruction):
         self.args = args
 
     def to_string(self):
-        s = '\tcall ' + self.res + ' ' + str(self.func)
+        s = '\tcall ' + self.res + ' ' + str(self.func) + ' '
         arg_strs = []
         for a in self.args:
             arg_strs.append(str(a))
         s += comma_list(arg_strs)
         s += '\n'
+
+        return s
         
 class LowFunctionDef:
     def __init__(self, name, args):
@@ -154,8 +165,17 @@ class LowCodeGenerator(ast.NodeVisitor):
 
         elif isinstance(expr, ast.Call):
             res = self.active_function.fresh_sym()
-            self.active_function.add_instr(CallInstr(res, expr.func, expr.args))
+            arg_exprs = []
+            for arg in expr.args:
+                self.visit_Expr(arg)
+                arg_exprs.append(self.expr_name(arg))
+            self.active_function.add_instr(CallInstr(res, expr.func, arg_exprs))
             self.expr_names[expr] = res
+
+        elif isinstance(expr, ast.Num):
+            n = self.active_function.fresh_sym()
+            self.active_function.add_instr(ConstDecl(n, expr.n))
+            self.expr_names[expr] = n
         else:
             print('Error: Unhandled expression:', ast.dump(expr))
             assert(False)
@@ -235,3 +255,9 @@ def schedule(code_gen, func_name, arg_widths, constraints):
 
 
     return s
+
+def specialize_types(code_gen, func_name, func_arg_types):
+    spec_name = func_name
+    for tp in func_arg_types:
+        spec_name += '_' + str(tp.width())
+    return LowFunctionDef(spec_name, [])
