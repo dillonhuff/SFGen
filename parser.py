@@ -273,8 +273,7 @@ class FunctionalUnit:
 def functional_unit(instr):
     return FunctionalUnit("add")
 
-def schedule(code_gen, func_name, arg_widths, constraints):
-    f = code_gen.get_function(func_name)
+def schedule(code_gen, f, constraints):
     s = Schedule()
     for instr in f.instructions:
         s.add_unit(functional_unit(instr))
@@ -438,6 +437,45 @@ def evaluate_widths(spec_f):
 
     return
 
+def is_argument_of(v, instr):
+    if isinstance(instr, ConstDecl):
+        return False
+    if isinstance(instr, ConstBVDecl):
+        return False
+    if isinstance(instr, UnopInstr):
+        return instr.in_name == v
+    if isinstance(instr, BinopInstr):
+        return instr.lhs == v or instr.rhs == v
+    if isinstance(instr, ReturnInstr):
+        return instr.val_name == v
+
+    print('Error: Unsupported instruction type', instr)
+    assert(False)
+
+def is_dead_value(v, func):
+    for instr in func.instructions:
+        if (is_argument_of(v, instr)):
+            return False
+
+    return True
+
+    
+def delete_dead_instructions(func):
+    new_instrs = []
+    for instr in func.instructions:
+        if isinstance(instr, BinopInstr) or isinstance(instr, UnopInstr):
+            res = instr.res
+            if (not is_dead_value(res, func)):
+                new_instrs.append(instr)
+        elif isinstance(instr, ConstDecl):
+            res = instr.res_name
+            if (not is_dead_value(res, func)):
+                new_instrs.append(instr)
+        else:
+            new_instrs.append(instr)
+
+    func.instructions = new_instrs
+    
 def specialize_types(code_gen, func_name, func_arg_types):
     spec_name = func_name
     func = code_gen.get_function(func_name)
@@ -465,7 +503,7 @@ def specialize_types(code_gen, func_name, func_arg_types):
     evaluate_widths(spec_f)
 
     print(spec_f.to_string())
-    
-    assert(False)
 
+    delete_dead_instructions(spec_f)
+    
     return spec_f

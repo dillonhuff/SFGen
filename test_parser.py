@@ -17,7 +17,7 @@ def test_tc_neg_parse():
     print('')
     print(f_spec.to_string())
     
-    sched = schedule(code_gen, "tc_neg", [16], constraints)
+    sched = schedule(code_gen, f_spec, constraints)
 
     assert(sched.num_states() == 1)
 
