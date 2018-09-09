@@ -14,6 +14,7 @@ def test_tc_neg_parse():
     constraints = ScheduleConstraints()
     f_spec = specialize_types(code_gen, "tc_neg", [l.ArrayType(16)])
 
+    print('')
     print(f_spec.to_string())
     
     sched = schedule(code_gen, "tc_neg", [16], constraints)

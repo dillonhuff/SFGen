@@ -48,6 +48,12 @@ class ArrayType(Type):
     def width(self):
         return self.w
 
+    def to_string(self):
+        return '[' + str(self.w) + ']'
+
+    def __str__(self):
+        return self.to_string()
+
 class Function:
     def __init__(self, name, inputs, output):
         self.name = name

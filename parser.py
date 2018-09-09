@@ -75,7 +75,17 @@ class LowFunctionDef:
         self.instructions = []
         self.unique_num = 0
         self.symbol_table = {}
+        for arg in args:
+            self.symbol_table[arg] = None
 
+    def get_arg(self, ind):
+        assert(isinstance(ind, int))
+        return self.args[ind]
+
+    def set_symbol_type(self, name, tp):
+        assert(name in self.symbol_table)
+        self.symbol_table[name] = tp
+    
     def has_symbol(self, name):
         return name in self.symbol_table
 
@@ -92,7 +102,11 @@ class LowFunctionDef:
         return name
         
     def to_string(self):
-        s = 'function ' + self.name + '('
+        s = 'symbols\n';
+        for sym in self.symbol_table:
+            s += '\t' + sym + ' -> ' + str(self.symbol_table[sym]) + '\n'
+        s += 'endsymbols\n\n'
+        s += 'function ' + self.name + '('
         s += comma_list(self.args) + ')\n'
         for instr in self.instructions:
             s += instr.to_string()
@@ -161,7 +175,7 @@ class LowCodeGenerator(ast.NodeVisitor):
         elif isinstance(expr, ast.Name):
             if not self.active_function.has_symbol(expr.id):
                 self.active_function.add_symbol(expr.id, None)
-                self.expr_names[expr] = expr.id
+            self.expr_names[expr] = expr.id
 
         elif isinstance(expr, ast.Call):
             res = self.active_function.fresh_sym()
@@ -253,11 +267,22 @@ def schedule(code_gen, func_name, arg_widths, constraints):
     for instr in f.instructions:
         s.add_unit(functional_unit(instr))
 
-
     return s
 
 def specialize_types(code_gen, func_name, func_arg_types):
     spec_name = func_name
+    func = code_gen.get_function(func_name)
+    sym_map = {}
+    i = 0
     for tp in func_arg_types:
         spec_name += '_' + str(tp.width())
-    return LowFunctionDef(spec_name, [])
+        sym_map[func.get_arg(i)] = tp
+        i += 1
+
+    spec_f = LowFunctionDef(spec_name, func.args)
+    for sym in sym_map:
+        spec_f.set_symbol_type(sym, sym_map[sym])
+
+    instrs = []
+
+    return spec_f
