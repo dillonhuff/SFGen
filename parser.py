@@ -1,5 +1,6 @@
 import ast
 import language as l
+import bit_vector as b
 
 def comma_list(strs):
     ls = ''
@@ -26,6 +27,14 @@ class ConstDecl:
     def to_string(self):
         return '\tconst ' + self.res_name + ' ' + str(self.num) + '\n'
 
+class ConstBVDecl:
+    def __init__(self, res_name, width, val):
+        self.res_name = res_name
+        self.value = b.bv_from_int(width, val)
+
+    def to_string(self):
+        return '\tconst ' + self.res_name + ' ' + str(self.value) + '\n'
+    
 class ReturnInstr(LowInstruction):
     def __init__(self, name):
         self.val_name = name
@@ -345,7 +354,13 @@ def unify_types(spec_f, f):
         spec_f.set_symbol_type(prim[0], prim[1])
     #assert(False)
                     
-
+def get_const_int(name, func):
+    for instr in func.instructions:
+        if isinstance(instr, ConstDecl):
+            if instr.res_name == name:
+                return instr.num
+    print('Error: Cannot find constant', name, 'in\n', func.to_string())
+    assert(False)
 # TODO: Unpack width calls so that the inner expression is available
 def evaluate_widths(spec_f):
 
@@ -366,11 +381,22 @@ def evaluate_widths(spec_f):
                 width_values[res] = spec_f.symbol_type(target.id).width()
 
                 new_instrs.append(ConstDecl(instr.res, width_values[res]))
-            elif isinstance(f, ast.Name):
-                assert(f.id == 'bv_from_int')
-                assert(False) # Lookup values and create constant!
             else:
-                assert(False)
+                new_instrs.append(instr)
+            # elif isinstance(f, ast.Name):
+            #     assert(f.id == 'bv_from_int')
+            #     bv_width_name = instr.args[0]
+            #     bv_val_name = instr.args[1]
+
+            #     print('width =', bv_width_name)
+            #     print('val   =', bv_val_name)
+
+            #     bv_val = get_const_int(bv_width_name, spec_f)
+            #     bv_width = get_const_value(bv_val_name,)
+
+            #     new_instrs.append(ConstBVDecl(instr.res, bv_val, bv_width))
+            #     assert(False) # Lookup values and create constant!
+#            else:
         else:
             new_instrs.append(instr)
 
@@ -379,6 +405,34 @@ def evaluate_widths(spec_f):
         print(w, ' -> ', width_values[w])
 
     spec_f.instructions = new_instrs
+
+    new_instrs = []
+    for instr in spec_f.instructions:
+        print('Second scan')
+        if isinstance(instr, CallInstr):
+            print(instr)
+            f = instr.func
+            if isinstance(f, ast.Name):
+                print('Is instance')
+                assert(f.id == 'bv_from_int')
+                bv_width_name = instr.args[0]
+                bv_val_name = instr.args[1]
+
+                print('width =', bv_width_name)
+                print('val   =', bv_val_name)
+
+                bv_val = get_const_int(bv_width_name, spec_f)
+                bv_width = get_const_int(bv_val_name, spec_f)
+
+                new_instrs.append(ConstBVDecl(instr.res, bv_val, bv_width))
+            else:
+                assert(False)
+        else:
+            new_instrs.append(instr)
+
+    spec_f.instructions = new_instrs
+    
+    #print('New instrs = ', spec_f.to_string())
 
     return
 
