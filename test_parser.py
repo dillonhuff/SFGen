@@ -16,6 +16,8 @@ def test_tc_neg_parse():
 
     print('')
     print(f_spec.to_string())
+
+    assert(f_spec.symbol_type('a') == l.ArrayType(16))
     
     sched = schedule(code_gen, f_spec, constraints)
 

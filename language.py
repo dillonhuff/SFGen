@@ -59,6 +59,11 @@ class ArrayType(Type):
         Type.__init__(self)
         self.w = w
 
+    def __eq__(self, other):
+        if (not isinstance(other, ArrayType)):
+            return False
+        return self.w == other.w
+
     def width(self):
         return self.w
 

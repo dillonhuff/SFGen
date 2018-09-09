@@ -303,7 +303,6 @@ def unify_types(spec_f, f):
         if spec_f.symbol_type(sym) != None:
             constraints.append((sym, spec_f.symbol_type(sym)))
 
-
     for instr in f.instructions:
         if isinstance(instr, UnopInstr):
             res = instr.res
