@@ -54,6 +54,9 @@ class ArrayType(Type):
     def __str__(self):
         return self.to_string()
 
+    def __repr__(self):
+        return self.to_string()
+
 class Function:
     def __init__(self, name, inputs, output):
         self.name = name

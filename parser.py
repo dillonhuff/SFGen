@@ -82,8 +82,11 @@ class LowFunctionDef:
         assert(isinstance(ind, int))
         return self.args[ind]
 
-    def set_symbol_type(self, name, tp):
+    def symbol_type(self, name):
         assert(name in self.symbol_table)
+        return self.symbol_table[name]
+    
+    def set_symbol_type(self, name, tp):
         self.symbol_table[name] = tp
     
     def has_symbol(self, name):
@@ -269,6 +272,26 @@ def schedule(code_gen, func_name, arg_widths, constraints):
 
     return s
 
+def unify_types(instr, spec_f):
+    constraints = []
+    if isinstance(instr, UnopInstr):
+        res = instr.res
+        operand = instr.in_name
+
+        # Adjust to deal with slices?
+        in_tp = spec_f.symbol_type(operand)
+        res_tp = spec_f.symbol_type(res)
+        constraints.append((in_tp, res_tp))
+        #spec_f.set_symbol_type(res, in_tp)
+    else:
+        print('Error: Cannot unify types in instruction', instr.to_string)
+        #assert(False)
+
+    print('Type constraints')
+    for c in constraints:
+        print(c)
+    assert(False)
+
 def specialize_types(code_gen, func_name, func_arg_types):
     spec_name = func_name
     func = code_gen.get_function(func_name)
@@ -280,9 +303,14 @@ def specialize_types(code_gen, func_name, func_arg_types):
         i += 1
 
     spec_f = LowFunctionDef(spec_name, func.args)
+    for sym in func.symbol_table:
+        spec_f.add_symbol(sym, func.symbol_type(sym))
     for sym in sym_map:
         spec_f.set_symbol_type(sym, sym_map[sym])
 
     instrs = []
+    for instr in func.instructions:
+        # Build a copy of the instruction and then set the symbol table types?
+        unify_types(instr, spec_f)
 
     return spec_f
