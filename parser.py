@@ -362,8 +362,10 @@ def specialize_types(code_gen, func_name, func_arg_types):
     for sym in sym_map:
         spec_f.set_symbol_type(sym, sym_map[sym])
 
-    instrs = []
     unify_types(spec_f, func)
+
+    for instr in func.instructions:
+        spec_f.instructions.append(instr)
 
     print(spec_f.to_string())
 
