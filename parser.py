@@ -364,8 +364,11 @@ def evaluate_widths(spec_f):
                 assert(isinstance(target, ast.Name))
                 print('Value =', ast.dump(target))
                 width_values[res] = spec_f.symbol_type(target.id).width()
+
+                new_instrs.append(ConstDecl(instr.res, width_values[res]))
             elif isinstance(f, ast.Name):
                 assert(f.id == 'bv_from_int')
+                assert(False) # Lookup values and create constant!
             else:
                 assert(False)
         else:
@@ -390,6 +393,7 @@ def specialize_types(code_gen, func_name, func_arg_types):
         i += 1
 
     spec_f = LowFunctionDef(spec_name, func.args)
+    spec_f.unique_num = func.unique_num
     for sym in func.symbol_table:
         spec_f.add_symbol(sym, func.symbol_type(sym))
     for sym in sym_map:
