@@ -316,12 +316,17 @@ def unify_types(spec_f, f):
             b = instr.rhs
             constraints.append((res, a))
             constraints.append((a, b))
+        elif isinstance(instr, ConstDecl):
+            res = instr.res_name
+            constraints.append((res, l.IntegerType))
         else:
             print('Error: Cannot unify types in instruction', instr.to_string)
 
     print('Type constraints')
     for c in constraints:
         print(c)
+
+    assert(False)
 
     resolved = []
     clen = len(constraints)
@@ -352,7 +357,6 @@ def unify_types(spec_f, f):
         print(c)
         prim = get_primitives(c)
         spec_f.set_symbol_type(prim[0], prim[1])
-    #assert(False)
                     
 def get_const_int(name, func):
     for instr in func.instructions:
