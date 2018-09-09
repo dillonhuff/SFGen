@@ -24,3 +24,5 @@ def test_tc_neg_parse():
     assert(sched.num_states() == 1)
 
     assert(sched.num_functional_units() == 2)
+
+    assert(sched.get_binding(f_spec.instructions[0]) == ("invert_16_0", 0))

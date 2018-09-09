@@ -254,6 +254,17 @@ class Schedule:
     def __init__(self):
         self.functional_units = []
 
+    def get_binding(self, instr):
+        for func in self.functional_units:
+            sched = func[1]
+            print('Checking', sched)
+            for i in range(0, len(sched)):
+                print('i =', i)
+                it = sched[i]
+                if it == instr:
+                    return i
+        assert(False)
+
     def add_unit(self, unit):
         self.functional_units.append((unit, []))
 
