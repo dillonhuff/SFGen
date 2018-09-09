@@ -45,6 +45,9 @@ class IntegerType(Type):
     def __init__(self):
         Type.__init__(self)
 
+    def __eq__(self, other):
+        return isinstance(other, IntegerType)
+
     def to_string(self):
         return 'Z'
 

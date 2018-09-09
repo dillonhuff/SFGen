@@ -263,20 +263,26 @@ class Schedule:
     def num_functional_units(self):
         return len(self.functional_units)
 
-class FunctionalUnit:
-    def __init__(self, name):
+class Operation:
+    def __init__(self, name, parameters):
         self.name = name
+        self.parameters = parameters
+
+class FunctionalUnit:
+    def __init__(self, op):
+        self.op = op
 
     def get_name(self):
-        return self.name
+        return self.op.name
 
 def functional_unit(instr):
-    return FunctionalUnit("add")
+    return FunctionalUnit(Operation("add", []))
 
 def schedule(code_gen, f, constraints):
     s = Schedule()
     for instr in f.instructions:
-        s.add_unit(functional_unit(instr))
+        if not isinstance(instr, ReturnInstr) and not isinstance(instr, ConstBVDecl):
+            s.add_unit(functional_unit(instr))
 
     return s
 

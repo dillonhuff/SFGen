@@ -1,7 +1,7 @@
 from bit_vector import *
 from language import *
 
-def test_int_type(width):
+def test_int_type():
     assert(IntegerType() == IntegerType())
 
 def build_tc_negate(width):
