@@ -27,7 +27,7 @@ class Cell:
 def module_for_functional_unit(unit):
     if (has_prefix(unit.name, 'add_')):
         width = unit.parameters[0]
-        m = Module('add_' + str(width))
+        m = Module('builtin_add_' + str(width))
         m.add_in_port('in0', width)
         m.add_in_port('in1', width)
         m.add_out_port('out', width)
@@ -35,7 +35,7 @@ def module_for_functional_unit(unit):
 
     if (has_prefix(unit.name, 'invert_')):
         width = unit.parameters[0]
-        m = Module('invert_' + str(width))
+        m = Module('builtin_invert_' + str(width))
         m.add_in_port('in', width)
         m.add_out_port('out', width)
         return m
@@ -110,6 +110,16 @@ def verilog_wire_decls(rtl_mod):
             decls += '\twire [' + str(w.width - 1) + ':0] ' + w.name + ';\n'
     return decls
 
+def verilog_port_connections(input_schedule, module):
+    print('Input schedule for', module)
+    for i in input_schedule:
+        print('\t', i)
+
+    assert(len(input_schedule) == 1)
+    
+    conn_strings = []
+    return conn_strings
+
 def verilog_string(rtl_mod):
 
     mod_str = ''
@@ -123,8 +133,20 @@ def verilog_string(rtl_mod):
     mod_str += 'module {0}('.format(rtl_mod.name) + comma_list(rtl_mod.in_port_names() + rtl_mod.out_port_names()) + ');\n'
     mod_str += verilog_wire_decls(rtl_mod)
 
-    for cell in rtl_mod.cells:
-        mod_str += '\t' + cell[0].name + ' ' + cell[2] + '();\n'
+    mod_str += '\n'
+
+    if has_prefix(rtl_mod.name, 'builtin_'):
+        if has_prefix(rtl_mod.name, 'builtin_add_'):
+            mod_str += '\tassign out = in0 + in1;\n'
+        elif has_prefix(rtl_mod.name, 'builtin_invert_'):
+            mod_str += '\tassign out = ~in;\n'
+        else:
+            print('Error: Unsupported builtin', rtl_mod.name)
+            assert(False)
+    else:
+        for cell in rtl_mod.cells:
+            mod_str += '\t' + cell[0].name + ' ' + cell[2] + '(' + comma_list(verilog_port_connections(cell[1], cell[0])) + ');\n'
+
     mod_str += '\nendmodule\n\n'
 
     return mod_str
