@@ -326,7 +326,7 @@ def functional_unit(instr):
         if (anyinstance(instr.op, sameWidthOps)):
             name += '_' + str(16)
 
-        return Operation(name, [])
+        return Operation(name, [16])
     else:
         assert(False)
 
