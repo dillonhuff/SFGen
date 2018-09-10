@@ -1,4 +1,5 @@
 from bit_vector import *
+from utils import *
 
 class Statement:
     def __init__(self):
@@ -263,9 +264,6 @@ def case_tf(cond, true_res, false_res):
     
 def const(w, val):
     return Constant(bv_from_int(w, val))
-
-def has_prefix(name, prefix):
-    return name[:len(prefix)] == prefix
 
 class Simulator:
     def __init__(self, function):

@@ -291,7 +291,9 @@ class Schedule:
     def get_functional_units(self):
         units = []
         for unit in self.functional_units:
-            units.append((self.functional_units[unit][0].name, unit))
+            units.append((self.functional_units[unit][0],
+                          self.functional_units[unit][1],
+                          unit))
 
         return units
 

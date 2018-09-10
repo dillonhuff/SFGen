@@ -1,3 +1,6 @@
+def has_prefix(name, prefix):
+    return name[:len(prefix)] == prefix
+
 def comma_list(strs):
     ls = ''
     for i in range(0, len(strs)):

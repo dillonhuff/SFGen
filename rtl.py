@@ -24,6 +24,25 @@ class Cell:
     def __init__(self):
         return None
 
+def module_for_functional_unit(unit):
+    if (has_prefix(unit.name, 'add_')):
+        width = unit.parameters[0]
+        m = Module('add_' + str(width))
+        m.add_in_port('in0', width)
+        m.add_in_port('in1', width)
+        m.add_out_port('out', width)
+        return m
+
+    if (has_prefix(unit.name, 'invert_')):
+        width = unit.parameters[0]
+        m = Module('invert_' + str(width))
+        m.add_in_port('in', width)
+        m.add_out_port('out', width)
+        return m
+
+    print('Error: Unsupported functional unit:', unit.name)
+    assert(False)
+    
 class Module:
     def __init__(self, name):
         self.name = name
@@ -33,8 +52,12 @@ class Module:
         self.out_ports = set([])
         self.cells = []
 
-    def add_cell(self, cell_type_name, cell_name):
-        self.cells.append((cell_type_name, cell_name))
+    def all_cells(self):
+        return self.cells
+    
+    def add_cell(self, cell_module, port_connections, cell_name):
+        wire_connections = []
+        self.cells.append((cell_module, wire_connections, cell_name))
 
     def add_wire(self, name, width):
         self.wires.append(Wire(name, width, False, False))
@@ -68,7 +91,7 @@ def generate_rtl(f, sched):
     assert(sched.num_cycles() == 0)
 
     for unit in sched.get_functional_units():
-        mod.add_cell(unit[0], unit[1])
+        mod.add_cell(module_for_functional_unit(unit[0]), unit[1], unit[2])
     # for instr in f.instructions:
     #     # Look up the functional unit
     #     # Connect to the appropriate port and cycle of the unit
@@ -88,13 +111,21 @@ def verilog_wire_decls(rtl_mod):
     return decls
 
 def verilog_string(rtl_mod):
+
+    mod_str = ''
+    used_mods = set()
+    for cell in rtl_mod.all_cells():
+        mod = cell[0]
+        if not mod.name in used_mods:
+            used_mods.add(mod.name)
+            mod_str += verilog_string(mod)
     
-    mod_str = 'module {0}('.format(rtl_mod.name) + comma_list(rtl_mod.in_port_names() + rtl_mod.out_port_names()) + ');\n'
+    mod_str += 'module {0}('.format(rtl_mod.name) + comma_list(rtl_mod.in_port_names() + rtl_mod.out_port_names()) + ');\n'
     mod_str += verilog_wire_decls(rtl_mod)
 
     for cell in rtl_mod.cells:
-        mod_str += '\t' + cell[0] + ' ' + cell[1] + '();\n'
-    mod_str += '\nendmodule'
+        mod_str += '\t' + cell[0].name + ' ' + cell[2] + '();\n'
+    mod_str += '\nendmodule\n\n'
 
     return mod_str
 
