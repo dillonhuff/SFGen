@@ -33,6 +33,7 @@ def test_tc_neg_parse():
 
     assert(sched.get_binding(f_spec.instructions[0]) == ("invert_16_0", 0))
 
+    print(sched.to_string())
     mod = generate_rtl(f_spec, sched)
 
     assert(mod.name == f_spec.name)

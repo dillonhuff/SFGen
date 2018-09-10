@@ -11,6 +11,9 @@ class LowInstruction:
     def to_string(self):
         return '\tUNKNOWN_INSTR\n'
 
+    def __repr__(self):
+        return self.to_string()
+    
 class ConstDecl:
     def __init__(self, res_name, num):
         self.res_name = res_name
@@ -278,6 +281,12 @@ class Schedule:
                 if it == instr:
                     return (func_name, i)
         assert(False)
+
+    def to_string(self):
+        s = '--- Schedule\n'
+        for unit in self.functional_units:
+            s += '\t' + unit + ' -> ' + str(self.functional_units[unit]) + '\n'
+        return s
 
     def bind_instruction(self, unit_name, start_time, instruction):
         unit = self.functional_units[unit_name]

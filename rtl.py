@@ -1,5 +1,6 @@
 from utils import *
 import language as l
+import parser as p
 
 class Wire:
     def __init__(self, name, width, is_in, is_out):
@@ -57,6 +58,16 @@ class Module:
     
     def add_cell(self, cell_module, port_connections, cell_name):
         wire_connections = []
+        assert(len(port_connections) == 1)
+        i0 = port_connections[0]
+        if isinstance(i0, p.BinopInstr):
+            wire_connections.append(('in0', i0.lhs))
+            wire_connections.append(('in1', i0.rhs))
+            wire_connections.append(('out', i0.res))
+        elif isinstance(i0, p.UnopInstr):
+            wire_connections.append(('in', i0.in_name))
+            wire_connections.append(('out', i0.res))
+            
         self.cells.append((cell_module, wire_connections, cell_name))
 
     def add_wire(self, name, width):
@@ -91,6 +102,7 @@ def generate_rtl(f, sched):
     assert(sched.num_cycles() == 0)
 
     for unit in sched.get_functional_units():
+        print('Unit = ', unit)
         mod.add_cell(module_for_functional_unit(unit[0]), unit[1], unit[2])
     # for instr in f.instructions:
     #     # Look up the functional unit
@@ -115,9 +127,9 @@ def verilog_port_connections(input_schedule, module):
     for i in input_schedule:
         print('\t', i)
 
-    assert(len(input_schedule) == 1)
+    #assert(len(input_schedule) == 1)
     
-    conn_strings = []
+    conn_strings = list(map(lambda x: '.{0}({1})'.format(x[0], x[1]), input_schedule))
     return conn_strings
 
 def verilog_string(rtl_mod):
@@ -145,6 +157,7 @@ def verilog_string(rtl_mod):
             assert(False)
     else:
         for cell in rtl_mod.cells:
+            print('Cell =', cell)
             mod_str += '\t' + cell[0].name + ' ' + cell[2] + '(' + comma_list(verilog_port_connections(cell[1], cell[0])) + ');\n'
 
     mod_str += '\nendmodule\n\n'
