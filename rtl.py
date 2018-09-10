@@ -1,4 +1,5 @@
 from utils import *
+import language as l
 
 class Wire:
     def __init__(self, name, width, is_in, is_out):
@@ -31,6 +32,9 @@ class Module:
         self.in_ports = set([])
         self.out_ports = set([])
 
+    def add_wire(self, name, width):
+        self.wires.append(Wire(name, width, False, False))
+
     def add_in_port(self, name, width):
         self.wires.append(Wire(name, width, True, False))
         self.in_ports.add(name)
@@ -50,11 +54,11 @@ def generate_rtl(f, sched):
     mod = Module(f.name)
 
     for sym in f.symbol_table:
-        if p in f.input_names():
-            mod.add_in_port(p, f.symbol_type(p).width())
-        elif p == self.output:
+        if sym in f.input_names():
+            mod.add_in_port(sym, f.symbol_type(sym).width())
+        elif sym == f.output_name():
             mod.add_out_port(f.output_name(), f.symbol_type(f.output_name()).width())
-        elif isinstance(f.symbol_type, ArrayType):
+        elif isinstance(f.symbol_type(sym), l.ArrayType):
             mod.add_wire(sym, f.symbol_type(sym).width())
 
     return mod
