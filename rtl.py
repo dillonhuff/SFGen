@@ -31,6 +31,10 @@ class Module:
         self.wires = []
         self.in_ports = set([])
         self.out_ports = set([])
+        self.cells = []
+
+    def add_cell(self, cell_type_name, cell_name):
+        self.cells.append((cell_type_name, cell_name))
 
     def add_wire(self, name, width):
         self.wires.append(Wire(name, width, False, False))
@@ -61,6 +65,15 @@ def generate_rtl(f, sched):
         elif isinstance(f.symbol_type(sym), l.ArrayType):
             mod.add_wire(sym, f.symbol_type(sym).width())
 
+    assert(sched.num_cycles() == 0)
+
+    for unit in sched.get_functional_units():
+        mod.add_cell(unit[0], unit[1])
+    # for instr in f.instructions:
+    #     # Look up the functional unit
+    #     # Connect to the appropriate port and cycle of the unit
+        
+    #     None
     return mod
 
 def verilog_wire_decls(rtl_mod):
@@ -78,6 +91,9 @@ def verilog_string(rtl_mod):
     
     mod_str = 'module {0}('.format(rtl_mod.name) + comma_list(rtl_mod.in_port_names() + rtl_mod.out_port_names()) + ');\n'
     mod_str += verilog_wire_decls(rtl_mod)
+
+    for cell in rtl_mod.cells:
+        mod_str += '\t' + cell[0] + ' ' + cell[1] + '();\n'
     mod_str += '\nendmodule'
 
     return mod_str

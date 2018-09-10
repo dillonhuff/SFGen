@@ -262,6 +262,10 @@ class Schedule:
     def __init__(self):
         self.unique_num = 0
         self.functional_units = {}
+        self.total_num_cycles = 0
+
+    def num_cycles(self):
+        return self.total_num_cycles
 
     def get_binding(self, instr):
         for func_name in self.functional_units:
@@ -283,7 +287,14 @@ class Schedule:
         n = prefix + '_' + str(self.unique_num)
         self.unique_num += 1
         return n
-        
+
+    def get_functional_units(self):
+        units = []
+        for unit in self.functional_units:
+            units.append((self.functional_units[unit][0].name, unit))
+
+        return units
+
     def add_unit(self, unit):
         name = self.fresh_name(unit.name)
         self.functional_units[name] = (unit, [])
