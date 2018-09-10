@@ -76,6 +76,7 @@ class LowFunctionDef:
         self.instructions = []
         self.unique_num = 0
         self.symbol_table = {}
+        self.output = None
         for arg in args:
             self.symbol_table[arg] = None
 
@@ -97,8 +98,14 @@ class LowFunctionDef:
         return name in self.symbol_table
 
     def add_instr(self, instr):
+        assert(self.output == None)
         self.instructions.append(instr)
-        
+        if (isinstance(instr, ReturnInstr)):
+            self.output = instr.val_name
+
+    def output_name(self):
+        return self.output
+
     def add_symbol(self, name, tp):
         self.symbol_table[name] = tp
 
@@ -240,7 +247,13 @@ class LowCodeGenerator(ast.NodeVisitor):
     def generic_visit(self, node):
         print('Error: Unsupported node type', node)
         assert(False)
-    
+
+def swap_instrs(new_func, new_instrs):
+    new_func.output = None
+    new_func.instructions = []
+    for instr in new_instrs:
+        new_func.add_instr(instr)
+
 class ScheduleConstraints:
     def __init__(self):
         self.num_cycles = 1
@@ -458,7 +471,8 @@ def evaluate_widths(spec_f):
     for w in width_values:
         print(w, ' -> ', width_values[w])
 
-    spec_f.instructions = new_instrs
+    swap_instrs(spec_f, new_instrs)
+    #spec_f.instructions = new_instrs
 
     new_instrs = []
     for instr in spec_f.instructions:
@@ -484,7 +498,9 @@ def evaluate_widths(spec_f):
         else:
             new_instrs.append(instr)
 
-    spec_f.instructions = new_instrs
+                #spec_f.instructions = new_instrs
+    swap_instrs(spec_f, new_instrs)
+    #spec_f.instructions = new_instrs
     
     #print('New instrs = ', spec_f.to_string())
 
@@ -527,7 +543,8 @@ def delete_dead_instructions(func):
         else:
             new_instrs.append(instr)
 
-    func.instructions = new_instrs
+    swap_instrs(func, new_instrs)
+    #func.instructions = new_instrs
     
 def specialize_types(code_gen, func_name, func_arg_types):
     spec_name = func_name
