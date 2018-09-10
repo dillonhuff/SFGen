@@ -252,21 +252,34 @@ class ScheduleConstraints:
 
 class Schedule:
     def __init__(self):
-        self.functional_units = []
+        self.unique_num = 0
+        self.functional_units = {}
 
     def get_binding(self, instr):
-        for func in self.functional_units:
+        for func_name in self.functional_units:
+            func = self.functional_units[func_name]
             sched = func[1]
             print('Checking', sched)
             for i in range(0, len(sched)):
                 print('i =', i)
                 it = sched[i]
                 if it == instr:
-                    return i
+                    return (func_name, i)
         assert(False)
 
+    def bind_instruction(self, unit_name, start_time, instruction):
+        unit = self.functional_units[unit_name]
+        unit[1].append(instruction)
+
+    def fresh_name(self, prefix):
+        n = prefix + '_' + str(self.unique_num)
+        self.unique_num += 1
+        return n
+        
     def add_unit(self, unit):
-        self.functional_units.append((unit, []))
+        name = self.fresh_name(unit.name)
+        self.functional_units[name] = (unit, [])
+        return name
 
     def num_states(self):
         return 1
@@ -279,22 +292,54 @@ class Operation:
         self.name = name
         self.parameters = parameters
 
-class FunctionalUnit:
-    def __init__(self, op):
-        self.op = op
+    def __eq__(self, other):
+        if not isinstance(other, Operation):
+            return False
 
-    def get_name(self):
-        return self.op.name
+        if (len(self.parameters) != len(other.parameters)):
+            return False
+
+        for i in range(0, len(self.parameters)):
+            if self.parameters[i] != other.parameters[i]:
+                return False
+        return True
+
+def op_string(op):
+    if isinstance(op, ast.Invert):
+        return 'invert'
+    if isinstance(op, ast.Add):
+        return 'add'
+
+    assert(False)
+
+sameWidthOps = [ast.Invert, ast.Add, ast.Sub]
+
+def anyinstance(i, tps):
+    for t in tps:
+        if isinstance(i, t):
+            return True
+    return False
 
 def functional_unit(instr):
-    return FunctionalUnit(Operation("add", []))
+    if isinstance(instr, BinopInstr) or isinstance(instr, UnopInstr):
+        name = op_string(instr.op)
+        if (anyinstance(instr.op, sameWidthOps)):
+            name += '_' + str(16)
+
+        return Operation(name, [])
+    else:
+        assert(False)
 
 def schedule(code_gen, f, constraints):
     s = Schedule()
     for instr in f.instructions:
         if not isinstance(instr, ReturnInstr) and not isinstance(instr, ConstBVDecl):
-            s.add_unit(functional_unit(instr))
+            unit_name = s.add_unit(functional_unit(instr))
+            s.bind_instruction(unit_name, 0, instr)
 
+    # What is the simplest scheduling procedure?
+    # For every instruction in the schedule
+    #    Create a new unit and assign the instruction to that unit
     return s
 
 def get_primitives(c):
