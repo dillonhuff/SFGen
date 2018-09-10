@@ -2,15 +2,7 @@ import ast
 import language as l
 import bit_vector as b
 
-def comma_list(strs):
-    ls = ''
-    for i in range(0, len(strs)):
-        s = strs[i]
-        ls += s
-        if (i < len(strs) - 1):
-            ls += ', '
-        
-    return ls
+from utils import *
 
 class LowInstruction:
     def __init__(self):
@@ -86,6 +78,9 @@ class LowFunctionDef:
         self.symbol_table = {}
         for arg in args:
             self.symbol_table[arg] = None
+
+    def input_names(self):
+        return self.args
 
     def get_arg(self, ind):
         assert(isinstance(ind, int))

@@ -41,3 +41,11 @@ def test_tc_neg_parse():
 
     # Compile iverilog
     assert(run_cmd('iverilog -o {0} {0}.v {0}_tb.v'.format(mod.name)))
+    assert(run_cmd('./{0} > {0}_res.txt'.format(mod.name)))
+
+    f = open('{0}_res.txt'.format(mod.name), 'r')
+    res = f.read()
+    f.close()
+
+    assert(res == 'passed')
+    
