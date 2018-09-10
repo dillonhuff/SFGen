@@ -49,10 +49,13 @@ class Module:
 def generate_rtl(f, sched):
     mod = Module(f.name)
 
-    for p in f.input_names():
-        mod.add_in_port(p, f.symbol_type(p).width())
-
-    mod.add_out_port(f.output_name(), f.symbol_type(f.output_name()).width())
+    for sym in f.symbol_table:
+        if p in f.input_names():
+            mod.add_in_port(p, f.symbol_type(p).width())
+        elif p == self.output:
+            mod.add_out_port(f.output_name(), f.symbol_type(f.output_name()).width())
+        elif isinstance(f.symbol_type, ArrayType):
+            mod.add_wire(sym, f.symbol_type(sym).width())
 
     return mod
 
