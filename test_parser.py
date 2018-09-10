@@ -1,6 +1,12 @@
 from parser import *
 import language as l
 import ast
+from rtl import *
+
+import os
+def run_cmd(cmd):
+    res = os.system(cmd)
+    return res == 0
 
 def test_tc_neg_parse():
     code_str = open('divider.py').read()
@@ -26,3 +32,12 @@ def test_tc_neg_parse():
     assert(sched.num_functional_units() == 2)
 
     assert(sched.get_binding(f_spec.instructions[0]) == ("invert_16_0", 0))
+
+    mod = generate_rtl(f_spec, sched)
+
+    assert(mod.name == f_spec.name)
+
+    generate_verilog(mod)
+
+    # Compile iverilog
+    assert(run_cmd('iverilog -o {0} {0}.v {0}_tb.v'.format(mod.name)))

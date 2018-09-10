@@ -337,9 +337,6 @@ def schedule(code_gen, f, constraints):
             unit_name = s.add_unit(functional_unit(instr))
             s.bind_instruction(unit_name, 0, instr)
 
-    # What is the simplest scheduling procedure?
-    # For every instruction in the schedule
-    #    Create a new unit and assign the instruction to that unit
     return s
 
 def get_primitives(c):
