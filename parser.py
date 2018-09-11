@@ -1,6 +1,7 @@
 import ast
 import language as l
 import bit_vector as b
+import copy
 
 from utils import *
 
@@ -31,11 +32,17 @@ class SliceInstr(LowInstruction):
         self.low = low
         self.high = high
 
+    def to_string(self):
+        return '\tslice {0} {1} {2} {3}\n'.format(self.res, self.value, self.low, self.high)
+
 class CompareInstr(LowInstruction):
     def __init__(self, res, lhs, rhs):
         self.res = res
         self.lhs = lhs
         self.rhs = rhs
+
+    def to_string(self):
+        return '\tcmp {0} {1} {2}\t'.format(self.res, self.lhs, self.rhs)
         
 class ConstDecl(LowInstruction):
     def __init__(self, res_name, num):
@@ -52,7 +59,15 @@ class ConstBVDecl:
 
     def to_string(self):
         return '\tconstbv ' + self.res_name + ' ' + str(self.value) + '\n'
-    
+
+class AssignInstr(LowInstruction):
+    def __init__(self, res, rhs):
+        self.res = res
+        self.rhs = rhs
+
+    def to_string(self):
+        return '\tassign {0} {1}\n'.format(self.res, self.rhs)
+
 class ReturnInstr(LowInstruction):
     def __init__(self, name):
         self.val_name = name
@@ -105,6 +120,11 @@ class LowFunctionDef:
         self.output = None
         for arg in args:
             self.symbol_table[arg] = None
+
+    def unique_suffix(self):
+        suf = '_us_' + str(self.unique_num)
+        self.unique_num += 1
+        return suf
 
     def input_names(self):
         return self.args
@@ -633,11 +653,16 @@ def delete_dead_instructions(func):
     swap_instrs(func, new_instrs)
     #func.instructions = new_instrs
 
-def inline_function(receiver, new_instructions, to_inline):
+def inline_function(receiver, new_instructions, to_inline, arg_map, returned):
     s = receiver.unique_suffix()
     for instr in to_inline.instructions:
-        icpy = deepcopy(instr)
-        new_instructions.append()
+        icpy = copy.deepcopy(instr)
+        #replace_values(arg_map, s, icpy)
+
+        if not isinstance(icpy, ReturnInstr):
+            new_instructions.append(icpy)
+        else:
+            new_instructions.append(AssignInstr(returned, icpy.val_name))
     return None
 
 def inline_all(f, code_gen):
@@ -647,8 +672,16 @@ def inline_all(f, code_gen):
             called_func = instr.func
             if isinstance(called_func, ast.Name) and code_gen.has_function(called_func.id):
                 print('User defined function', called_func.id)
-                inline_function(f, new_instructions, code_gen.get_function(called_func.id))
-                assert(False)
+
+                called_func_def = code_gen.get_function(called_func.id)
+                arg_map = {}
+                i = 0
+                for arg in called_func_def.args:
+                    arg_map[arg] = instr.args[i]
+                    i += 1
+
+                receiver = instr.res
+                inline_function(f, new_instructions, called_func_def, arg_map, receiver)
             else:
                 new_instructions.append(instr)
         else:
@@ -678,7 +711,9 @@ def specialize_types(code_gen, func_name, func_arg_types):
 
     inline_all(spec_f, code_gen)
 
-    #unify_types(spec_f, func)
+    print('After inlining')
+    print(spec_f.to_string())
+
     unify_types(spec_f)
 
     # for sym in spec_f.symbol_table:
