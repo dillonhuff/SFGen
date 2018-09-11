@@ -534,20 +534,6 @@ def evaluate_widths(spec_f):
                 new_instrs.append(ConstDecl(instr.res, width_values[res]))
             else:
                 new_instrs.append(instr)
-            # elif isinstance(f, ast.Name):
-            #     assert(f.id == 'bv_from_int')
-            #     bv_width_name = instr.args[0]
-            #     bv_val_name = instr.args[1]
-
-            #     print('width =', bv_width_name)
-            #     print('val   =', bv_val_name)
-
-            #     bv_val = get_const_int(bv_width_name, spec_f)
-            #     bv_width = get_const_value(bv_val_name,)
-
-            #     new_instrs.append(ConstBVDecl(instr.res, bv_val, bv_width))
-            #     assert(False) # Lookup values and create constant!
-#            else:
         else:
             new_instrs.append(instr)
 
@@ -578,7 +564,8 @@ def evaluate_widths(spec_f):
 
                 new_instrs.append(ConstBVDecl(instr.res, bv_val, bv_width))
             else:
-                assert(False)
+                #assert(False)
+                new_instrs.append(instr)
         else:
             new_instrs.append(instr)
 
