@@ -22,6 +22,9 @@ class ITEInstr(LowInstruction):
         self.true_exp = true_exp
         self.false_exp = false_exp
 
+    def used_values(self):
+        return {self.res, self.test, self.true_exp, self.false_exp}
+
     def to_string(self):
         return '\tite {0} {1} {2} {3}\n'.format(self.res, self.test, self.true_exp, self.false_exp)
 
@@ -32,6 +35,15 @@ class SliceInstr(LowInstruction):
         self.low = low
         self.high = high
 
+    def replace_values(self, f):
+        self.res = f(self.res)
+        self.value = f(self.value)
+        self.low = f(self.low)        
+        self.high = f(self.high)                
+
+    def used_values(self):
+        return {self.res, self.value, self.low, self.high}
+        
     def to_string(self):
         return '\tslice {0} {1} {2} {3}\n'.format(self.res, self.value, self.low, self.high)
 
@@ -41,14 +53,28 @@ class CompareInstr(LowInstruction):
         self.lhs = lhs
         self.rhs = rhs
 
-    def to_string(self):
-        return '\tcmp {0} {1} {2}\t'.format(self.res, self.lhs, self.rhs)
+    def used_values(self):
+        return {self.res, self.lhs, self.rhs}
         
+    def to_string(self):
+        return '\tcmp {0} {1} {2}\n'.format(self.res, self.lhs, self.rhs)
+
+    def replace_values(self, f):
+        self.res = f(self.res)
+        self.lhs = f(self.lhs)
+        self.rhs = f(self.rhs)        
+
 class ConstDecl(LowInstruction):
     def __init__(self, res_name, num):
         self.res_name = res_name
         self.num = num
 
+    def replace_values(self, f):
+        self.res_name = f(self.res_name)
+
+    def used_values(self):
+        return {self.res_name}
+        
     def to_string(self):
         return '\tconst ' + self.res_name + ' ' + str(self.num) + '\n'
 
@@ -57,6 +83,9 @@ class ConstBVDecl:
         self.res_name = res_name
         self.value = b.bv_from_int(width, val)
 
+    def used_values(self):
+        return {self.res_name}
+        
     def to_string(self):
         return '\tconstbv ' + self.res_name + ' ' + str(self.value) + '\n'
 
@@ -65,6 +94,9 @@ class AssignInstr(LowInstruction):
         self.res = res
         self.rhs = rhs
 
+    def used_values(self):
+        return {self.res, self.rhs}
+        
     def to_string(self):
         return '\tassign {0} {1}\n'.format(self.res, self.rhs)
 
@@ -72,6 +104,12 @@ class ReturnInstr(LowInstruction):
     def __init__(self, name):
         self.val_name = name
 
+    def replace_values(self, f):
+        self.val_name = f(self.val_name)
+
+    def used_values(self):
+        return {self.val_name}
+        
     def to_string(self):
         return '\treturn ' + self.val_name + '\n'
 
@@ -82,6 +120,14 @@ class BinopInstr(LowInstruction):
         self.lhs = lhs
         self.rhs = rhs
 
+    def replace_values(self, f):
+        self.res = f(self.res)
+        self.lhs = f(self.lhs)
+        self.rhs = f(self.rhs)        
+        
+    def used_values(self):
+        return {self.res, self.lhs, self.rhs}
+        
     def to_string(self):
         return '\tbinop ' + str(self.op) + ' ' + self.res + ' ' + self.lhs + ' ' + self.rhs + '\n'
 
@@ -91,6 +137,14 @@ class UnopInstr(LowInstruction):
         self.res = res
         self.in_name = in_name
 
+
+    def replace_values(self, f):
+        self.res = f(self.res)
+        self.in_name = f(self.in_name)
+        
+    def used_values(self):
+        return {self.res, self.in_name}
+        
     def to_string(self):
         return '\tunop ' + str(self.op) + ' ' + self.res + ' ' + self.in_name + '\n'
         
@@ -100,6 +154,20 @@ class CallInstr(LowInstruction):
         self.func = func
         self.args = args
 
+    def replace_values(self, f):
+        self.res = f(self.res)
+        new_args = []
+        for arg in self.args:
+            new_args.append(f(arg))
+        self.args = new_args
+
+    def used_values(self):
+        s = {self.res}
+        for arg in self.args:
+            s.add(arg)
+
+        return s
+        
     def to_string(self):
         s = '\tcall ' + self.res + ' ' + str(self.func) + ' '
         arg_strs = []
@@ -495,6 +563,17 @@ def unify_types(spec_f):
             b = instr.rhs
             constraints.append((res, a))
             constraints.append((a, b))
+        elif isinstance(instr, AssignInstr):
+            res = instr.res
+            a = instr.rhs
+            constraints.append((res, a))
+
+        elif isinstance(instr, CompareInstr):
+            res = instr.res
+            a = instr.lhs
+            b = instr.rhs
+            constraints.append((res, l.ArrayType(1)))
+            constraints.append((a, b))
         elif isinstance(instr, ConstDecl):
             res = instr.res_name
             constraints.append((res, l.IntegerType()))
@@ -521,6 +600,10 @@ def unify_types(spec_f):
                 print('Resolved', c)
                 break
 
+
+        if primitives == None:
+            print('Unresolved constraints =', constraints)
+            assert(False)
         
         new_constraints = []
         for i in range(0, len(constraints)):
@@ -653,12 +736,19 @@ def delete_dead_instructions(func):
     swap_instrs(func, new_instrs)
     #func.instructions = new_instrs
 
+def inline_symtab(receiver, instr):
+    for name in instr.used_values():
+        if not receiver.has_symbol(name):
+            receiver.add_symbol(name, None)
+
 def inline_function(receiver, new_instructions, to_inline, arg_map, returned):
     s = receiver.unique_suffix()
     for instr in to_inline.instructions:
         icpy = copy.deepcopy(instr)
+        icpy.replace_values(lambda name: arg_map[name] if name in arg_map else name + '_' + s)
         #replace_values(arg_map, s, icpy)
 
+        inline_symtab(receiver, icpy)
         if not isinstance(icpy, ReturnInstr):
             new_instructions.append(icpy)
         else:
@@ -708,6 +798,10 @@ def specialize_types(code_gen, func_name, func_arg_types):
 
     for instr in func.instructions:
         spec_f.instructions.append(instr)
+
+        
+    print('Before inlining')
+    print(spec_f.to_string())
 
     inline_all(spec_f, code_gen)
 
