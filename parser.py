@@ -454,7 +454,8 @@ def substitute(name, tp, c):
 def substitute_constraint(name, tp, c):
     return (substitute(name, tp, c[0]), substitute(name, tp, c[1]))
 
-def unify_types(spec_f, f):
+def unify_types(spec_f):
+    f = spec_f
     constraints = []
     for sym in spec_f.symbol_table:
         if spec_f.symbol_type(sym) != None:
@@ -649,15 +650,16 @@ def specialize_types(code_gen, func_name, func_arg_types):
     # for instr in func.instructions:
     #     spec_f.instructions.append(instr)
 
-    unify_types(spec_f, func)
+    for instr in func.instructions:
+        spec_f.instructions.append(instr)
+
+    #unify_types(spec_f, func)
+    unify_types(spec_f)
 
     # for sym in spec_f.symbol_table:
     #     print('sym', sym, 'has type', spec_f.symbol_type(sym))
     #     assert(spec_f.symbol_type(sym) != None)
         
-    for instr in func.instructions:
-        spec_f.instructions.append(instr)
-
     print(spec_f.to_string())
 
     evaluate_widths(spec_f)
