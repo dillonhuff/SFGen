@@ -357,13 +357,16 @@ def functional_unit(instr):
             name += '_' + str(16)
 
         return Operation(name, [16])
+    elif isinstance(instr, ConstBVDecl):
+        name = 'constant_' + str(instr.value)
+        return Operation(name, [instr.value])
     else:
         assert(False)
 
 def schedule(code_gen, f, constraints):
     s = Schedule()
     for instr in f.instructions:
-        if not isinstance(instr, ReturnInstr) and not isinstance(instr, ConstBVDecl):
+        if not isinstance(instr, ReturnInstr): # and not isinstance(instr, ConstBVDecl):
             unit_name = s.add_unit(functional_unit(instr))
             s.bind_instruction(unit_name, 0, instr)
 

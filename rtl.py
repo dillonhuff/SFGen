@@ -41,18 +41,35 @@ def module_for_functional_unit(unit):
         m.add_out_port('out', width)
         return m
 
+    if (has_prefix(unit.name, 'constant_')):
+        value = unit.parameters[0]
+        width = value.width()
+        m = Module('builtin_constant_' + str(width))
+        m.add_parameter("value", value)
+        m.add_in_port('in', width)
+        m.add_out_port('out', width)
+        return m
+    
     print('Error: Unsupported functional unit:', unit.name)
     assert(False)
     
 class Module:
     def __init__(self, name):
         self.name = name
+        self.parameters = {}
         self.unique_num = 0
         self.wires = []
         self.in_ports = set([])
         self.out_ports = set([])
         self.cells = []
 
+    def add_parameter(self, name, value):
+        self.parameters[name] = value
+
+
+    def get_parameter(self, name):
+        return self.parameters[name]
+    
     def all_cells(self):
         return self.cells
     
@@ -67,6 +84,8 @@ class Module:
         elif isinstance(i0, p.UnopInstr):
             wire_connections.append(('in', i0.in_name))
             wire_connections.append(('out', i0.res))
+        elif isinstance(i0, p.ConstBVDecl):
+            wire_connections.append(('out', i0.res_name))
             
         self.cells.append((cell_module, wire_connections, cell_name))
 
@@ -104,11 +123,7 @@ def generate_rtl(f, sched):
     for unit in sched.get_functional_units():
         print('Unit = ', unit)
         mod.add_cell(module_for_functional_unit(unit[0]), unit[1], unit[2])
-    # for instr in f.instructions:
-    #     # Look up the functional unit
-    #     # Connect to the appropriate port and cycle of the unit
-        
-    #     None
+
     return mod
 
 def verilog_wire_decls(rtl_mod):
@@ -152,6 +167,10 @@ def verilog_string(rtl_mod):
             mod_str += '\tassign out = in0 + in1;\n'
         elif has_prefix(rtl_mod.name, 'builtin_invert_'):
             mod_str += '\tassign out = ~in;\n'
+        elif has_prefix(rtl_mod.name, 'builtin_constant_'):
+            val = rtl_mod.get_parameter("value")
+            width = val.width()
+            mod_str += '\tassign out = ' + str(width) + "'b" + str(rtl_mod.get_parameter("value")) + ';\n'
         else:
             print('Error: Unsupported builtin', rtl_mod.name)
             assert(False)

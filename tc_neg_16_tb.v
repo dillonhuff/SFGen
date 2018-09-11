@@ -8,6 +8,8 @@ module top();
    initial begin
       #1 a = 1;
       #1 `assert(out, -16'b1);
+
+      #1 $display("passed");
       
    end
 
