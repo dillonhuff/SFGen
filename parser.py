@@ -610,7 +610,8 @@ def unify_types(spec_f):
             if i != ind:
                 other = constraints[i]
                 rs = substitute_constraint(primitives[0], primitives[1], other)
-                new_constraints.append(rs)
+                if rs[0] != rs[1]:
+                    new_constraints.append(rs)
         constraints = new_constraints
 
     # After unifying resolve all calls to widths and replace the results with
