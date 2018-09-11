@@ -712,7 +712,15 @@ def is_argument_of(v, instr):
         return instr.lhs == v or instr.rhs == v
     if isinstance(instr, ReturnInstr):
         return instr.val_name == v
-
+    if isinstance(instr, SliceInstr):
+        return instr.value == v or instr.low == v or instr.high == v
+    if isinstance(instr, CompareInstr):
+        return instr.lhs == v or instr.rhs == v
+    if isinstance(instr, AssignInstr):
+        return instr.rhs == v
+    if isinstance(instr, ITEInstr):
+        return instr.test == v or instr.true_exp == v or instr.false_exp == v
+    
     print('Error: Unsupported instruction type', instr)
     assert(False)
 
@@ -838,6 +846,8 @@ def specialize_types(code_gen, func_name, func_arg_types):
     evaluate_widths(spec_f)
     unify_types(spec_f)
     evaluate_integer_constants(spec_f)
+
+    delete_dead_instructions(spec_f)
     
     print('After second width evaluation')
     print(spec_f.to_string())
