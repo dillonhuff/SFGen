@@ -34,6 +34,31 @@ def module_for_functional_unit(unit):
         m.add_out_port('out', width)
         return m
 
+    if (has_prefix(unit.name, 'assign_')):
+        width = unit.parameters[0]
+        m = Module('builtin_assign_' + str(width))
+        m.add_in_port('in', width)
+        m.add_out_port('out', width)
+        return m
+
+    if (has_prefix(unit.name, 'ite_')):
+        width = unit.parameters[0]
+        m = Module('builtin_ite_' + str(width))
+
+        m.add_in_port('in0', width)
+        m.add_in_port('in1', width)
+        m.add_in_port('sel', 1)        
+        m.add_out_port('out', width)
+        return m
+    
+    if (has_prefix(unit.name, 'eq_')):
+        width = unit.parameters[0]
+        m = Module('builtin_eq_' + str(width))
+        m.add_in_port('in0', width)
+        m.add_in_port('in1', width)
+        m.add_out_port('out', 1)
+        return m
+    
     if (has_prefix(unit.name, 'invert_')):
         width = unit.parameters[0]
         m = Module('builtin_invert_' + str(width))
@@ -48,6 +73,19 @@ def module_for_functional_unit(unit):
         m.add_parameter("value", value)
         m.add_in_port('in', width)
         m.add_out_port('out', width)
+        return m
+
+    if (has_prefix(unit.name, 'slice_')):
+        in_width = unit.parameters[0]
+        start_ind = unit.parameters[1]
+        end_ind = unit.parameters[2]
+        m = Module('builtin_slice_' + str(in_width) + '_' + str(start_ind) + '_' + str(end_ind))
+
+        m.add_parameter("start", start_ind)
+        m.add_parameter("end", end_ind)
+        
+        m.add_in_port('in', in_width)
+        m.add_out_port('out', (end_ind - start_ind + 1))
         return m
     
     print('Error: Unsupported functional unit:', unit.name, unit.parameters)
@@ -80,9 +118,29 @@ class Module:
             wire_connections.append(('in0', i0.lhs))
             wire_connections.append(('in1', i0.rhs))
             wire_connections.append(('out', i0.res))
+
+        if isinstance(i0, p.ITEInstr):
+            wire_connections.append(('in0', i0.false_exp))
+            wire_connections.append(('in1', i0.true_exp))
+            wire_connections.append(('sel', i0.test))            
+            wire_connections.append(('out', i0.res))
+            
         elif isinstance(i0, p.UnopInstr):
             wire_connections.append(('in', i0.in_name))
             wire_connections.append(('out', i0.res))
+        elif  isinstance(i0, p.SliceInstr):
+            wire_connections.append(('in', i0.value))
+            wire_connections.append(('out', i0.res))
+
+        elif isinstance(i0, p.AssignInstr):
+            wire_connections.append(('in', i0.rhs))
+            wire_connections.append(('out', i0.res))
+
+        elif isinstance(i0, p.CompareInstr):
+            wire_connections.append(('in0', i0.lhs))
+            wire_connections.append(('in1', i0.rhs))            
+            wire_connections.append(('out', i0.res))
+            
         elif isinstance(i0, p.ConstBVDecl):
             wire_connections.append(('out', i0.res_name))
             
@@ -164,12 +222,27 @@ def verilog_string(rtl_mod):
     if has_prefix(rtl_mod.name, 'builtin_'):
         if has_prefix(rtl_mod.name, 'builtin_add_'):
             mod_str += '\tassign out = in0 + in1;\n'
+
+        elif has_prefix(rtl_mod.name, 'builtin_eq_'):
+            mod_str += '\tassign out = in0 == in1;\n'
+
+        elif has_prefix(rtl_mod.name, 'builtin_assign_'):
+            mod_str += '\tassign out = in;\n'
+
+        elif has_prefix(rtl_mod.name, 'builtin_ite_'):
+            mod_str += '\tassign out = sel ? in1 : in0;\n'
+            
         elif has_prefix(rtl_mod.name, 'builtin_invert_'):
             mod_str += '\tassign out = ~in;\n'
         elif has_prefix(rtl_mod.name, 'builtin_constant_'):
             val = rtl_mod.get_parameter("value")
             width = val.width()
             mod_str += '\tassign out = ' + str(width) + "'b" + str(rtl_mod.get_parameter("value")) + ';\n'
+        elif has_prefix(rtl_mod.name, 'builtin_slice_'):
+            start = rtl_mod.get_parameter("start")
+            end = rtl_mod.get_parameter("end")
+            mod_str += '\tassign out = in[{0}:{1}];'.format(end, start)
+
         else:
             print('Error: Unsupported builtin', rtl_mod.name)
             assert(False)

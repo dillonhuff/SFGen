@@ -48,7 +48,8 @@ class SliceInstr(LowInstruction):
         return '\tslice {0} {1} {2} {3}\n'.format(self.res, self.value, self.low, self.high)
 
 class CompareInstr(LowInstruction):
-    def __init__(self, res, lhs, rhs):
+    def __init__(self, op, res, lhs, rhs):
+        self.op = op
         self.res = res
         self.lhs = lhs
         self.rhs = rhs
@@ -189,6 +190,13 @@ class LowFunctionDef:
         for arg in args:
             self.symbol_table[arg] = None
 
+    def get_int_constant_value(self, name):
+        for instr in self.instructions:
+            if isinstance(instr, ConstDecl) and instr.res_name == name:
+                return instr.num
+
+        assert(False)
+                
     def unique_suffix(self):
         suf = '_us_' + str(self.unique_num)
         self.unique_num += 1
@@ -342,7 +350,8 @@ class LowCodeGenerator(ast.NodeVisitor):
 
             self.visit_Expr(expr.comparators[0])
             res = self.active_function.fresh_sym()
-            self.active_function.add_instr(CompareInstr(res, self.expr_name(expr.left), self.expr_name(expr.comparators[0])))
+            assert(len(expr.ops) == 1)
+            self.active_function.add_instr(CompareInstr(expr.ops[0], res, self.expr_name(expr.left), self.expr_name(expr.comparators[0])))
             self.expr_names[expr] = res
 
         elif isinstance(expr, ast.Subscript):
@@ -489,6 +498,8 @@ def op_string(op):
         return 'invert'
     if isinstance(op, ast.Add):
         return 'add'
+    if isinstance(op, ast.Eq):
+        return 'eq'
 
     assert(False)
 
@@ -500,13 +511,25 @@ def anyinstance(i, tps):
             return True
     return False
 
-def functional_unit(instr):
+def functional_unit(instr, f):
     if isinstance(instr, BinopInstr) or isinstance(instr, UnopInstr):
         name = op_string(instr.op)
         if (anyinstance(instr.op, sameWidthOps)):
             name += '_' + str(16)
 
         return Operation(name, [16])
+    if isinstance(instr, CompareInstr):
+        name = op_string(instr.op)
+        in_width = f.symbol_type(instr.lhs).width()
+        name += '_' + str(in_width)
+
+        return Operation(name, [in_width])
+    if isinstance(instr, AssignInstr):
+        name = 'assign'
+        in_width = f.symbol_type(instr.rhs).width()
+        name += '_' + str(in_width)
+        return Operation(name, [in_width])
+
     elif isinstance(instr, ConstBVDecl):
         name = 'constant_' + str(instr.value)
         return Operation(name, [instr.value])
@@ -515,6 +538,11 @@ def functional_unit(instr):
         return Operation(instr.func.id, [])
     elif isinstance(instr, ITEInstr):
         return Operation('ite_' + str(16), [16])
+    elif isinstance(instr, SliceInstr):
+        high_val = f.get_int_constant_value(instr.high)
+        low_val = f.get_int_constant_value(instr.low)
+        in_width = f.symbol_type(instr.value).width()
+        return Operation('slice_' + str(in_width) + '_' + str(low_val) + '_' + str(high_val), [in_width, low_val, high_val])
     else:
         print('Unsupported functional unit', instr)
         assert(False)
@@ -522,7 +550,7 @@ def functional_unit(instr):
 def schedule(code_gen, f, constraints):
     s = Schedule()
     for instr in f.instructions:
-        if not isinstance(instr, ReturnInstr): # and not isinstance(instr, ConstBVDecl):
+        if not isinstance(instr, ReturnInstr) and not isinstance(instr, ConstDecl):
             unit_name = s.add_unit(functional_unit(instr, f))
             s.bind_instruction(unit_name, 0, instr)
 
