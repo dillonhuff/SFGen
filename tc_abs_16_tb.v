@@ -9,8 +9,8 @@ module top();
       #1 a = 1;
       #1 `assert(out, 16'b1);
 
-      // #1 a = -16'b234;
-      // #1 `assert(out, 16'b234);
+      #1 a = -16'd234;
+      #1 `assert(out, 16'd234);
       
       #1 $display("passed");
       
