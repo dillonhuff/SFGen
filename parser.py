@@ -21,6 +21,9 @@ class ITEInstr(LowInstruction):
         self.true_exp = true_exp
         self.false_exp = false_exp
 
+    def to_string(self):
+        return '\tite {0} {1} {2} {3}\n'.format(self.res, self.test, self.true_exp, self.false_exp)
+
 class SliceInstr(LowInstruction):
     def __init__(self, res, value, low, high):
         self.res = res
