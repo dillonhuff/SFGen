@@ -630,10 +630,9 @@ def get_const_int(name, func):
                 return instr.num
     print('Error: Cannot find constant', name, 'in\n', func.to_string())
     assert(False)
-# TODO: Unpack width calls so that the inner expression is available
+
 def evaluate_widths(spec_f):
 
-    width_values = {}
     new_instrs = []
     for instr in spec_f.instructions:
         if isinstance(instr, CallInstr):
@@ -647,20 +646,15 @@ def evaluate_widths(spec_f):
                 target = f.value
                 assert(isinstance(target, ast.Name))
                 print('Value =', ast.dump(target))
-                width_values[res] = spec_f.symbol_type(target.id).width()
+                width_val = spec_f.symbol_type(target.id).width()
 
-                new_instrs.append(ConstDecl(instr.res, width_values[res]))
+                new_instrs.append(ConstDecl(instr.res, width_val))
             else:
                 new_instrs.append(instr)
         else:
             new_instrs.append(instr)
 
-    print('Width values')
-    for w in width_values:
-        print(w, ' -> ', width_values[w])
-
     swap_instrs(spec_f, new_instrs)
-    #spec_f.instructions = new_instrs
 
     new_instrs = []
     for instr in spec_f.instructions:
