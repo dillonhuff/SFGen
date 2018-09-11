@@ -51,20 +51,22 @@ def test_tc_neg_parse():
 
     assert(res == 'passed\n')
     
-# def test_tc_abs_parse():
-#     code_str = open('tc_abs.py').read()
-#     code = ast.parse(code_str)
+def test_tc_abs_parse():
+    code_str = open('tc_abs.py').read()
+    code = ast.parse(code_str)
 
-#     code_gen = LowCodeGenerator()
-#     code_gen.visit(code)
+    code_gen = LowCodeGenerator()
+    code_gen.visit(code)
 
-#     print(code_gen.get_function("tc_abs").to_string())
+    print(code_gen.get_function("tc_abs").to_string())
 
-#     constraints = ScheduleConstraints()
-#     f_spec = specialize_types(code_gen, "tc_abs", [l.ArrayType(16)])
+    constraints = ScheduleConstraints()
+    f_spec = specialize_types(code_gen, "tc_abs", [l.ArrayType(16)])
 
-#     print('')
-#     print(f_spec.to_string())
+    print('')
+    print(f_spec.to_string())
+
+    assert(False)
 
 #     assert(f_spec.symbol_type('a') == l.ArrayType(16))
     

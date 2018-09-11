@@ -164,6 +164,9 @@ class LowCodeGenerator(ast.NodeVisitor):
         assert(name in self.functions)
         return self.functions[name]
 
+    def has_function(self, name):
+        return name in self.functions
+
     def visit_Stmt(self, stmt):
 
         if isinstance(stmt, ast.Import):
@@ -629,7 +632,30 @@ def delete_dead_instructions(func):
 
     swap_instrs(func, new_instrs)
     #func.instructions = new_instrs
-    
+
+def inline_function(receiver, new_instructions, to_inline):
+    s = receiver.unique_suffix()
+    for instr in to_inline.instructions:
+        icpy = deepcopy(instr)
+        new_instructions.append()
+    return None
+
+def inline_all(f, code_gen):
+    new_instructions = []
+    for instr in f.instructions:
+        if isinstance(instr, CallInstr):
+            called_func = instr.func
+            if isinstance(called_func, ast.Name) and code_gen.has_function(called_func.id):
+                print('User defined function', called_func.id)
+                inline_function(f, new_instructions, code_gen.get_function(called_func.id))
+                assert(False)
+            else:
+                new_instructions.append(instr)
+        else:
+            new_instructions.append(instr)
+            
+    swap_instrs(f, new_instructions)
+
 def specialize_types(code_gen, func_name, func_arg_types):
     spec_name = func_name
     func = code_gen.get_function(func_name)
@@ -647,11 +673,10 @@ def specialize_types(code_gen, func_name, func_arg_types):
     for sym in sym_map:
         spec_f.set_symbol_type(sym, sym_map[sym])
 
-    # for instr in func.instructions:
-    #     spec_f.instructions.append(instr)
-
     for instr in func.instructions:
         spec_f.instructions.append(instr)
+
+    inline_all(spec_f, code_gen)
 
     #unify_types(spec_f, func)
     unify_types(spec_f)
