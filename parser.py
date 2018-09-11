@@ -474,6 +474,10 @@ def unify_types(spec_f, f):
         elif isinstance(instr, ConstDecl):
             res = instr.res_name
             constraints.append((res, l.IntegerType()))
+        elif isinstance(instr, ITEInstr):
+            constraints.append((instr.res, instr.true_exp))
+            constraints.append((instr.res, instr.false_exp))
+            constraints.append((instr.test, l.ArrayType(1)))
         else:
             print('Error: Cannot unify types in instruction', instr.to_string)
 
@@ -642,8 +646,15 @@ def specialize_types(code_gen, func_name, func_arg_types):
     for sym in sym_map:
         spec_f.set_symbol_type(sym, sym_map[sym])
 
+    # for instr in func.instructions:
+    #     spec_f.instructions.append(instr)
+
     unify_types(spec_f, func)
 
+    # for sym in spec_f.symbol_table:
+    #     print('sym', sym, 'has type', spec_f.symbol_type(sym))
+    #     assert(spec_f.symbol_type(sym) != None)
+        
     for instr in func.instructions:
         spec_f.instructions.append(instr)
 

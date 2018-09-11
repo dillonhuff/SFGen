@@ -50,7 +50,7 @@ def module_for_functional_unit(unit):
         m.add_out_port('out', width)
         return m
     
-    print('Error: Unsupported functional unit:', unit.name)
+    print('Error: Unsupported functional unit:', unit.name, unit.parameters)
     assert(False)
     
 class Module:
@@ -65,7 +65,6 @@ class Module:
 
     def add_parameter(self, name, value):
         self.parameters[name] = value
-
 
     def get_parameter(self, name):
         return self.parameters[name]
