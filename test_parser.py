@@ -66,27 +66,27 @@ def test_tc_abs_parse():
     print('')
     print(f_spec.to_string())
 
-    assert(False)
+#    assert(False)
 
-#     assert(f_spec.symbol_type('a') == l.ArrayType(16))
+    assert(f_spec.symbol_type('a') == l.ArrayType(16))
     
-#     sched = schedule(code_gen, f_spec, constraints)
+    sched = schedule(code_gen, f_spec, constraints)
 
-#     print(sched.to_string())
+    print(sched.to_string())
 
-#     mod = generate_rtl(f_spec, sched)
+    mod = generate_rtl(f_spec, sched)
 
-#     assert(mod.name == f_spec.name)
+    assert(mod.name == f_spec.name)
 
-#     generate_verilog(mod)
+    generate_verilog(mod)
 
-    # # Compile iverilog
-    # assert(run_cmd('iverilog -o {0} {0}.v {0}_tb.v'.format(mod.name)))
-    # assert(run_cmd('./{0} > {0}_res.txt'.format(mod.name)))
+    # Compile iverilog
+    assert(run_cmd('iverilog -o {0} {0}.v {0}_tb.v'.format(mod.name)))
+    assert(run_cmd('./{0} > {0}_res.txt'.format(mod.name)))
 
-    # f = open('{0}_res.txt'.format(mod.name), 'r')
-    # res = f.read()
-    # f.close()
+    f = open('{0}_res.txt'.format(mod.name), 'r')
+    res = f.read()
+    f.close()
 
-    # assert(res == 'passed\n')
+    assert(res == 'passed\n')
     

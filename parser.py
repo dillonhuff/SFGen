@@ -523,7 +523,7 @@ def schedule(code_gen, f, constraints):
     s = Schedule()
     for instr in f.instructions:
         if not isinstance(instr, ReturnInstr): # and not isinstance(instr, ConstBVDecl):
-            unit_name = s.add_unit(functional_unit(instr))
+            unit_name = s.add_unit(functional_unit(instr, f))
             s.bind_instruction(unit_name, 0, instr)
 
     return s
@@ -548,6 +548,7 @@ def substitute_constraint(name, tp, c):
 def unify_types(spec_f):
     f = spec_f
     constraints = []
+    int_constants = {}
     for sym in spec_f.symbol_table:
         if spec_f.symbol_type(sym) != None:
             constraints.append((sym, spec_f.symbol_type(sym)))
@@ -567,7 +568,8 @@ def unify_types(spec_f):
             res = instr.res
             a = instr.rhs
             constraints.append((res, a))
-
+        elif isinstance(instr, ConstDecl):
+            int_constants[instr.res_name] = instr.num
         elif isinstance(instr, CompareInstr):
             res = instr.res
             a = instr.lhs
@@ -581,6 +583,12 @@ def unify_types(spec_f):
             constraints.append((instr.res, instr.true_exp))
             constraints.append((instr.res, instr.false_exp))
             constraints.append((instr.test, l.ArrayType(1)))
+        elif isinstance(instr, SliceInstr):
+            if (instr.low in int_constants) and (instr.high in int_constants):
+                hg = int_constants[instr.high]
+                lw = int_constants[instr.low]
+                assert(hg >= lw)
+                constraints.append((instr.res, l.ArrayType(hg - lw + 1)))
         else:
             print('Error: Cannot unify types in instruction', instr.to_string)
 
