@@ -13,8 +13,28 @@ class LowInstruction:
 
     def __repr__(self):
         return self.to_string()
-    
-class ConstDecl:
+
+class ITEInstr(LowInstruction):
+    def __init__(self, res, test, true_exp, false_exp):
+        self.res = res
+        self.test = test
+        self.true_exp = true_exp
+        self.false_exp = false_exp
+
+class SliceInstr(LowInstruction):
+    def __init__(self, res, value, low, high):
+        self.res = res
+        self.value = value
+        self.low = low
+        self.high = high
+
+class CompareInstr(LowInstruction):
+    def __init__(self, res, lhs, rhs):
+        self.res = res
+        self.lhs = lhs
+        self.rhs = rhs
+        
+class ConstDecl(LowInstruction):
     def __init__(self, res_name, num):
         self.res_name = res_name
         self.num = num
@@ -174,6 +194,7 @@ class LowCodeGenerator(ast.NodeVisitor):
         if isinstance(expr, ast.BinOp):
             self.visit_Expr(expr.left)
             self.visit_Expr(expr.right)
+            
             lhs = self.expr_name(expr.left)
             rhs = self.expr_name(expr.right)
 
@@ -203,10 +224,45 @@ class LowCodeGenerator(ast.NodeVisitor):
             self.active_function.add_instr(CallInstr(res, expr.func, arg_exprs))
             self.expr_names[expr] = res
 
+        elif isinstance(expr, ast.IfExp):
+            res = self.active_function.fresh_sym()
+            self.visit_Expr(expr.test)
+            self.visit_Expr(expr.body)
+            self.visit_Expr(expr.orelse)
+
+            self.active_function.add_instr(ITEInstr(res,
+                                                    self.expr_name(expr.test),
+                                                    self.expr_name(expr.body),
+                                                    self.expr_name(expr.orelse)))
+            self.expr_names[expr] = res
+
         elif isinstance(expr, ast.Num):
             n = self.active_function.fresh_sym()
             self.active_function.add_instr(ConstDecl(n, expr.n))
             self.expr_names[expr] = n
+
+        elif isinstance(expr, ast.Compare):
+            self.visit_Expr(expr.left)
+
+            assert(len(expr.comparators) == 1)
+
+            self.visit_Expr(expr.comparators[0])
+            res = self.active_function.fresh_sym()
+            self.active_function.add_instr(CompareInstr(res, self.expr_name(expr.left), self.expr_name(expr.comparators[0])))
+            self.expr_names[expr] = res
+
+        elif isinstance(expr, ast.Subscript):
+            self.visit_Expr(expr.value)
+            self.visit_Expr(expr.slice.lower)
+            self.visit_Expr(expr.slice.upper)
+
+            res = self.active_function.fresh_sym()
+            self.active_function.add_instr(SliceInstr(res,
+                                                      self.expr_name(expr.value),
+                                                      self.expr_name(expr.slice.lower),
+                                                      self.expr_name(expr.slice.upper)))
+            self.expr_names[expr] = res
+            
         else:
             print('Error: Unhandled expression:', ast.dump(expr))
             assert(False)
