@@ -603,7 +603,13 @@ def unify_types(spec_f):
 
         if primitives == None:
             print('Unresolved constraints =', constraints)
-            assert(False)
+            # Check for contradictions
+            for c in constraints:
+                if isinstance(c[0], l.Type) and isinstance(c[1], l.Type) and c[0] != c[1]:
+                    print('Contradiction in constraints', c)
+                    assert(False)
+
+            break
         
         new_constraints = []
         for i in range(0, len(constraints)):
@@ -648,7 +654,11 @@ def evaluate_widths(spec_f):
                 print('Value =', ast.dump(target))
                 width_val = spec_f.symbol_type(target.id).width()
 
-                new_instrs.append(ConstDecl(instr.res, width_val))
+                if width_val != None:
+                    new_instrs.append(ConstDecl(instr.res, width_val))
+                else:
+                    # Constraint propagation has not figured out this width yet
+                    new_instrs.append(instr)
             else:
                 new_instrs.append(instr)
         else:
@@ -774,6 +784,24 @@ def inline_all(f, code_gen):
             
     swap_instrs(f, new_instructions)
 
+def evaluate_integer_constants(f):
+    values = {}
+    new_instructions = []
+    for instr in f.instructions:
+        if isinstance(instr, BinopInstr):
+            if (instr.lhs in values) and (instr.rhs in values) and isinstance(instr.op, ast.Sub):
+                values[instr.res] = values[instr.lhs] - values[instr.rhs]
+                new_instructions.append(ConstDecl(instr.res, values[instr.res]))
+            else:
+                new_instructions.append(instr)
+
+        elif isinstance(instr, ConstDecl):
+            values[instr.res_name] = instr.num
+            new_instructions.append(instr)
+        else:
+            new_instructions.append(instr)
+    swap_instrs(f, new_instructions)
+
 def specialize_types(code_gen, func_name, func_arg_types):
     spec_name = func_name
     func = code_gen.get_function(func_name)
@@ -803,8 +831,18 @@ def specialize_types(code_gen, func_name, func_arg_types):
     print('After inlining')
     print(spec_f.to_string())
 
+    evaluate_widths(spec_f)
     unify_types(spec_f)
+    evaluate_integer_constants(spec_f)
 
+    evaluate_widths(spec_f)
+    unify_types(spec_f)
+    evaluate_integer_constants(spec_f)
+    
+    print('After second width evaluation')
+    print(spec_f.to_string())
+    
+    
     # for sym in spec_f.symbol_table:
     #     print('sym', sym, 'has type', spec_f.symbol_type(sym))
     #     assert(spec_f.symbol_type(sym) != None)
