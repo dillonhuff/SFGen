@@ -552,20 +552,22 @@ def evaluate_widths(spec_f):
             f = instr.func
             if isinstance(f, ast.Name):
                 print('Is instance')
-                assert(f.id == 'bv_from_int')
-                bv_width_name = instr.args[0]
-                bv_val_name = instr.args[1]
+                if (f.id == 'bv_from_int'):
+                    bv_width_name = instr.args[0]
+                    bv_val_name = instr.args[1]
 
-                print('width =', bv_width_name)
-                print('val   =', bv_val_name)
+                    print('width =', bv_width_name)
+                    print('val   =', bv_val_name)
 
-                bv_val = get_const_int(bv_width_name, spec_f)
-                bv_width = get_const_int(bv_val_name, spec_f)
+                    bv_val = get_const_int(bv_width_name, spec_f)
+                    bv_width = get_const_int(bv_val_name, spec_f)
 
-                new_instrs.append(ConstBVDecl(instr.res, bv_val, bv_width))
+                    new_instrs.append(ConstBVDecl(instr.res, bv_val, bv_width))
+                else:
+                    new_instrs.append(instr)
             else:
-                #assert(False)
-                new_instrs.append(instr)
+                assert(False)
+                #new_instrs.append(instr)
         else:
             new_instrs.append(instr)
 
