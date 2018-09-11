@@ -419,7 +419,13 @@ def functional_unit(instr):
     elif isinstance(instr, ConstBVDecl):
         name = 'constant_' + str(instr.value)
         return Operation(name, [instr.value])
+    elif isinstance(instr, CallInstr):
+        assert(isinstance(instr.func, ast.Name))
+        return Operation(instr.func.id, [])
+    elif isinstance(instr, ITEInstr):
+        return Operation('ite_' + str(16), [16])
     else:
+        print('Unsupported functional unit', instr)
         assert(False)
 
 def schedule(code_gen, f, constraints):
