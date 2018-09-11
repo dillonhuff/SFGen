@@ -61,7 +61,7 @@ def test_tc_abs_parse():
     print(code_gen.get_function("tc_abs").to_string())
 
     constraints = ScheduleConstraints()
-    f_spec = specialize_types(code_gen, "tc_neg", [l.ArrayType(16)])
+    f_spec = specialize_types(code_gen, "tc_abs", [l.ArrayType(16)])
 
     print('')
     print(f_spec.to_string())
