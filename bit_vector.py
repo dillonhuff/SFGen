@@ -381,3 +381,11 @@ def zero_bv(width):
     for i in range(0, width):
         zeros.append(QVB(0))
     return BV(zeros)
+
+def fixed_point_to_float(bv, decimal_place):
+    val = 0.0
+    for i in range(0, bv.width()):
+        exp = i - decimal_place
+        if bv.get(i) == QVB(1):
+            val += pow(2, exp)
+    return val
