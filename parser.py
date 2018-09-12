@@ -670,6 +670,8 @@ def unify_types(spec_f):
 
     resolved = []
     clen = len(constraints)
+    resolved_all = True
+
     while len(resolved) < clen:
         primitives = None
         for ind in range(0, len(constraints)):
@@ -683,6 +685,7 @@ def unify_types(spec_f):
 
         if primitives == None:
             print('Unresolved constraints =', constraints)
+            resolved_all = False
             # Check for contradictions
             for c in constraints:
                 if isinstance(c[0], l.Type) and isinstance(c[1], l.Type) and c[0] != c[1]:
@@ -708,6 +711,8 @@ def unify_types(spec_f):
         print(c)
         prim = get_primitives(c)
         spec_f.set_symbol_type(prim[0], prim[1])
+
+    return resolved_all
                     
 def get_const_int(name, func):
     for instr in func.instructions:
@@ -716,8 +721,10 @@ def get_const_int(name, func):
                 return instr.num
         if isinstance(instr, AssignInstr) and name == instr.res:
             return get_const_int(instr.rhs, func)
-    print('Error: Cannot find constant', name, 'in\n', func.to_string())
-    assert(False)
+
+    return None
+    # print('Error: Cannot find constant', name, 'in\n', func.to_string())
+    # assert(False)
 
 def evaluate_widths(spec_f):
 
@@ -767,7 +774,10 @@ def evaluate_widths(spec_f):
                 bv_val = get_const_int(bv_width_name, spec_f)
                 bv_width = get_const_int(bv_val_name, spec_f)
 
-                new_instrs.append(ConstBVDecl(instr.res, bv_val, bv_width))
+                if bv_val != None and bv_width != None:
+                    new_instrs.append(ConstBVDecl(instr.res, bv_val, bv_width))
+                else:
+                    new_instrs.append(instr)
             else:
                 new_instrs.append(instr)
         else:
@@ -886,9 +896,17 @@ def evaluate_integer_constants(f):
     new_instructions = []
     for instr in f.instructions:
         if isinstance(instr, BinopInstr):
-            if (instr.lhs in values) and (instr.rhs in values) and isinstance(instr.op, ast.Sub):
-                values[instr.res] = values[instr.lhs] - values[instr.rhs]
-                new_instructions.append(ConstDecl(instr.res, values[instr.res]))
+            if (instr.lhs in values) and (instr.rhs in values):
+                if isinstance(instr.op, ast.Sub):
+                    values[instr.res] = values[instr.lhs] - values[instr.rhs]
+                    new_instructions.append(ConstDecl(instr.res, values[instr.res]))
+                elif isinstance(instr.op, ast.Mult):
+                    values[instr.res] = values[instr.lhs] * values[instr.rhs]
+                    new_instructions.append(ConstDecl(instr.res, values[instr.res]))
+                elif isinstance(instr.op, ast.Add):
+                    values[instr.res] = values[instr.lhs] + values[instr.rhs]
+                    new_instructions.append(ConstDecl(instr.res, values[instr.res]))
+
             else:
                 new_instructions.append(instr)
 
@@ -940,28 +958,26 @@ def specialize_types(code_gen, func_name, func_arg_types):
     print(spec_f.to_string())
 
     evaluate_integer_constants(spec_f)
-    evaluate_widths(spec_f)
+    #evaluate_widths(spec_f)
 
     print('After evaluating widths first')
     print(spec_f.to_string())
 
-    unify_types(spec_f)
+    resolved_all = unify_types(spec_f)
     evaluate_integer_constants(spec_f)
-    evaluate_integer_constants(spec_f)
-
     evaluate_widths(spec_f)
-    unify_types(spec_f)
-    evaluate_integer_constants(spec_f)
+
+    i = 1
+    while (not resolved_all) and i < 8:
+        print('Resolve iteration', i)
+        resolved_all = unify_types(spec_f)
+        evaluate_integer_constants(spec_f)
+        evaluate_widths(spec_f)
+        i += 1
 
     delete_dead_instructions(spec_f)
     
     print('After second width evaluation')
     print(spec_f.to_string())
-
-    evaluate_widths(spec_f)
-
-    print(spec_f.to_string())
-
-    delete_dead_instructions(spec_f)
     
     return spec_f
