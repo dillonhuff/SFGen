@@ -892,6 +892,17 @@ def evaluate_integer_constants(f):
             else:
                 new_instructions.append(instr)
 
+        elif isinstance(instr, CallInstr) and instr.func == 'width':
+            assert(len(instr.args) == 1)
+            if isinstance(f.symbol_type(instr.args[0]), l.ArrayType):
+                values[instr.res] = f.symbol_type(instr.args[0]).width()
+                new_instructions.append(ConstDecl(instr.res, values[instr.res]))
+            else:
+                new_instructions.append(instr)
+
+        elif isinstance(instr, AssignInstr) and (instr.rhs in values):
+            values[instr.res] = values[instr.rhs]
+            new_instructions.append(instr)
         elif isinstance(instr, ConstDecl):
             values[instr.res_name] = instr.num
             new_instructions.append(instr)
@@ -928,12 +939,14 @@ def specialize_types(code_gen, func_name, func_arg_types):
     print('After inlining')
     print(spec_f.to_string())
 
+    evaluate_integer_constants(spec_f)
     evaluate_widths(spec_f)
 
     print('After evaluating widths first')
     print(spec_f.to_string())
 
     unify_types(spec_f)
+    evaluate_integer_constants(spec_f)
     evaluate_integer_constants(spec_f)
 
     evaluate_widths(spec_f)
