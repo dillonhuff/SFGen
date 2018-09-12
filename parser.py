@@ -291,8 +291,7 @@ class LowCodeGenerator(ast.NodeVisitor):
                 assert(len(stmt.targets) == 1)
                 self.visit_Expr(stmt.targets[0])
                 self.visit_Expr(stmt.value)
-                res = self.active_function.fresh_sym()
-                self.active_function.add_instr(AssignInstr(res, self.expr_name(stmt.targets[0])))
+                self.active_function.add_instr(AssignInstr(self.expr_name(stmt.targets[0]), self.expr_name(stmt.value)))
 
         elif isinstance(stmt, ast.Expr):
             if self.active_function == None:
@@ -357,6 +356,7 @@ class LowCodeGenerator(ast.NodeVisitor):
                 self.visit_Expr(expr.func.value)
                 assert(expr.func.attr == 'width')
                 res = self.active_function.fresh_sym()
+
                 self.active_function.add_instr(CallInstr(res, 'width', [self.expr_name(expr.func.value)]))
             else:
                 arg_exprs = []
@@ -710,6 +710,8 @@ def get_const_int(name, func):
         if isinstance(instr, ConstDecl):
             if instr.res_name == name:
                 return instr.num
+        if isinstance(instr, AssignInstr) and name == instr.res:
+            return get_const_int(instr.rhs, func)
     print('Error: Cannot find constant', name, 'in\n', func.to_string())
     assert(False)
 
@@ -729,12 +731,11 @@ def evaluate_widths(spec_f):
 #                target = f.value
                 target = instr.args[0]
                 #assert(isinstance(target, ast.Name))
-                #print('Value =', ast.dump(target))
-                #width_val = spec_f.symbol_type(target.id).width()
-                width_val = spec_f.symbol_type(target).width()
+                print('Value =', target)
+                width_val = spec_f.symbol_type(target)
 
                 if width_val != None:
-                    new_instrs.append(ConstDecl(instr.res, width_val))
+                    new_instrs.append(ConstDecl(instr.res, width_val.width()))
                 else:
                     # Constraint propagation has not figured out this width yet
                     new_instrs.append(instr)
@@ -752,7 +753,7 @@ def evaluate_widths(spec_f):
             f = instr.func
             if isinstance(f, ast.Name) and f.id == 'bv_from_int':
                 print('Is instance of bv instruction')
-                #if (f.id == 'bv_from_int'):
+
                 bv_width_name = instr.args[0]
                 bv_val_name = instr.args[1]
 
@@ -765,17 +766,10 @@ def evaluate_widths(spec_f):
                 new_instrs.append(ConstBVDecl(instr.res, bv_val, bv_width))
             else:
                 new_instrs.append(instr)
-            # else:
-            #     assert(False)
-                #new_instrs.append(instr)
         else:
             new_instrs.append(instr)
 
-                #spec_f.instructions = new_instrs
     swap_instrs(spec_f, new_instrs)
-    #spec_f.instructions = new_instrs
-    
-    #print('New instrs = ', spec_f.to_string())
 
     return
 
@@ -937,13 +931,6 @@ def specialize_types(code_gen, func_name, func_arg_types):
     delete_dead_instructions(spec_f)
     
     print('After second width evaluation')
-    print(spec_f.to_string())
-    
-    
-    # for sym in spec_f.symbol_table:
-    #     print('sym', sym, 'has type', spec_f.symbol_type(sym))
-    #     assert(spec_f.symbol_type(sym) != None)
-        
     print(spec_f.to_string())
 
     evaluate_widths(spec_f)
