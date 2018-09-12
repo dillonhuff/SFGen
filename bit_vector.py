@@ -389,3 +389,6 @@ def fixed_point_to_float(bv, decimal_place):
         if bv.get(i) == QVB(1):
             val += pow(2, exp)
     return val
+
+def zero_extend(width, bv):
+    return bv.zero_extend(width)

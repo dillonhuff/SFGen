@@ -20,7 +20,7 @@ def approximate_reciprocal(b):
     approximation_width = 10
     normed = b << bv_from_int(width, b.leading_zero_count())
 
-    top_8 = (normed[width - approximation_width : width - 1]).zero_extend(width)
+    top_8 = zero_extend(width, normed[width - approximation_width : width - 1])
 
     assert(top_8.width() == width)
 
@@ -56,7 +56,6 @@ def newton_raphson_divide(ne, de):
     n_sign = sign_bit(n)
     d_sign = sign_bit(d)
 
-#    one = bv_from_int(2*width, 1 << (2*width - 1))
     one = bv_from_int(width, 1 << (width - 1))
     lzc = d.leading_zero_count()
     normed_d = d << bv_from_int(width, lzc - 1)
