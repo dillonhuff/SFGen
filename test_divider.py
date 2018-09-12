@@ -31,5 +31,3 @@ def test_249_divided_by_18():
     res = newton_raphson_divide(bv_from_int(width, 249), bv_from_int(width, 18))
     print('res =', res)
     assert(res == bv_from_int(width, 249 // 18))
-    
-    
