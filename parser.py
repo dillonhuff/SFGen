@@ -686,9 +686,9 @@ def unify_types(spec_f):
         else:
             print('Error: Cannot unify types in instruction', instr.to_string)
 
-    print('Type constraints')
-    for c in constraints:
-        print(c)
+    # print('Type constraints')
+    # for c in constraints:
+    #     print(c)
 
     resolved = []
     clen = len(constraints)
@@ -701,7 +701,7 @@ def unify_types(spec_f):
             primitives = get_primitives(c)
             if primitives != None:
                 resolved.append(c)
-                print('Resolved', c)
+#                print('Resolved', c)
                 break
 
 
@@ -781,11 +781,11 @@ def evaluate_widths(spec_f):
 
     new_instrs = []
     for instr in spec_f.instructions:
-        print('Second scan')
+        #print('Second scan')
         if isinstance(instr, CallInstr):
             f = instr.func
             if isinstance(f, ast.Name) and f.id == 'bv_from_int':
-                print('Is instance of bv instruction')
+                #print('Is instance of bv instruction')
 
                 bv_width_name = instr.args[0]
                 bv_val_name = instr.args[1]
@@ -959,8 +959,10 @@ def simplify_integer_assigns(spec_f):
         if isinstance(instr, AssignInstr) and (spec_f.symbol_type(instr.res) == l.IntegerType()):
             replaced.add(instr.res)
             print('Replacing assignment to', instr.res, 'with', instr.rhs)
-            for j in range(i, len(spec_f.instructions)):
+            for j in range(i + 1, len(spec_f.instructions)):
+                
                 spec_f.instructions[j].replace_values(lambda name: instr.rhs if name == instr.res else name)
+                print('After replacing', instr.res, 'in', spec_f.instructions[j])
         else:
             new_instructions.append(instr)
 
