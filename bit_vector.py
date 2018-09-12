@@ -82,7 +82,7 @@ class QuadValueBitVector():
         count = 0
         for i in range(self.width() - 1, -1, -1):
             b = self.get(i)
-            print('b = ', b)
+            #print('b = ', b)
             if (b != QVB(0)):
                 return count
             else:
@@ -155,8 +155,8 @@ class QuadValueBitVector():
         assert(isinstance(other, QuadValueBitVector))
         assert(self.width() == other.width())
 
-        print('self  =', self)
-        print('other = ', other)
+        # print('self  =', self)
+        # print('other = ', other)
         
         resBits = []
         carry = 0
@@ -251,21 +251,21 @@ class QuadValueBitVector():
         width = self.width()
 
         a_tmp = self.zero_extend(2*width)
-        print('a_tmp = ', a_tmp)
+#        print('a_tmp = ', a_tmp)
         b = other.zero_extend(2*width)
-        print('b_tmp = ', b)
+#        print('b_tmp = ', b)
         
         for i in range(self.width() - 1, -1, -1):
             shifted_b = b << bv_from_int(width, i)
-            print('shifted_b =', shifted_b)
-            print('a_tmp     =', a_tmp)
+            # print('shifted_b =', shifted_b)
+            # print('a_tmp     =', a_tmp)
             if (shifted_b <= a_tmp):
-                print(shifted_b, '<=', a_tmp)
+                #print(shifted_b, '<=', a_tmp)
                 
                 quot.set_bit(i, QVB(1))
                 a_tmp = a_tmp - shifted_b
-                print('Shifted b = ', shifted_b)
-                print('a temp    = ', a_tmp)
+                # print('Shifted b = ', shifted_b)
+                # print('a temp    = ', a_tmp)
                 
         return quot
         
@@ -367,7 +367,7 @@ def bv_from_int(width, val):
     bitList = []
     for b in bits:
         bitList.append(to_qb(b))
-    print('Bits =', bitList)
+    #print('Bits =', bitList)
 
     assert(len(bitList) <= width)
     res = BV(bitList).zero_extend(width)

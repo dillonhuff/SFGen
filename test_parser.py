@@ -4,6 +4,7 @@ import ast
 from rtl import *
 
 import os
+
 def run_cmd(cmd):
     res = os.system(cmd)
     return res == 0
