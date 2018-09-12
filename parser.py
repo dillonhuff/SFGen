@@ -93,6 +93,9 @@ class ConstBVDecl:
         self.res_name = res_name
         self.value = b.bv_from_int(width, val)
 
+    def replace_values(self, f):
+        self.res_name = f(self.res_name)
+        
     def used_values(self):
         return {self.res_name}
         
@@ -642,6 +645,7 @@ def unify_types(spec_f):
             constraints.append((res, a))
         elif isinstance(instr, ConstDecl):
             int_constants[instr.res_name] = instr.num
+            constraints.append((instr.res_name, l.IntegerType()))
         elif isinstance(instr, CompareInstr):
             res = instr.res
             a = instr.lhs
@@ -651,11 +655,22 @@ def unify_types(spec_f):
         elif isinstance(instr, ConstDecl):
             res = instr.res_name
             constraints.append((res, l.IntegerType()))
+
+        elif isinstance(instr, ConstBVDecl):
+            res = instr.res_name
+            constraints.append((res, l.ArrayType(instr.value.width())))
+
         elif isinstance(instr, ITEInstr):
             constraints.append((instr.res, instr.true_exp))
             constraints.append((instr.res, instr.false_exp))
             constraints.append((instr.test, l.ArrayType(1)))
+
+        elif isinstance(instr, CallInstr) and (instr.func == 'width'):
+            constraints.append((instr.res, l.IntegerType()))
         elif isinstance(instr, SliceInstr):
+            constraints.append((instr.high, l.IntegerType()))
+            constraints.append((instr.low, l.IntegerType()))
+
             if (instr.low in int_constants) and (instr.high in int_constants):
                 hg = int_constants[instr.high]
                 lw = int_constants[instr.low]
@@ -928,6 +943,20 @@ def evaluate_integer_constants(f):
             new_instructions.append(instr)
     swap_instrs(f, new_instructions)
 
+def simplify_integer_assigns(spec_f):
+
+    new_instructions = []
+    for i in range(0, len(spec_f.instructions)):
+        instr = spec_f.instructions[i]
+        if isinstance(instr, AssignInstr) and (spec_f.symbol_type(instr.res) == l.IntegerType()):
+            print('Replacing assignment to', instr.res, 'with', instr.rhs)
+            for j in range(i, len(spec_f.instructions)):
+                spec_f.instructions[j].replace_values(lambda name: instr.rhs if name == instr.res else name)
+        else:
+            new_instructions.append(instr)
+
+    swap_instrs(spec_f, new_instructions)
+
 def specialize_types(code_gen, func_name, func_arg_types):
     spec_name = func_name
     func = code_gen.get_function(func_name)
@@ -975,6 +1004,7 @@ def specialize_types(code_gen, func_name, func_arg_types):
         evaluate_widths(spec_f)
         i += 1
 
+    simplify_integer_assigns(spec_f)
     delete_dead_instructions(spec_f)
     
     print('After second width evaluation')
