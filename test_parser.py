@@ -92,7 +92,21 @@ def test_instr_replacemant():
     call.replace_values(lambda name: 'a' if name == 'hello' else name)
     assert(call.args[0] == 'a')
     
-def test_newton_raphson_parse():
+def test_approximate_reciprocal_parse():
+    code_str = open('divider.py').read()
+    code = ast.parse(code_str)
+
+    code_gen = LowCodeGenerator()
+    code_gen.visit(code)
+
+    print(code_gen.get_function("approximate_reciprocal").to_string())
+
+    constraints = ScheduleConstraints()
+    f_spec = specialize_types(code_gen, "approximate_reciprocal", [l.ArrayType(16)])
+
+    assert(f_spec.symbol_type('one_ext') == l.ArrayType(32))
+
+def test_approximate_reciprocal_parse():
     code_str = open('divider.py').read()
     code = ast.parse(code_str)
 

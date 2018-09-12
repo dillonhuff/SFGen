@@ -5,6 +5,12 @@ import copy
 
 from utils import *
 
+def anyinstance(i, tps):
+    for t in tps:
+        if isinstance(i, t):
+            return True
+    return False
+
 class LowInstruction:
     def __init__(self):
         return None
@@ -552,18 +558,22 @@ def op_string(op):
         return 'eq'
     if isinstance(op, ast.LShift):
         return 'shl'
+    if isinstance(op, ast.RShift):
+        return 'lshr'
     if isinstance(op, ast.Sub):
         return 'sub'
+    if isinstance(op, ast.Div):
+        return 'unsigned_div'
+    if isinstance(op, ast.Mult):
+        return 'mult'
+    if isinstance(op, ast.NotEq):
+        return 'not_eq'
+
+    print('Unsupported op =', op)
 
     assert(False)
 
 sameWidthOps = [ast.Invert, ast.Add, ast.Sub]
-
-def anyinstance(i, tps):
-    for t in tps:
-        if isinstance(i, t):
-            return True
-    return False
 
 def functional_unit(instr, f):
     if isinstance(instr, BinopInstr) or isinstance(instr, UnopInstr):
@@ -627,6 +637,15 @@ def substitute(name, tp, c):
 def substitute_constraint(name, tp, c):
     return (substitute(name, tp, c[0]), substitute(name, tp, c[1]))
 
+def all_ops_same_width(instr):
+    if anyinstance(instr.op, [ast.Mult, ast.Add, ast.Sub, ast.Div]):
+        return True
+    else:
+        return False
+
+def is_shift(instr):
+    return anyinstance(instr.op, [ast.LShift, ast.RShift])
+
 def unify_types(spec_f):
     f = spec_f
     constraints = []
@@ -641,11 +660,16 @@ def unify_types(spec_f):
             operand = instr.in_name
             constraints.append((res, operand))
         elif isinstance(instr, BinopInstr):
-            res = instr.res
-            a = instr.lhs
-            b = instr.rhs
-            constraints.append((res, a))
-            constraints.append((a, b))
+            if all_ops_same_width(instr):
+                res = instr.res
+                a = instr.lhs
+                b = instr.rhs
+                constraints.append((res, a))
+                constraints.append((a, b))
+            elif is_shift(instr):
+                res = instr.res
+                a = instr.lhs
+                constraints.append((res, a))
         elif isinstance(instr, AssignInstr):
             res = instr.res
             a = instr.rhs
@@ -687,8 +711,8 @@ def unify_types(spec_f):
 #                print(instr.args[0], 'has value', int_constants[instr.args[0]])
                 constraints.append((instr.res, l.ArrayType(int_constants[instr.args[0]])))
 
-        elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'count_leading_zeros':
-            constraints.append((instr.res, l.ArrayType(instr.args[0].width())))
+        elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'leading_zero_count':
+            constraints.append((instr.res, instr.args[0]))
                 
         elif isinstance(instr, SliceInstr):
             constraints.append((instr.high, l.IntegerType()))
