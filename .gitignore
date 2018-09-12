@@ -4,3 +4,5 @@ __pycache__/
 tc_neg_16
 tc_neg_16.v
 *.txt
+tc_abs_16
+tc_abs_16.v
