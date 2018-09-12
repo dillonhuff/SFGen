@@ -674,6 +674,22 @@ def unify_types(spec_f):
 
         elif isinstance(instr, CallInstr) and (instr.func == 'width'):
             constraints.append((instr.res, l.IntegerType()))
+
+        elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'zero_extend':
+#            print('Found zero extend', instr)
+            if instr.args[0] in int_constants:
+#                print(instr.args[0], 'has value', int_constants[instr.args[0]])
+                constraints.append((instr.res, l.ArrayType(int_constants[instr.args[0]])))
+
+        elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'bv_from_int':
+#            print('Found zero extend', instr)
+            if instr.args[0] in int_constants:
+#                print(instr.args[0], 'has value', int_constants[instr.args[0]])
+                constraints.append((instr.res, l.ArrayType(int_constants[instr.args[0]])))
+
+        elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'count_leading_zeros':
+            constraints.append((instr.res, l.ArrayType(instr.args[0].width())))
+                
         elif isinstance(instr, SliceInstr):
             constraints.append((instr.high, l.IntegerType()))
             constraints.append((instr.low, l.IntegerType()))
@@ -684,7 +700,7 @@ def unify_types(spec_f):
                 assert(hg >= lw)
                 constraints.append((instr.res, l.ArrayType(hg - lw + 1)))
         else:
-            print('Error: Cannot unify types in instruction', instr.to_string)
+            print('Error: Cannot unify types in instruction', instr.to_string())
 
     # print('Type constraints')
     # for c in constraints:
@@ -1018,7 +1034,8 @@ def specialize_types(code_gen, func_name, func_arg_types):
     evaluate_widths(spec_f)
 
     i = 1
-    while (not resolved_all) and i < 8:
+#    while (not resolved_all) and i < 8:
+    while i < 15:
         print('Resolve iteration', i)
         resolved_all = unify_types(spec_f)
         evaluate_integer_constants(spec_f)
@@ -1031,6 +1048,9 @@ def specialize_types(code_gen, func_name, func_arg_types):
     print('After second width evaluation')
     print(spec_f.to_string())
 
+    print('Final unification')
+    unify_types(spec_f)
+    
     all_values = set()
     for instr in spec_f.instructions:
         for value in instr.used_values():
