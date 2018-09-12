@@ -25,7 +25,7 @@ def approximate_reciprocal(b):
     assert(top_8.width() == width)
 
     one_ext = bv_from_int(2*width, 1 << (2*width - 1))
-    top_8_ext = top_8.zero_extend(2*width)
+    top_8_ext = zero_extend(2*width, top_8) #.zero_extend(2*width)
     quote = one_ext / top_8_ext
 
     print('Quote =', quote)
