@@ -183,7 +183,11 @@ class CallInstr(LowInstruction):
         return s
         
     def to_string(self):
-        s = '\tcall ' + self.res + ' ' + str(self.func) + ' '
+        if isinstance(self.func, str):
+            s = '\tcall ' + self.res + ' ' + str(self.func) + ' '
+        else:
+            assert(isinstance(self.func, ast.Name))
+            s = '\tcall ' + self.res + ' ' + str(self.func.id) + ' '
         arg_strs = []
         for a in self.args:
             arg_strs.append(str(a))
@@ -845,7 +849,8 @@ def inline_function(receiver, new_instructions, to_inline, arg_map, returned):
             new_instructions.append(AssignInstr(returned, icpy.val_name))
     return None
 
-def inline_all(f, code_gen):
+def inline_funcs(f, code_gen):
+    inlined_any = False
     new_instructions = []
     for instr in f.instructions:
         if isinstance(instr, CallInstr):
@@ -862,12 +867,19 @@ def inline_all(f, code_gen):
 
                 receiver = instr.res
                 inline_function(f, new_instructions, called_func_def, arg_map, receiver)
+                inlined_any = True
             else:
                 new_instructions.append(instr)
         else:
             new_instructions.append(instr)
             
     swap_instrs(f, new_instructions)
+    return inlined_any
+
+def inline_all(f, code_gen):
+    inlined = inline_funcs(f, code_gen)
+    while inlined:
+        inlined = inline_funcs(f, code_gen)
 
 def evaluate_integer_constants(f):
     values = {}
