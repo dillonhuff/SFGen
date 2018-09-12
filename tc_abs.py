@@ -1,7 +1,7 @@
 from bit_vector import *
 
-def tc_neg(a):
-    return ~a + bv_from_int(a.width(), 1)
+def tc_neg(v):
+    return ~v + bv_from_int(v.width(), 1)
 
 def tc_is_neg(a):
     return a[a.width() - 1:a.width() - 1] == bv_from_int(1, 1)

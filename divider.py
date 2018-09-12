@@ -13,19 +13,19 @@ def tc_abs(a):
     return tc_neg(a) if tc_is_neg(a) else a
 
 def normalize_left(a):
-    return a << leading_zero_count(a) #bv_from_int(a.width(), a.leading_zero_count())
+    return a << leading_zero_count(a)
 
 def approximate_reciprocal(b):
     width = b.width()
     approximation_width = 10
-    normed = normalize_left(b) #b << leadinbv_from_int(width, b.leading_zero_count())
+    normed = normalize_left(b)
 
     top_8 = zero_extend(width, normed[width - approximation_width : width - 1])
 
     assert(top_8.width() == width)
 
     one_ext = bv_from_int(2*width, 1 << (2*width - 1))
-    top_8_ext = zero_extend(2*width, top_8) #.zero_extend(2*width)
+    top_8_ext = zero_extend(2*width, top_8)
     quote = one_ext / top_8_ext
 
     print('Quote =', quote)
@@ -39,8 +39,8 @@ def mul_fp(a, b, decimal_place):
     assert(a.width() == b.width());
     
     width = a.width()
-    a_ext = zero_extend(2*width, a) #.zero_extend) #(2*width)
-    b_ext = zero_extend(2*width, b) #.zero_extend) #(2*width)
+    a_ext = zero_extend(2*width, a)
+    b_ext = zero_extend(2*width, b)
     prod = a_ext * b_ext
 
     return (prod >> bv_from_int(width, decimal_place))[0:width - 1]
@@ -57,12 +57,12 @@ def newton_raphson_divide(ne, de):
     d_sign = sign_bit(d)
 
     one = bv_from_int(width, 1 << (width - 1))
-    lzc = leading_zero_count(d) #d.leading_zero_count()
-    normed_d = d << (lzc - bv_from_int(width, 1)) #bv_from_int(width, lzc - 1)
+    lzc = leading_zero_count(d)
+    normed_d = d << (lzc - bv_from_int(width, 1))
 
     print('Normalized d =', normed_d)
 
-    n_ext = zero_extend(2*width, n) #, .zero_extend(2*width)
+    n_ext = zero_extend(2*width, n)
 
     X = approximate_reciprocal(normed_d)
 
@@ -75,7 +75,7 @@ def newton_raphson_divide(ne, de):
     print('X    =', fixed_point_to_float(X, width - 1))
     print('1 / D =', 1.0 / fixed_point_to_float(normed_d, width - 1))
 
-    long_prod = n_ext * zero_extend(2*width, X) #.zero_extend(2*width)
+    long_prod = n_ext * zero_extend(2*width, X)
 
     print('n_ext =', n_ext)
     print('n_ext*d =', long_prod)

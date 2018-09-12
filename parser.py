@@ -22,6 +22,12 @@ class ITEInstr(LowInstruction):
         self.true_exp = true_exp
         self.false_exp = false_exp
 
+    def replace_values(self, f):
+        self.res = f(self.res)
+        self.test = f(self.test)
+        self.true_exp = f(self.true_exp)
+        self.false_exp = f(self.false_exp)
+        
     def used_values(self):
         return {self.res, self.test, self.true_exp, self.false_exp}
 
@@ -95,6 +101,10 @@ class AssignInstr(LowInstruction):
         self.res = res
         self.rhs = rhs
 
+    def replace_values(self, f):
+        self.res = f(self.res)
+        self.rhs = f(self.rhs)
+        
     def used_values(self):
         return {self.res, self.rhs}
         
@@ -269,12 +279,28 @@ class LowCodeGenerator(ast.NodeVisitor):
             self.visit_Import(stmt)
         elif isinstance(stmt, ast.ImportFrom):
             self.visit_ImportFrom(stmt)
+        elif isinstance(stmt, ast.Assert):
+            print('Log: Assert statement', stmt, 'ignored during synthesis')
         elif isinstance(stmt, ast.FunctionDef):
             self.visit_FunctionDef(stmt)
+        elif isinstance(stmt, ast.Assign):
+            if self.active_function != None:
+                assert(len(stmt.targets) == 1)
+                self.visit_Expr(stmt.targets[0])
+                self.visit_Expr(stmt.value)
+                res = self.active_function.fresh_sym()
+                self.active_function.add_instr(AssignInstr(res, self.expr_name(stmt.targets[0])))
+
         elif isinstance(stmt, ast.Expr):
             if self.active_function == None:
                 print('Log: Synthesis ignores top level expression', ast.dump(stmt))
             else:
+                print('Expression without statement', ast.dump(stmt))
+                if isinstance(stmt.value, ast.Call):
+                    print('Call')
+                    if isinstance(stmt.value.func, ast.Name) and stmt.value.func.id == 'print':
+                        print('Log: Print call ignored by synthesis')
+                        return
                 assert(False)
         elif isinstance(stmt, ast.Return):
             self.visit_Return(stmt)
