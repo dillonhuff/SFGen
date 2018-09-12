@@ -52,11 +52,6 @@ def newton_raphson_divide(ne, de):
 
     print('Normalized d =', normed_d)
 
-    # ext_d = normed_d.zero_extend(2*width)
-
-    # # Approximate one / D
-    # d_ = one / ext_d
-    # print('d_ =', d_)
     n_ext = n.zero_extend(2*width)
 
     d_ = approximate_reciprocal(normed_d)
@@ -74,7 +69,6 @@ def newton_raphson_divide(ne, de):
     print('shifted_prod =', shifted_prod)
 
     q = shifted_prod if normed_d != bv_from_int(width, 1 << (width - 2)) else n >> bv_from_int(width, width - lzc - 1)
-    #n / d
 
     out = q if d_sign == n_sign else tc_neg(q)
 
