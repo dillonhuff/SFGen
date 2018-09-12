@@ -749,11 +749,10 @@ def evaluate_widths(spec_f):
     for instr in spec_f.instructions:
         print('Second scan')
         if isinstance(instr, CallInstr):
-            print(instr)
             f = instr.func
-            if isinstance(f, str) and f == 'bv_from_int':
-                # print('Is instance')
-                # if (f.id == 'bv_from_int'):
+            if isinstance(f, ast.Name) and f.id == 'bv_from_int':
+                print('Is instance of bv instruction')
+                #if (f.id == 'bv_from_int'):
                 bv_width_name = instr.args[0]
                 bv_val_name = instr.args[1]
 

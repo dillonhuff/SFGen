@@ -13,6 +13,6 @@ module top();
       
    end
 
-   tc_neg_16 neg(.a(a), .fs_4(out));
+   tc_neg_16 neg(.a(a), .fs_5(out));
    
 endmodule
