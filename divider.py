@@ -13,12 +13,12 @@ def tc_abs(a):
     return tc_neg(a) if tc_is_neg(a) else a
 
 def normalize_left(a):
-    return a << bv_from_int(a.width(), a.leading_zero_count())
+    return a << leading_zero_count(a) #bv_from_int(a.width(), a.leading_zero_count())
 
 def approximate_reciprocal(b):
     width = b.width()
     approximation_width = 10
-    normed = b << bv_from_int(width, b.leading_zero_count())
+    normed = normalize_left(b) #b << leadinbv_from_int(width, b.leading_zero_count())
 
     top_8 = zero_extend(width, normed[width - approximation_width : width - 1])
 
@@ -57,8 +57,8 @@ def newton_raphson_divide(ne, de):
     d_sign = sign_bit(d)
 
     one = bv_from_int(width, 1 << (width - 1))
-    lzc = d.leading_zero_count()
-    normed_d = d << bv_from_int(width, lzc - 1)
+    lzc = leading_zero_count(d) #d.leading_zero_count()
+    normed_d = d << (lzc - bv_from_int(width, 1)) #bv_from_int(width, lzc - 1)
 
     print('Normalized d =', normed_d)
 
@@ -80,12 +80,13 @@ def newton_raphson_divide(ne, de):
     print('n_ext =', n_ext)
     print('n_ext*d =', long_prod)
 
-    res_shift = width + width - (lzc - 1) - 2
+    widthBV = bv_from_int(width, width)
+    res_shift = widthBV + widthBV - (lzc - bv_from_int(width, 1)) - bv_from_int(width, 2)
     print('res_shift =', res_shift)
-    shifted_prod = (long_prod >> bv_from_int(width, res_shift))[0:width - 1]
+    shifted_prod = (long_prod >> res_shift)[0:width - 1]
     print('shifted_prod =', shifted_prod)
 
-    q = shifted_prod if normed_d != bv_from_int(width, 1 << (width - 2)) else n >> bv_from_int(width, width - lzc - 1)
+    q = shifted_prod if normed_d != bv_from_int(width, 1 << (width - 2)) else n >> (widthBV - lzc - bv_from_int(width, 1))
 
     out = q if d_sign == n_sign else tc_neg(q)
 

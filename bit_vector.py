@@ -390,5 +390,8 @@ def fixed_point_to_float(bv, decimal_place):
             val += pow(2, exp)
     return val
 
-def zero_extend(width, bv):
-    return bv.zero_extend(width)
+def zero_extend(width, b):
+    return b.zero_extend(width)
+
+def leading_zero_count(b):
+    return bv_from_int(b.width(), b.leading_zero_count())
