@@ -39,8 +39,8 @@ def mul_fp(a, b, decimal_place):
     assert(a.width() == b.width());
     
     width = a.width()
-    a_ext = a.zero_extend(2*width)
-    b_ext = b.zero_extend(2*width)
+    a_ext = zero_extend(2*width, a) #.zero_extend) #(2*width)
+    b_ext = zero_extend(2*width, b) #.zero_extend) #(2*width)
     prod = a_ext * b_ext
 
     return (prod >> bv_from_int(width, decimal_place))[0:width - 1]
@@ -62,7 +62,7 @@ def newton_raphson_divide(ne, de):
 
     print('Normalized d =', normed_d)
 
-    n_ext = n.zero_extend(2*width)
+    n_ext = zero_extend(2*width, n) #, .zero_extend(2*width)
 
     X = approximate_reciprocal(normed_d)
 
@@ -75,7 +75,7 @@ def newton_raphson_divide(ne, de):
     print('X    =', fixed_point_to_float(X, width - 1))
     print('1 / D =', 1.0 / fixed_point_to_float(normed_d, width - 1))
 
-    long_prod = n_ext * X.zero_extend(2*width)
+    long_prod = n_ext * zero_extend(2*width, X) #.zero_extend(2*width)
 
     print('n_ext =', n_ext)
     print('n_ext*d =', long_prod)
