@@ -15,6 +15,9 @@ class LowInstruction:
     def __repr__(self):
         return self.to_string()
 
+def is_width_call(func):
+    return isinstance(func, ast.Attribute) and (func.attr == 'width')
+
 class ITEInstr(LowInstruction):
     def __init__(self, res, test, true_exp, false_exp):
         self.res = res
@@ -345,11 +348,22 @@ class LowCodeGenerator(ast.NodeVisitor):
 
         elif isinstance(expr, ast.Call):
             res = self.active_function.fresh_sym()
-            arg_exprs = []
-            for arg in expr.args:
-                self.visit_Expr(arg)
-                arg_exprs.append(self.expr_name(arg))
-            self.active_function.add_instr(CallInstr(res, expr.func, arg_exprs))
+
+            if is_width_call(expr.func):
+                assert(len(expr.args) == 0)
+
+                # print(ast.dump(expr))
+                # assert(False)
+                self.visit_Expr(expr.func.value)
+                assert(expr.func.attr == 'width')
+                res = self.active_function.fresh_sym()
+                self.active_function.add_instr(CallInstr(res, 'width', [self.expr_name(expr.func.value)]))
+            else:
+                arg_exprs = []
+                for arg in expr.args:
+                    self.visit_Expr(arg)
+                    arg_exprs.append(self.expr_name(arg))
+                self.active_function.add_instr(CallInstr(res, expr.func, arg_exprs))
             self.expr_names[expr] = res
 
         elif isinstance(expr, ast.IfExp):
@@ -706,15 +720,18 @@ def evaluate_widths(spec_f):
         if isinstance(instr, CallInstr):
             print(instr)
             f = instr.func
-            if (isinstance(f, ast.Attribute)):
-
-                print('Attribute =', f.attr)
-                assert(f.attr == 'width')
+#            if (isinstance(f, ast.Attribute)):
+            if (isinstance(f, str)):
+                #print('Attribute =', f.attr)
+                #assert(f.attr == 'width')
+                assert(f == 'width')
                 res = instr.res
-                target = f.value
-                assert(isinstance(target, ast.Name))
-                print('Value =', ast.dump(target))
-                width_val = spec_f.symbol_type(target.id).width()
+#                target = f.value
+                target = instr.args[0]
+                #assert(isinstance(target, ast.Name))
+                #print('Value =', ast.dump(target))
+                #width_val = spec_f.symbol_type(target.id).width()
+                width_val = spec_f.symbol_type(target).width()
 
                 if width_val != None:
                     new_instrs.append(ConstDecl(instr.res, width_val))
@@ -734,23 +751,23 @@ def evaluate_widths(spec_f):
         if isinstance(instr, CallInstr):
             print(instr)
             f = instr.func
-            if isinstance(f, ast.Name):
-                print('Is instance')
-                if (f.id == 'bv_from_int'):
-                    bv_width_name = instr.args[0]
-                    bv_val_name = instr.args[1]
+            if isinstance(f, str) and f == 'bv_from_int':
+                # print('Is instance')
+                # if (f.id == 'bv_from_int'):
+                bv_width_name = instr.args[0]
+                bv_val_name = instr.args[1]
 
-                    print('width =', bv_width_name)
-                    print('val   =', bv_val_name)
+                print('width =', bv_width_name)
+                print('val   =', bv_val_name)
 
-                    bv_val = get_const_int(bv_width_name, spec_f)
-                    bv_width = get_const_int(bv_val_name, spec_f)
+                bv_val = get_const_int(bv_width_name, spec_f)
+                bv_width = get_const_int(bv_val_name, spec_f)
 
-                    new_instrs.append(ConstBVDecl(instr.res, bv_val, bv_width))
-                else:
-                    new_instrs.append(instr)
+                new_instrs.append(ConstBVDecl(instr.res, bv_val, bv_width))
             else:
-                assert(False)
+                new_instrs.append(instr)
+            # else:
+            #     assert(False)
                 #new_instrs.append(instr)
         else:
             new_instrs.append(instr)
@@ -902,6 +919,10 @@ def specialize_types(code_gen, func_name, func_arg_types):
     print(spec_f.to_string())
 
     evaluate_widths(spec_f)
+
+    print('After evaluating widths first')
+    print(spec_f.to_string())
+
     unify_types(spec_f)
     evaluate_integer_constants(spec_f)
 
