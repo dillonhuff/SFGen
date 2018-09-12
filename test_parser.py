@@ -87,32 +87,32 @@ def test_tc_abs_parse():
     res = run_iverilog_test(mod.name)
     assert(res == 'passed\n')
     
-# def test_newton_raphson_parse():
-#     code_str = open('divider.py').read()
-#     code = ast.parse(code_str)
+def test_newton_raphson_parse():
+    code_str = open('divider.py').read()
+    code = ast.parse(code_str)
 
-#     code_gen = LowCodeGenerator()
-#     code_gen.visit(code)
+    code_gen = LowCodeGenerator()
+    code_gen.visit(code)
 
-#     print(code_gen.get_function("newton_raphson_divide").to_string())
+    print(code_gen.get_function("newton_raphson_divide").to_string())
 
-#     constraints = ScheduleConstraints()
-#     f_spec = specialize_types(code_gen, "newton_raphson_divide", [l.ArrayType(16), l.ArrayType(16)])
+    constraints = ScheduleConstraints()
+    f_spec = specialize_types(code_gen, "newton_raphson_divide", [l.ArrayType(16), l.ArrayType(16)])
 
-#     print('')
-#     print(f_spec.to_string())
+    print('')
+    print(f_spec.to_string())
 
-#     assert(f_spec.symbol_type('n') == l.ArrayType(16))
-#     assert(f_spec.symbol_type('d') == l.ArrayType(16))    
-#     sched = schedule(code_gen, f_spec, constraints)
+    assert(f_spec.symbol_type('n') == l.ArrayType(16))
+    assert(f_spec.symbol_type('d') == l.ArrayType(16))    
+    sched = schedule(code_gen, f_spec, constraints)
 
-#     print(sched.to_string())
+    print(sched.to_string())
 
-#     mod = generate_rtl(f_spec, sched)
+    mod = generate_rtl(f_spec, sched)
 
-#     assert(mod.name == f_spec.name)
+    assert(mod.name == f_spec.name)
 
-#     generate_verilog(mod)
+    generate_verilog(mod)
 
-#     res = run_iverilog_test(mod.name)
-#     assert(res == 'passed\n')
+    res = run_iverilog_test(mod.name)
+    assert(res == 'passed\n')
