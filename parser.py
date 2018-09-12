@@ -799,6 +799,11 @@ def is_argument_of(v, instr):
         return instr.rhs == v
     if isinstance(instr, ITEInstr):
         return instr.test == v or instr.true_exp == v or instr.false_exp == v
+    if isinstance(instr, CallInstr):
+        for arg in instr.args:
+            if arg == v:
+                return True
+        return False
     
     print('Error: Unsupported instruction type', instr)
     assert(False)
