@@ -232,7 +232,10 @@ class LowFunctionDef:
     def symbol_type(self, name):
         assert(name in self.symbol_table)
         return self.symbol_table[name]
-    
+
+    def erase_symbol(self, name):
+        del self.symbol_table[name]
+
     def set_symbol_type(self, name, tp):
         self.symbol_table[name] = tp
     
@@ -547,6 +550,10 @@ def op_string(op):
         return 'add'
     if isinstance(op, ast.Eq):
         return 'eq'
+    if isinstance(op, ast.LShift):
+        return 'shl'
+    if isinstance(op, ast.Sub):
+        return 'sub'
 
     assert(False)
 
@@ -946,9 +953,11 @@ def evaluate_integer_constants(f):
 def simplify_integer_assigns(spec_f):
 
     new_instructions = []
+    replaced = set()
     for i in range(0, len(spec_f.instructions)):
         instr = spec_f.instructions[i]
         if isinstance(instr, AssignInstr) and (spec_f.symbol_type(instr.res) == l.IntegerType()):
+            replaced.add(instr.res)
             print('Replacing assignment to', instr.res, 'with', instr.rhs)
             for j in range(i, len(spec_f.instructions)):
                 spec_f.instructions[j].replace_values(lambda name: instr.rhs if name == instr.res else name)
@@ -956,6 +965,16 @@ def simplify_integer_assigns(spec_f):
             new_instructions.append(instr)
 
     swap_instrs(spec_f, new_instructions)
+
+    # Check that replacement really happened
+    not_replaced = False
+    for val in replaced:
+        for instr in spec_f.instructions:
+            if val in instr.used_values():
+                print('Error: Value', val, 'was supposed to be replaced, but it still exists in', instr)
+                not_replaced = True
+    assert(not not_replaced)
+
 
 def specialize_types(code_gen, func_name, func_arg_types):
     spec_name = func_name
@@ -1006,8 +1025,24 @@ def specialize_types(code_gen, func_name, func_arg_types):
 
     simplify_integer_assigns(spec_f)
     delete_dead_instructions(spec_f)
-    
+
     print('After second width evaluation')
     print(spec_f.to_string())
-    
+
+    all_values = set()
+    for instr in spec_f.instructions:
+        for value in instr.used_values():
+            all_values.add(value)
+            if spec_f.symbol_type(value) == None:
+                print('Error: Symbol', value, 'is used in', instr, 'but has no type')
+                assert(False)
+
+    to_erase = set()
+    for s in spec_f.symbol_table:
+        if not s in all_values:
+            to_erase.add(s)
+
+    for s in to_erase:
+        spec_f.erase_symbol(s)
+
     return spec_f

@@ -86,6 +86,11 @@ def test_tc_abs_parse():
 
     res = run_iverilog_test(mod.name)
     assert(res == 'passed\n')
+
+def test_instr_replacemant():
+    call = CallInstr('res', 'func', ['hello', 'no'])
+    call.replace_values(lambda name: 'a' if name == 'hello' else name)
+    assert(call.args[0] == 'a')
     
 def test_newton_raphson_parse():
     code_str = open('divider.py').read()
