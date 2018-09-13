@@ -27,5 +27,3 @@ module top();
    newton_raphson_divide_16_16 div(.ne(n), .de(d), .out(out));
 
 endmodule
-
-   
