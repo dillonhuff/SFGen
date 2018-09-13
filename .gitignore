@@ -6,3 +6,6 @@ tc_neg_16.v
 *.txt
 tc_abs_16
 tc_abs_16.v
+newton_raphson
+newton_raphson_divide_16_16
+newton_raphson_divide_16_16.v
