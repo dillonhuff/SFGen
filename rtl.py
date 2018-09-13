@@ -92,10 +92,13 @@ def module_for_functional_unit(unit):
         return m
     
     if (has_prefix(unit.name, 'zero_extend_')):
-        out_width = unit.parameters[1]
-        in_width = unit.parameters[0]
+        out_width = unit.parameters[0]
+        in_width = unit.parameters[1]
+
         m = Module('builtin_zero_extend_' + str(out_width) + '_' + str(in_width))
         m.add_parameter('out_width', out_width)
+        m.add_parameter('in_width', in_width)
+
         m.add_in_port('in', in_width)
         m.add_out_port('out', out_width)
         return m
@@ -110,7 +113,7 @@ def module_for_functional_unit(unit):
     if (has_prefix(unit.name, 'constant_')):
         value = unit.parameters[0]
         width = value.width()
-        m = Module('builtin_constant_' + str(width))
+        m = Module('builtin_constant_' + str(width) + '_' + str(value))
         m.add_parameter("value", value)
         m.add_in_port('in', width)
         m.add_out_port('out', width)
@@ -154,6 +157,7 @@ def module_for_functional_unit(unit):
     if (has_prefix(unit.name, 'leading_zero_count_')):
         width = unit.parameters[0]
         m = Module('builtin_leading_zero_count_' + str(width))
+        m.add_parameter('width', width)
 
         m.add_in_port('in', width)
         m.add_out_port('out', width)
@@ -276,6 +280,30 @@ def verilog_port_connections(input_schedule, module):
     conn_strings = list(map(lambda x: '.{0}({1})'.format(x[0], x[1]), input_schedule))
     return conn_strings
 
+def lead_zero_body(width):
+    s = ""
+    s += "\treg [" + str(width - 1) + ":0] out_reg;\n";
+    s += "\talways @(*) begin\n";
+    s += "\t\tcasez(in)\n";
+    for i in range(0, width):
+        inPattern = ""
+        for pre in range(0, i):
+            inPattern += '0'
+
+        inPattern += '1';
+
+        for post in range(i + 1, width):
+            inPattern += '?'
+
+        res = str(i);
+        s += "\t\t\t" + str(width) + "'b" + inPattern + ": out_reg = " + str(i) + ";\n"
+
+    s += "\t\tendcase\n";
+    s += "\tend\n";
+    s += "\tassign out = out_reg;\n";
+
+    return s
+    
 def verilog_string(rtl_mod):
 
     mod_str = ''
@@ -295,9 +323,27 @@ def verilog_string(rtl_mod):
         if has_prefix(rtl_mod.name, 'builtin_add_'):
             mod_str += '\tassign out = in0 + in1;\n'
 
+        elif has_prefix(rtl_mod.name, 'builtin_mult_'):
+            mod_str += '\tassign out = in0 * in1;\n'
+
+        elif has_prefix(rtl_mod.name, 'builtin_unsigned_div_'):
+            mod_str += '\tassign out = in0 / in1;\n'
+            
+        elif has_prefix(rtl_mod.name, 'builtin_sub_'):
+            mod_str += '\tassign out = in0 - in1;\n'
+            
+        elif has_prefix(rtl_mod.name, 'builtin_shl_'):
+            mod_str += '\tassign out = in0 << in1;\n'
+
+        elif has_prefix(rtl_mod.name, 'builtin_lshr_'):
+            mod_str += '\tassign out = in0 >> in1;\n'
+            
         elif has_prefix(rtl_mod.name, 'builtin_eq_'):
             mod_str += '\tassign out = in0 == in1;\n'
 
+        elif has_prefix(rtl_mod.name, 'builtin_not_eq_'):
+            mod_str += '\tassign out = in0 != in1;\n'
+            
         elif has_prefix(rtl_mod.name, 'builtin_assign_'):
             mod_str += '\tassign out = in;\n'
 
@@ -306,10 +352,22 @@ def verilog_string(rtl_mod):
             
         elif has_prefix(rtl_mod.name, 'builtin_invert_'):
             mod_str += '\tassign out = ~in;\n'
+
+        elif has_prefix(rtl_mod.name, 'builtin_zero_extend_'):
+            out_width = rtl_mod.get_parameter('out_width')
+            in_width = rtl_mod.get_parameter('in_width')
+
+            assert(out_width >= in_width)
+            mod_str += "\tassign out = {{(" + str(out_width) + " - " + str(in_width) + "){1'b0}}, in};\n"
+            
+        elif has_prefix(rtl_mod.name, 'builtin_leading_zero_count_'):
+            mod_str += lead_zero_body(rtl_mod.get_parameter('width'))
+            
         elif has_prefix(rtl_mod.name, 'builtin_constant_'):
             val = rtl_mod.get_parameter("value")
             width = val.width()
             mod_str += '\tassign out = ' + str(width) + "'b" + str(rtl_mod.get_parameter("value")) + ';\n'
+
         elif has_prefix(rtl_mod.name, 'builtin_slice_'):
             start = rtl_mod.get_parameter("start")
             end = rtl_mod.get_parameter("end")
