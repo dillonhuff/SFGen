@@ -56,8 +56,8 @@ def newton_raphson_divide(ne, de):
     n = tc_abs(ne)
     d = tc_abs(de)
 
-    n_sign = sign_bit(n)
-    d_sign = sign_bit(d)
+    n_sign = sign_bit(ne)
+    d_sign = sign_bit(de)
 
     one = build_one_fp(width, width - 1) #bv_from_int(width, 1 << (width - 1))
     lzc = leading_zero_count(d)
@@ -91,6 +91,10 @@ def newton_raphson_divide(ne, de):
 
 #    q = shifted_prod if normed_d != bv_from_int(width, 1 << (width - 2)) else n >> (widthBV - lzc - bv_from_int(width, 1))
     q = shifted_prod if normed_d != build_one_fp(width, width - 2) else n >> (widthBV - lzc - bv_from_int(width, 1))
+
+    print('d_sign = ', d_sign)
+    print('n_sign = ', n_sign)    
+
     out = q if d_sign == n_sign else tc_neg(q)
 
     return out
