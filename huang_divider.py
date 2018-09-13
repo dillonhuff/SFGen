@@ -55,6 +55,8 @@ def huang_divide(n_in, d_in):
     n_sign = sign_bit(n_in)
     d_sign = sign_bit(d_in)
 
+    
+
     return n_abs
     
 def newton_raphson_divide(ne, de):
