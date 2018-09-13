@@ -598,10 +598,10 @@ def functional_unit(instr, f):
         
     if isinstance(instr, BinopInstr) or isinstance(instr, UnopInstr):
         name = op_string(instr.op)
-        if (anyinstance(instr.op, sameWidthOps)):
-            name += '_' + str(16)
+        width = f.symbol_type(instr.res).width()
+        name += '_' + str(width)
 
-        return Operation(name, [16])
+        return Operation(name, [width])
     if isinstance(instr, CompareInstr):
         name = op_string(instr.op)
         in_width = f.symbol_type(instr.lhs).width()
@@ -631,7 +631,7 @@ def functional_unit(instr, f):
 
         assert(len(instr.args) == 2)
 
-        out_width = f.get_int_constant_value(instr.args[1])
+        out_width = f.get_int_constant_value(instr.args[0])
         in_width = f.symbol_type(instr.args[1]).width()
         return Operation(instr.func.id + '_' + str(out_width) + '_' + str(in_width), [out_width, in_width])
     

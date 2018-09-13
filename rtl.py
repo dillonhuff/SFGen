@@ -34,6 +34,22 @@ def module_for_functional_unit(unit):
         m.add_out_port('out', width)
         return m
 
+    if (has_prefix(unit.name, 'mult_')):
+        width = unit.parameters[0]
+        m = Module('builtin_mult_' + str(width))
+        m.add_in_port('in0', width)
+        m.add_in_port('in1', width)
+        m.add_out_port('out', width)
+        return m
+    
+    if (has_prefix(unit.name, 'unsigned_div_')):
+        width = unit.parameters[0]
+        m = Module('builtin_unsigned_div_' + str(width))
+        m.add_in_port('in0', width)
+        m.add_in_port('in1', width)
+        m.add_out_port('out', width)
+        return m
+    
     if (has_prefix(unit.name, 'sub_')):
         width = unit.parameters[0]
         m = Module('builtin_sub_' + str(width))
@@ -67,11 +83,19 @@ def module_for_functional_unit(unit):
         m.add_out_port('out', 1)
         return m
 
+    if (has_prefix(unit.name, 'not_eq_')):
+        width = unit.parameters[0]
+        m = Module('builtin_not_eq_' + str(width))
+        m.add_in_port('in0', width)
+        m.add_in_port('in1', width)
+        m.add_out_port('out', 1)
+        return m
+    
     if (has_prefix(unit.name, 'zero_extend_')):
         out_width = unit.parameters[1]
         in_width = unit.parameters[0]
         m = Module('builtin_zero_extend_' + str(out_width) + '_' + str(in_width))
-        m.add_parameter(out_width)
+        m.add_parameter('out_width', out_width)
         m.add_in_port('in', in_width)
         m.add_out_port('out', out_width)
         return m
@@ -116,6 +140,17 @@ def module_for_functional_unit(unit):
 
         return m
 
+    if (has_prefix(unit.name, 'lshr_')):
+        width0 = unit.parameters[0]
+        width1 = unit.parameters[1]
+        m = Module('builtin_lshr_' + str(width0) + '_' + str(width1))
+
+        m.add_in_port('in0', width0)
+        m.add_in_port('in1', width1)
+        m.add_out_port('out', width0)
+
+        return m
+    
     if (has_prefix(unit.name, 'leading_zero_count_')):
         width = unit.parameters[0]
         m = Module('builtin_leading_zero_count_' + str(width))
