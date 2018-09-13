@@ -48,6 +48,15 @@ def mul_fp(a, b, decimal_place):
 
     return (prod >> bv_from_int(width, decimal_place))[0:width - 1]
 
+def huang_divide(n_in, d_in):
+    n_abs = tc_abs(n_in)
+    d_abs = tc_abs(d_in)
+
+    n_sign = sign_bit(n_in)
+    d_sign = sign_bit(d_in)
+
+    return n_abs
+    
 def newton_raphson_divide(ne, de):
     assert(ne.width() == de.width())
 

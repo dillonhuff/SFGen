@@ -106,13 +106,17 @@ def test_approximate_reciprocal_parse():
 
     assert(f_spec.symbol_type('one_ext') == l.ArrayType(32))
 
-def test_approximate_reciprocal_parse():
-    code_str = open('divider.py').read()
+def parse_file(file_name):
+    code_str = open(file_name).read()
     code = ast.parse(code_str)
 
     code_gen = LowCodeGenerator()
     code_gen.visit(code)
 
+    return code_gen
+
+def test_approximate_reciprocal_parse():
+    code_gen = parse_file("divider.py")
     print(code_gen.get_function("newton_raphson_divide").to_string())
 
     constraints = ScheduleConstraints()
@@ -135,3 +139,10 @@ def test_approximate_reciprocal_parse():
 
     res = run_iverilog_test(mod.name)
     assert(res == 'passed\n')
+
+def test_huang_divider():
+    code_gen = parse_file("huang_divider.py")
+    constraints = ScheduleConstraints()
+    f_spec = specialize_types(code_gen, 'huang_divide', [l.ArrayType(16), l.ArrayType(16)])
+
+    print(f_spec.to_string())
