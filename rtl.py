@@ -1,6 +1,7 @@
 from utils import *
 import language as l
 import parser as p
+import ast
 
 class Wire:
     def __init__(self, name, width, is_in, is_out):
@@ -195,7 +196,7 @@ class Module:
             wire_connections.append(('in1', i0.rhs))
             wire_connections.append(('out', i0.res))
 
-        if isinstance(i0, p.ITEInstr):
+        elif isinstance(i0, p.ITEInstr):
             wire_connections.append(('in0', i0.false_exp))
             wire_connections.append(('in1', i0.true_exp))
             wire_connections.append(('sel', i0.test))            
@@ -219,6 +220,19 @@ class Module:
             
         elif isinstance(i0, p.ConstBVDecl):
             wire_connections.append(('out', i0.res_name))
+        elif isinstance(i0, p.CallInstr) and isinstance(i0.func, ast.Name):
+            if i0.func.id == 'leading_zero_count':
+                wire_connections.append(('in', i0.args[0]))
+                wire_connections.append(('out', i0.res))
+            elif i0.func.id == 'zero_extend':
+                wire_connections.append(('in', i0.args[1]))
+                wire_connections.append(('out', i0.res))
+            else:
+                print('Unrecognized function', i0.func.id)
+                assert(False)
+        else:
+            print('No connections for instruction', i0)
+            assert(False)
             
         self.cells.append((cell_module, wire_connections, cell_name))
 

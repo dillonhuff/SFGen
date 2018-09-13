@@ -1084,8 +1084,8 @@ def specialize_types(code_gen, func_name, func_arg_types):
     evaluate_widths(spec_f)
 
     i = 1
-#    while (not resolved_all) and i < 8:
-    while i < 15:
+    while (not resolved_all) and i < 8:
+#    while i < 15:
         print('Resolve iteration', i)
         resolved_all = unify_types(spec_f)
         evaluate_integer_constants(spec_f)

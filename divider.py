@@ -67,11 +67,11 @@ def newton_raphson_divide(ne, de):
 
     n_ext = zero_extend(2*width, n)
 
-    X = approximate_reciprocal(normed_d)
+    X0 = approximate_reciprocal(normed_d)
 
-    print('X0 =', X)    
+    print('X0 =', X0)
 
-    X = X + mul_fp(X, one - mul_fp(X, normed_d, width - 1), width - 1)
+    X = X0 + mul_fp(X0, one - mul_fp(X0, normed_d, width - 1), width - 1)
 
     print('X1 =', X)
     

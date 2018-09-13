@@ -11,9 +11,9 @@ module top();
       #1 n = 16'd18;
       #1 d = 16'd3;
 
-      #1 $display("n = %d", n);
-      #1 $display("d = %d", d);
-      #1 $display("q = %d", out);
+      // #1 $display("n = %d", n);
+      // #1 $display("d = %d", d);
+      // #1 $display("q = %d", out);
       
       #1 `assert(out, 16'd6);
 
