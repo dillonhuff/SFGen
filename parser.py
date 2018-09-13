@@ -233,6 +233,7 @@ class LowFunctionDef:
             if isinstance(instr, ConstDecl) and instr.res_name == name:
                 return instr.num
 
+        print('Cannot find constant', name)
         assert(False)
                 
     def unique_suffix(self):
