@@ -94,11 +94,11 @@ def huang_divide(n_in, d_in):
     y_h_2 = mul_fp(y_h, y_h, m)
 
     print('y_h_2 float =', fixed_point_to_float(y_h_2, m))
-    
+
     y_h_2_r = compute_reciprocal(y_h_2)
 
     print('y_h_2_r       =', y_h_2_r)
-    print('y_h_2_r float =', fixed_point_to_float(y_h_2_r, m))
+    print('y_h_2_r float =', fixed_point_to_float(y_h_2_r, m) / 2.0)
     print('y_h_2_r comp  =', 1 / (fixed_point_to_float(y_h, m) * fixed_point_to_float(y_h, m)))
 
     n_sign = sign_bit(n_in)
