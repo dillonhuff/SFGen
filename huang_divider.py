@@ -76,8 +76,16 @@ def huang_divide(n_in, d_in):
     n_abs = tc_abs(n_in)
     d_abs = tc_abs(d_in)
 
+    print('n_abs =', n_abs)
+    print('d_abs =', d_abs)
+
     d_norm = normalize_left(d_abs)
     n_norm = normalize_left(n_abs)
+
+    print('n_norm =', n_norm)
+    print('d_norm =', d_norm)
+
+    x = n_norm
 
     y_l = d_norm[0 : m - 2]
     y_h = d_norm[width - m - 1 : width - 1]
@@ -97,61 +105,97 @@ def huang_divide(n_in, d_in):
 
     y_h_2_r = compute_reciprocal(y_h_2)
 
+    exp = -1 # How do I compute this automatically?
     print('y_h_2_r       =', y_h_2_r)
     print('y_h_2_r float =', fixed_point_to_float(y_h_2_r, m) / 2.0)
     print('y_h_2_r comp  =', 1 / (fixed_point_to_float(y_h, m) * fixed_point_to_float(y_h, m)))
+
+    # Shift by the exponent?
+    #    y_h_2_r_shifted = y_h_2_r >> bv_from_int(width, 1)
+
+    # Compute X * (Y_h - Y_l)
+    y_h_ext = zero_extend(width, y_h) << bv_from_int(width, (m - 1))
+    y_l_ext = zero_extend(width, y_l)
+
+    print('y_h_ext =', y_h_ext)
+    print('y_l_ext =', y_l_ext)
+
+    y_diff = y_h_ext - y_l_ext
+    print('y_diff =', y_diff)
+    
+    prod = mul_fp(x, y_diff, width - 1)
+
+    print('prod =', prod)
+
+    # Final multiply
+    y_h_2_r_ext = zero_extend(width, y_h_2_r) << bv_from_int(width, (m + 1))
+    print('y_h_2_r_ext = ', y_h_2_r_ext)
+    final_q = mul_fp(prod, y_h_2_r_ext, width - 1)
+
+    print('Final q       =', final_q)
+    print('Final q float =', fixed_point_to_float(final_q, width - 1))
+
+    x_flt = fixed_point_to_float(x, width - 1)
+    d_flt = fixed_point_to_float(d_norm, width - 1)
+
+    print('d norm =', d_norm)
+    print('n norm =', n_norm)    
+    print('x abs as float =', x_flt)
+    print('d abs as float =', d_flt)
+    print('Final q comp  =', x_flt / d_flt)
+    # Final shift by exponent?
 
     n_sign = sign_bit(n_in)
     d_sign = sign_bit(d_in)
 
     return n_abs
     
-def newton_raphson_divide(ne, de):
-    assert(ne.width() == de.width())
+# def newton_raphson_divide(ne, de):
+#     assert(ne.width() == de.width())
 
-    width = ne.width()
+#     width = ne.width()
     
-    n = tc_abs(ne)
-    d = tc_abs(de)
+#     n = tc_abs(ne)
+#     d = tc_abs(de)
 
-    n_sign = sign_bit(ne)
-    d_sign = sign_bit(de)
+#     n_sign = sign_bit(ne)
+#     d_sign = sign_bit(de)
 
-    one = build_one_fp(width, width - 1) #bv_from_int(width, 1 << (width - 1))
-    lzc = leading_zero_count(d)
-    normed_d = d << (lzc - bv_from_int(width, 1))
+#     one = build_one_fp(width, width - 1) #bv_from_int(width, 1 << (width - 1))
+#     lzc = leading_zero_count(d)
+#     normed_d = d << (lzc - bv_from_int(width, 1))
 
-    print('Normalized d =', normed_d)
+#     print('Normalized d =', normed_d)
 
-    n_ext = zero_extend(2*width, n)
+#     n_ext = zero_extend(2*width, n)
 
-    X0 = approximate_reciprocal(normed_d)
+#     X0 = approximate_reciprocal(normed_d)
 
-    print('X0 =', X0)
+#     print('X0 =', X0)
 
-    X = X0 + mul_fp(X0, one - mul_fp(X0, normed_d, width - 1), width - 1)
+#     X = X0 + mul_fp(X0, one - mul_fp(X0, normed_d, width - 1), width - 1)
 
-    print('X1 =', X)
+#     print('X1 =', X)
     
-    print('X    =', fixed_point_to_float(X, width - 1))
-    print('1 / D =', 1.0 / fixed_point_to_float(normed_d, width - 1))
+#     print('X    =', fixed_point_to_float(X, width - 1))
+#     print('1 / D =', 1.0 / fixed_point_to_float(normed_d, width - 1))
 
-    long_prod = n_ext * zero_extend(2*width, X)
+#     long_prod = n_ext * zero_extend(2*width, X)
 
-    print('n_ext =', n_ext)
-    print('n_ext*d =', long_prod)
+#     print('n_ext =', n_ext)
+#     print('n_ext*d =', long_prod)
 
-    widthBV = bv_from_int(width, width)
-    res_shift = widthBV + widthBV - (lzc - bv_from_int(width, 1)) - bv_from_int(width, 2)
-    print('res_shift =', res_shift)
-    shifted_prod = (long_prod >> res_shift)[0:width - 1]
-    print('shifted_prod =', shifted_prod)
+#     widthBV = bv_from_int(width, width)
+#     res_shift = widthBV + widthBV - (lzc - bv_from_int(width, 1)) - bv_from_int(width, 2)
+#     print('res_shift =', res_shift)
+#     shifted_prod = (long_prod >> res_shift)[0:width - 1]
+#     print('shifted_prod =', shifted_prod)
 
-    q = shifted_prod if normed_d != build_one_fp(width, width - 2) else n >> (widthBV - lzc - bv_from_int(width, 1))
+#     q = shifted_prod if normed_d != build_one_fp(width, width - 2) else n >> (widthBV - lzc - bv_from_int(width, 1))
 
-    print('d_sign = ', d_sign)
-    print('n_sign = ', n_sign)    
+#     print('d_sign = ', d_sign)
+#     print('n_sign = ', n_sign)    
 
-    out = q if d_sign == n_sign else tc_neg(q)
+#     out = q if d_sign == n_sign else tc_neg(q)
 
-    return out
+#     return out
