@@ -49,6 +49,12 @@ def mul_fp(a, b, decimal_place):
     return (prod >> bv_from_int(width, decimal_place))[0:width - 1]
 
 def huang_divide(n_in, d_in):
+    assert(n_in.width() == d_in.width())
+    assert(n_in.width() % 2 == 0)
+
+    width = n_in.width()
+    m = width // 2
+    
     n_abs = tc_abs(n_in)
     d_abs = tc_abs(d_in)
 

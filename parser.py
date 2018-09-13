@@ -995,6 +995,14 @@ def evaluate_integer_constants(f):
                     values[instr.res] = values[instr.lhs] + values[instr.rhs]
                     new_instructions.append(ConstDecl(instr.res, values[instr.res]))
 
+                elif isinstance(instr.op, ast.FloorDiv):
+                    values[instr.res] = values[instr.lhs] // values[instr.rhs]
+                    new_instructions.append(ConstDecl(instr.res, values[instr.res]))
+
+                elif isinstance(instr.op, ast.Div):
+                    values[instr.res] = values[instr.lhs] / values[instr.rhs]
+                    new_instructions.append(ConstDecl(instr.res, values[instr.res]))
+                    
             else:
                 new_instructions.append(instr)
 
