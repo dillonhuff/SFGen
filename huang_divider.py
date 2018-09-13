@@ -18,6 +18,24 @@ def normalize_left(a):
 def build_one_fp(width, dist):
     return bv_from_int(width, 1) << bv_from_int(width, dist)
 
+def compute_reciprocal(b):
+    width = b.width()
+    normed = normalize_left(b)
+
+    top_8 = normed
+
+    assert(top_8.width() == width)
+
+    one_ext = build_one_fp(2*width, 2*width - 1)
+    top_8_ext = zero_extend(2*width, top_8)
+    quote = one_ext / top_8_ext
+
+    print('Quote =', quote)
+
+    sliced_quote = (normalize_left(quote))[quote.width() - width:quote.width() - 1]
+
+    return sliced_quote
+    
 def approximate_reciprocal(b):
     width = b.width()
     approximation_width = 10
@@ -58,10 +76,33 @@ def huang_divide(n_in, d_in):
     n_abs = tc_abs(n_in)
     d_abs = tc_abs(d_in)
 
+    d_norm = normalize_left(d_abs)
+    n_norm = normalize_left(n_abs)
+
+    y_l = d_norm[0 : m - 2]
+    y_h = d_norm[width - m - 1 : width - 1]
+
+    print('y_h =', y_h)
+    print('y_l =', y_l)
+
+    assert(y_l.width() == m - 1)
+    assert(y_h.width() == m + 1)
+
+    print('y_h float   =', fixed_point_to_float(y_h, m))
+    print('y_h_2 comp  =', fixed_point_to_float(y_h, m) * fixed_point_to_float(y_h, m))
+
+    y_h_2 = mul_fp(y_h, y_h, m)
+
+    print('y_h_2 float =', fixed_point_to_float(y_h_2, m))
+    
+    y_h_2_r = compute_reciprocal(y_h_2)
+
+    print('y_h_2_r       =', y_h_2_r)
+    print('y_h_2_r float =', fixed_point_to_float(y_h_2_r, m))
+    print('y_h_2_r comp  =', 1 / (fixed_point_to_float(y_h, m) * fixed_point_to_float(y_h, m)))
+
     n_sign = sign_bit(n_in)
     d_sign = sign_bit(d_in)
-
-    
 
     return n_abs
     
