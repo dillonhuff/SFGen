@@ -5,6 +5,18 @@ import copy
 
 from utils import *
 
+def substitute_constraint(name, tp, c):
+    return (substitute(name, tp, c[0]), substitute(name, tp, c[1]))
+
+def all_ops_same_width(instr):
+    if anyinstance(instr.op, [ast.Mult, ast.Add, ast.Sub, ast.Div]):
+        return True
+    else:
+        return False
+
+def is_shift(instr):
+    return anyinstance(instr.op, [ast.LShift, ast.RShift])
+
 def anyinstance(i, tps):
     for t in tps:
         if isinstance(i, t):
@@ -576,6 +588,13 @@ def op_string(op):
 sameWidthOps = [ast.Invert, ast.Add, ast.Sub]
 
 def functional_unit(instr, f):
+    if isinstance(instr, BinopInstr) and is_shift(instr):
+        name = op_string(instr.op)
+        l_width = f.symbol_type(instr.lhs).width()
+        r_width = f.symbol_type(instr.rhs).width()
+        name += '_' + str(l_width) + '_' + str(r_width)
+        return Operation(name, [l_width, r_width])
+        
     if isinstance(instr, BinopInstr) or isinstance(instr, UnopInstr):
         name = op_string(instr.op)
         if (anyinstance(instr.op, sameWidthOps)):
@@ -597,6 +616,24 @@ def functional_unit(instr, f):
     elif isinstance(instr, ConstBVDecl):
         name = 'constant_' + str(instr.value)
         return Operation(name, [instr.value])
+    elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and (instr.func.id == 'leading_zero_count'):
+
+        print('lead zero args')
+        for arg in instr.args:
+            print(arg)
+        assert(len(instr.args) == 1)
+
+        width = f.symbol_type(instr.args[0]).width()
+        return Operation(instr.func.id + '_' + str(width), [width])
+
+    elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and (instr.func.id == 'zero_extend'):
+
+        assert(len(instr.args) == 2)
+
+        out_width = f.get_int_constant_value(instr.args[1])
+        in_width = f.symbol_type(instr.args[1]).width()
+        return Operation(instr.func.id + '_' + str(out_width) + '_' + str(in_width), [out_width, in_width])
+    
     elif isinstance(instr, CallInstr):
         assert(isinstance(instr.func, ast.Name))
         return Operation(instr.func.id, [])
@@ -633,18 +670,6 @@ def substitute(name, tp, c):
         return tp
     else:
         return c
-
-def substitute_constraint(name, tp, c):
-    return (substitute(name, tp, c[0]), substitute(name, tp, c[1]))
-
-def all_ops_same_width(instr):
-    if anyinstance(instr.op, [ast.Mult, ast.Add, ast.Sub, ast.Div]):
-        return True
-    else:
-        return False
-
-def is_shift(instr):
-    return anyinstance(instr.op, [ast.LShift, ast.RShift])
 
 def unify_types(spec_f):
     f = spec_f
@@ -768,9 +793,9 @@ def unify_types(spec_f):
     # After unifying resolve all calls to widths and replace the results with
     # appropriate constants.
 
-    print('Unified constraints')
+    #print('Unified constraints')
     for c in resolved:
-        print(c)
+        #print(c)
         prim = get_primitives(c)
         spec_f.set_symbol_type(prim[0], prim[1])
 
@@ -998,11 +1023,11 @@ def simplify_integer_assigns(spec_f):
         instr = spec_f.instructions[i]
         if isinstance(instr, AssignInstr) and (spec_f.symbol_type(instr.res) == l.IntegerType()):
             replaced.add(instr.res)
-            print('Replacing assignment to', instr.res, 'with', instr.rhs)
+            #print('Replacing assignment to', instr.res, 'with', instr.rhs)
             for j in range(i + 1, len(spec_f.instructions)):
                 
                 spec_f.instructions[j].replace_values(lambda name: instr.rhs if name == instr.res else name)
-                print('After replacing', instr.res, 'in', spec_f.instructions[j])
+                #print('After replacing', instr.res, 'in', spec_f.instructions[j])
         else:
             new_instructions.append(instr)
 

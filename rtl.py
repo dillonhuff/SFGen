@@ -34,6 +34,14 @@ def module_for_functional_unit(unit):
         m.add_out_port('out', width)
         return m
 
+    if (has_prefix(unit.name, 'sub_')):
+        width = unit.parameters[0]
+        m = Module('builtin_sub_' + str(width))
+        m.add_in_port('in0', width)
+        m.add_in_port('in1', width)
+        m.add_out_port('out', width)
+        return m
+    
     if (has_prefix(unit.name, 'assign_')):
         width = unit.parameters[0]
         m = Module('builtin_assign_' + str(width))
@@ -57,6 +65,15 @@ def module_for_functional_unit(unit):
         m.add_in_port('in0', width)
         m.add_in_port('in1', width)
         m.add_out_port('out', 1)
+        return m
+
+    if (has_prefix(unit.name, 'zero_extend_')):
+        out_width = unit.parameters[1]
+        in_width = unit.parameters[0]
+        m = Module('builtin_zero_extend_' + str(out_width) + '_' + str(in_width))
+        m.add_parameter(out_width)
+        m.add_in_port('in', in_width)
+        m.add_out_port('out', out_width)
         return m
     
     if (has_prefix(unit.name, 'invert_')):
@@ -86,6 +103,26 @@ def module_for_functional_unit(unit):
         
         m.add_in_port('in', in_width)
         m.add_out_port('out', (end_ind - start_ind + 1))
+        return m
+
+    if (has_prefix(unit.name, 'shl_')):
+        width0 = unit.parameters[0]
+        width1 = unit.parameters[1]
+        m = Module('builtin_shl_' + str(width0) + '_' + str(width1))
+
+        m.add_in_port('in0', width0)
+        m.add_in_port('in1', width1)
+        m.add_out_port('out', width0)
+
+        return m
+
+    if (has_prefix(unit.name, 'leading_zero_count_')):
+        width = unit.parameters[0]
+        m = Module('builtin_leading_zero_count_' + str(width))
+
+        m.add_in_port('in', width)
+        m.add_out_port('out', width)
+
         return m
     
     print('Error: Unsupported functional unit:', unit.name, unit.parameters)
