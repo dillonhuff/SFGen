@@ -61,6 +61,8 @@ def huang_square_reciprocal(a):
 
     a_p = concat(bv_from_int(1, 1), a)
     print('a_p =', a_p)
+
+    a_ext = zero_extend(2*a_p.width(), a_p) << bv_from_int(a_p.width(), a_p.width() - 1)
     a_sq = mul_fp(a_p, a_p, a_p.width() - 1)
     return a_sq
 
