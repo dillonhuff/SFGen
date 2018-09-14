@@ -136,9 +136,6 @@ def huang_div_normalized(x, y):
 
     return final_q
 
-def umax(a, b):
-    return b if a < b else a
-
 def huang_divide(n_in, d_in):
     assert(n_in.width() == d_in.width())
     assert(n_in.width() % 2 == 0)
@@ -168,7 +165,7 @@ def huang_divide(n_in, d_in):
     print('lzd =', lzd.to_int())
     print('lzn =', lzn.to_int())
 
-    res = res_norm >> (bv_from_int(width, width) - (lzd - lzn) - bv_from_int(width, 1)) #(umax(lzd, lzn))
+    res = res_norm >> (bv_from_int(width, width) - (lzd - lzn) - bv_from_int(width, 1))
 
     n_sign = sign_bit(n_in)
     d_sign = sign_bit(d_in)
