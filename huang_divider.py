@@ -147,9 +147,6 @@ def huang_div_normalized(x, y):
     print('prod =', prod)
 
     # Final multiply
-    #y_h_2_r_ext = zero_extend(width, y_h_2_r) << bv_from_int(width, (m + 1))
-    #y_h_2_r_ext = zero_extend(width, y_h2r) << bv_from_int(width, m - 1)
-    #print('y_h_2_r_ext = ', y_h_2_r_ext)
     final_q = mul_fp(prod, y_h2r, y_h2r.width() - 1)
 
     print('Final q       =', final_q)
