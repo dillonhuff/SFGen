@@ -48,3 +48,4 @@ def test_249_divided_by_18():
 def test_huang():
     width = 16
     divide_case(huang_divide, width, 16, 4)
+    divide_case(huang_divide, width, 256, 2)

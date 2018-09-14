@@ -125,13 +125,13 @@ def huang_div_normalized(x, y):
     print('Final q float =', fixed_point_to_float(final_q, width - 1))
 
     x_flt = fixed_point_to_float(x, width - 1)
-    d_flt = fixed_point_to_float(y, width - 1)
+    y_flt = fixed_point_to_float(y, width - 1)
 
     print('x norm =', x)
     print('y norm =', y)
     print('x abs as float =', x_flt)
-    print('d abs as float =', d_flt)
-    print('Final q comp  =', x_flt / d_flt)
+    print('y abs as float =', y_flt)
+    print('Final q comp  =', x_flt / y_flt)
     # Final shift by exponent?
 
     return final_q
@@ -168,7 +168,7 @@ def huang_divide(n_in, d_in):
     print('lzd =', lzd.to_int())
     print('lzn =', lzn.to_int())
 
-    res = res_norm >> (umax(lzd, lzn))
+    res = res_norm >> (bv_from_int(width, width) - (lzd - lzn) - bv_from_int(width, 1)) #(umax(lzd, lzn))
 
     n_sign = sign_bit(n_in)
     d_sign = sign_bit(d_in)
