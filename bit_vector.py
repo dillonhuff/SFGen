@@ -92,7 +92,7 @@ class QuadValueBitVector():
 
     def __getitem__(self, item):
         assert(isinstance(item, slice))
-        print('item =', item)
+        #print('item =', item)
         start = item.start
         stop = item.stop
         assert(item.step == None)
@@ -306,7 +306,7 @@ class QuadValueBitVector():
                 to_add = self << bv_from_int(self.width(), i)
                 res_bv = res_bv + to_add
 
-        print('res_bv =', res_bv)
+        #print('res_bv =', res_bv)
         return res_bv
 
         
