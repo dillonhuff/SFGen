@@ -115,11 +115,12 @@ def huang_div_normalized(x, y):
     
     y_h_2_r_and_exp = huang_square_reciprocal(y_h[0 : y_h.width() - 2])
 
-    print('y_h_2_r_and_exp =', y_h_2_r_and_exp)
-    assert(y_h_2_r_and_exp.width() == (y_h.width()*2 + 2 + 2))
+    print('y_h_2_r_and_exp       =', y_h_2_r_and_exp)
+    print('y_h_2_r_and_exp width =', y_h_2_r_and_exp.width())
+    assert(y_h_2_r_and_exp.width() == (2*m + 2 + 2))
 
     y_h2_exp = y_h_2_r_and_exp[y_h_2_r_and_exp.width() - 2 : y_h_2_r_and_exp.width() - 1]
-    y_h2r = y_h_2_r_and_exp[0:y_h.width()*2 + 1]
+    y_h2r = y_h_2_r_and_exp[y_h_2_r_and_exp.width() - (2*m + 2) : y_h_2_r_and_exp.width() - 1]
 
     print('y_h2r     =', y_h2r)
     print('y_h2_exp =', y_h2_exp)
@@ -128,13 +129,14 @@ def huang_div_normalized(x, y):
     print('y_h_2_r comp  =', 1 / (fixed_point_to_float(y_h, m) * fixed_point_to_float(y_h, m)))
 
     # Compute X * (Y_h - Y_l)
-    y_h_ext = zero_extend(2*m + 2, y_h) << bv_from_int(width, (m - 1))
+    y_h_ext = zero_extend(2*m + 2, y_h) << bv_from_int(width, 2*m + 2 - y_h.width())
+
+    print('y_h_ext =', y_h_ext)
 
     assert(y_h_ext.get(y_h_ext.width() - 1) == QVB(1))
     
     y_l_ext = zero_extend(2*m + 2, y_l)
 
-    print('y_h_ext =', y_h_ext)
     print('y_l_ext =', y_l_ext)
 
     y_diff = y_h_ext - y_l_ext
@@ -142,11 +144,14 @@ def huang_div_normalized(x, y):
     print('x      =', x)
     print('y_diff =', y_diff)
     
-    prod = mul_fp(x, y_diff, width)
+    prod = mul_fp(zero_extend(2*m + 2, x) << bv_from_int(width, 2), y_diff, 2*m + 2 - 1)
 
     print('prod =', prod)
 
     # Final multiply
+    print('y_h2r width = ', y_h2r.width())
+    assert(y_h2r.width() == prod.width())
+    
     final_q = mul_fp(prod, y_h2r, y_h2r.width() - 1)
 
     print('Final q       =', final_q)
@@ -162,7 +167,7 @@ def huang_div_normalized(x, y):
 
     # Final shift by exponent?
 
-    return final_q
+    return final_q >> y_h2_exp
 
 def huang_divide(n_in, d_in):
     assert(n_in.width() == d_in.width())
@@ -182,16 +187,16 @@ def huang_divide(n_in, d_in):
     d_norm = d_abs << lzd
     n_norm = n_abs << lzn
 
-    print('n_norm =', n_norm)
-    print('d_norm =', d_norm)
+    # print('n_norm =', n_norm)
+    # print('d_norm =', d_norm)
 
     x = n_norm
     y = d_norm
 
     res_norm = huang_div_normalized(x, y)
 
-    print('lzd =', lzd.to_int())
-    print('lzn =', lzn.to_int())
+    # print('lzd =', lzd.to_int())
+    # print('lzn =', lzn.to_int())
     print('res_norm =', res_norm)
 
     res = res_norm >> (bv_from_int(width, width) - (lzd - lzn) - bv_from_int(width, 2))
