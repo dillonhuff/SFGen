@@ -52,6 +52,12 @@ def test_huang_reciprocal_table():
 
     assert(res == bv("10'b1000000000"))
 
+def test_huang_reciprocal_table_1001():
+    y_h = bv("4'b1001")
+    res = huang_square_reciprocal(y_h[0:y_h.width() - 2])
+
+    assert(res == concat(bv("8'b11001010"), bv("2'b01")))
+    
 def test_huang():
     width = 16
     divide_case(huang_divide, width, 16, 4)
