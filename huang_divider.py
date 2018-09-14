@@ -57,8 +57,6 @@ def mul_fp(a, b, decimal_place):
     return sliced_prod
 
 def huang_square_reciprocal(a):
-    EXP_BITS = 2
-
     a_p = concat(bv_from_int(1, 1), a)
     print('a_p =', a_p)
 
@@ -107,22 +105,34 @@ def huang_div_normalized(x, y):
     assert(y_h.width() == m + 1)
 
     print('y_h float   =', fixed_point_to_float(y_h, m))
-    print('y_h_2 comp  =', fixed_point_to_float(y_h, m) * fixed_point_to_float(y_h, m))
+    #print('y_h_2 comp  =', fixed_point_to_float(y_h, m) * fixed_point_to_float(y_h, m))
 
-    y_h_2 = mul_fp(y_h, y_h, m)
+    #y_h_2 = mul_fp(y_h, y_h, m)
 
-    print('y_h_2 float =', fixed_point_to_float(y_h_2, m))
+    #print('y_h_2 float =', fixed_point_to_float(y_h_2, m))
 
-    y_h_2_r = compute_reciprocal(y_h_2)
+    assert(y_h.get(y_h.width() - 1) == QVB(1))
+    
+    y_h_2_r_and_exp = huang_square_reciprocal(y_h[0 : y_h.width() - 2])
 
-    # How do I figure out the exponent of this manually?
-    print('y_h_2_r       =', y_h_2_r)
-    print('y_h_2_r float =', fixed_point_to_float(y_h_2_r, m) / 2.0)
+    print('y_h_2_r_and_exp =', y_h_2_r_and_exp)
+    assert(y_h_2_r_and_exp.width() == (y_h.width()*2 + 2 + 2))
+
+    y_h2_exp = y_h_2_r_and_exp[y_h_2_r_and_exp.width() - 2 : y_h_2_r_and_exp.width() - 1]
+    y_h2r = y_h_2_r_and_exp[0:y_h.width()*2 + 1]
+
+    print('y_h2r     =', y_h2r)
+    print('y_h2_exp =', y_h2_exp)
+
+    print('y_h_2_r float =', fixed_point_to_float(y_h2r, y_h2r.width() - 1))
     print('y_h_2_r comp  =', 1 / (fixed_point_to_float(y_h, m) * fixed_point_to_float(y_h, m)))
 
     # Compute X * (Y_h - Y_l)
-    y_h_ext = zero_extend(width, y_h) << bv_from_int(width, (m - 1))
-    y_l_ext = zero_extend(width, y_l)
+    y_h_ext = zero_extend(2*m + 2, y_h) << bv_from_int(width, (m - 1))
+
+    assert(y_h_ext.get(y_h_ext.width() - 1) == QVB(1))
+    
+    y_l_ext = zero_extend(2*m + 2, y_l)
 
     print('y_h_ext =', y_h_ext)
     print('y_l_ext =', y_l_ext)
@@ -138,9 +148,9 @@ def huang_div_normalized(x, y):
 
     # Final multiply
     #y_h_2_r_ext = zero_extend(width, y_h_2_r) << bv_from_int(width, (m + 1))
-    y_h_2_r_ext = zero_extend(width, y_h_2_r) << bv_from_int(width, m - 1)
-    print('y_h_2_r_ext = ', y_h_2_r_ext)
-    final_q = mul_fp(prod, y_h_2_r_ext, width - 1)
+    #y_h_2_r_ext = zero_extend(width, y_h2r) << bv_from_int(width, m - 1)
+    #print('y_h_2_r_ext = ', y_h_2_r_ext)
+    final_q = mul_fp(prod, y_h2r, y_h2r.width() - 1)
 
     print('Final q       =', final_q)
     
@@ -172,8 +182,8 @@ def huang_divide(n_in, d_in):
 
     lzd = leading_zero_count(d_abs)
     lzn = leading_zero_count(n_abs)
-    d_norm = d_abs << lzd #normalize_left(d_abs)
-    n_norm = n_abs << lzn #normalize_left(n_abs)
+    d_norm = d_abs << lzd
+    n_norm = n_abs << lzn
 
     print('n_norm =', n_norm)
     print('d_norm =', d_norm)
@@ -186,8 +196,6 @@ def huang_divide(n_in, d_in):
     print('lzd =', lzd.to_int())
     print('lzn =', lzn.to_int())
     print('res_norm =', res_norm)
-
-#    res = res_norm >> (bv_from_int(width, width) - (lzd - lzn) - bv_from_int(width, 1))
 
     res = res_norm >> (bv_from_int(width, width) - (lzd - lzn) - bv_from_int(width, 2))
     n_sign = sign_bit(n_in)

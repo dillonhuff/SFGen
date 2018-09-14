@@ -732,11 +732,14 @@ def unify_types(spec_f):
                 constraints.append((instr.res, l.ArrayType(int_constants[instr.args[0]])))
 
         elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'bv_from_int':
-#            print('Found zero extend', instr)
             if instr.args[0] in int_constants:
-#                print(instr.args[0], 'has value', int_constants[instr.args[0]])
                 constraints.append((instr.res, l.ArrayType(int_constants[instr.args[0]])))
 
+        elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'concat':
+            assert(False)
+            # if instr.args[1] in int_constants:
+            #     constraints.append((instr.res, l.ArrayType(int_constants[instr.args[0]])))
+                
         elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'leading_zero_count':
             constraints.append((instr.res, instr.args[0]))
                 
@@ -1063,6 +1066,9 @@ def is_builtin(func_name):
     if func_name == 'zero_extend':
         return True
 
+    if func_name == 'concat':
+        return True
+    
     if func_name == 'bv_from_int':
         return True
 
