@@ -107,6 +107,8 @@ def huang_div_normalized(x, y):
     print('y_l_ext =', y_l_ext)
 
     y_diff = y_h_ext - y_l_ext
+
+    print('x      =', x)
     print('y_diff =', y_diff)
     
     prod = mul_fp(x, y_diff, width - 1)
@@ -114,7 +116,8 @@ def huang_div_normalized(x, y):
     print('prod =', prod)
 
     # Final multiply
-    y_h_2_r_ext = zero_extend(width, y_h_2_r) << bv_from_int(width, (m + 1))
+    #y_h_2_r_ext = zero_extend(width, y_h_2_r) << bv_from_int(width, (m + 1))
+    y_h_2_r_ext = zero_extend(width, y_h_2_r) << bv_from_int(width, m - 1)
     print('y_h_2_r_ext = ', y_h_2_r_ext)
     final_q = mul_fp(prod, y_h_2_r_ext, width - 1)
 
@@ -122,10 +125,10 @@ def huang_div_normalized(x, y):
     print('Final q float =', fixed_point_to_float(final_q, width - 1))
 
     x_flt = fixed_point_to_float(x, width - 1)
-    d_flt = fixed_point_to_float(d_norm, width - 1)
+    d_flt = fixed_point_to_float(y, width - 1)
 
-    print('d norm =', d_norm)
-    print('n norm =', n_norm)    
+    print('x norm =', x)
+    print('y norm =', y)
     print('x abs as float =', x_flt)
     print('d abs as float =', d_flt)
     print('Final q comp  =', x_flt / d_flt)
@@ -160,7 +163,7 @@ def huang_divide(n_in, d_in):
     n_sign = sign_bit(n_in)
     d_sign = sign_bit(d_in)
 
-    return n_abs
+    return res if n_sign == d_sign else tc_neg(res)
     
 # def newton_raphson_divide(ne, de):
 #     assert(ne.width() == de.width())
