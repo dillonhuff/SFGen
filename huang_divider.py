@@ -36,26 +36,6 @@ def compute_reciprocal(b):
 
     return sliced_quote
     
-# def approximate_reciprocal(b):
-#     width = b.width()
-#     approximation_width = 10
-#     normed = normalize_left(b)
-
-#     top_8 = zero_extend(width, normed[width - approximation_width : width - 1])
-
-#     assert(top_8.width() == width)
-
-#     one_ext = build_one_fp(2*width, 2*width - 1) #bv_from_int(2*width, 1 << (2*width - 1))
-#     top_8_ext = zero_extend(2*width, top_8)
-#     quote = one_ext / top_8_ext
-
-#     print('Quote =', quote)
-
-#     sliced_quote = (normalize_left(quote))[quote.width() - width:quote.width() - 1]
-#     print('Sliced quote =', sliced_quote)
-
-#     return sliced_quote
-
 def mul_fp(a, b, decimal_place):
     assert(a.width() == b.width());
     
@@ -66,7 +46,15 @@ def mul_fp(a, b, decimal_place):
 
     print('Full precision product =', prod)
 
-    return (prod >> bv_from_int(width, decimal_place))[0:width - 1]
+    shifted_prod = prod >> bv_from_int(width, decimal_place)
+
+    print('shifted_prod           =', shifted_prod)
+
+    sliced_prod = shifted_prod[0:width - 1]
+
+    print('sliced_prod            =', sliced_prod)
+
+    return sliced_prod
 
 def huang_div_normalized(x, y):
     assert(x.width() == y.width())
@@ -96,7 +84,6 @@ def huang_div_normalized(x, y):
 
     y_h_2_r = compute_reciprocal(y_h_2)
 
-    exp = -1 # How do I compute this automatically?
     print('y_h_2_r       =', y_h_2_r)
     print('y_h_2_r float =', fixed_point_to_float(y_h_2_r, m) / 2.0)
     print('y_h_2_r comp  =', 1 / (fixed_point_to_float(y_h, m) * fixed_point_to_float(y_h, m)))
@@ -113,7 +100,7 @@ def huang_div_normalized(x, y):
     print('x      =', x)
     print('y_diff =', y_diff)
     
-    prod = mul_fp(x, y_diff, width - 1)
+    prod = mul_fp(x, y_diff, width)
 
     print('prod =', prod)
 
@@ -168,8 +155,9 @@ def huang_divide(n_in, d_in):
     print('lzn =', lzn.to_int())
     print('res_norm =', res_norm)
 
-    res = res_norm >> (bv_from_int(width, width) - (lzd - lzn) - bv_from_int(width, 1))
+#    res = res_norm >> (bv_from_int(width, width) - (lzd - lzn) - bv_from_int(width, 1))
 
+    res = res_norm >> (bv_from_int(width, width) - (lzd - lzn) - bv_from_int(width, 2))
     n_sign = sign_bit(n_in)
     d_sign = sign_bit(d_in)
 

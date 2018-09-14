@@ -45,6 +45,10 @@ def test_249_divided_by_18():
     print('res =', res)
     assert(res == bv_from_int(width, 249 // 18))
 
+def test_nr_25_5():
+    width = 16
+    divide_case(newton_raphson_divide, width, 25, 5)
+    
 def test_huang():
     width = 16
     divide_case(huang_divide, width, 16, 4)
