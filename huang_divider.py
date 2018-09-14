@@ -62,9 +62,25 @@ def huang_square_reciprocal(a):
     a_p = concat(bv_from_int(1, 1), a)
     print('a_p =', a_p)
 
-    a_ext = zero_extend(2*a_p.width(), a_p) << bv_from_int(a_p.width(), a_p.width() - 1)
     a_sq = mul_fp(a_p, a_p, a_p.width() - 1)
-    return a_sq
+
+    print('a_sq =', a_sq)
+
+    one_w = build_one_fp(2*a_sq.width(), 2*a_sq.width() - 1)
+    print('one_w =', one_w)
+
+    quot = one_w / zero_extend(one_w.width(), a_sq)
+    print('quot =', quot)
+
+    q_shifted = quot << bv_from_int(quot.width(), a.width())
+
+    print('shifted q =', q_shifted)
+
+    lzc = leading_zero_count(q_shifted)
+    print('lzc after shift =', lzc.to_int())
+    assert(lzc <= bv_from_int(lzc.width(), 2))
+    
+    return concat(q_shifted, lzc[0:1])
 
 def huang_div_normalized(x, y):
     assert(x.width() == y.width())
