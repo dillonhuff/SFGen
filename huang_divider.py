@@ -66,29 +66,15 @@ def mul_fp(a, b, decimal_place):
 
     return (prod >> bv_from_int(width, decimal_place))[0:width - 1]
 
-def huang_divide(n_in, d_in):
-    assert(n_in.width() == d_in.width())
-    assert(n_in.width() % 2 == 0)
+def huang_div_normalized(x, y):
+    assert(x.width() == y.width())
+    assert(x.width() % 2 == 0)
 
-    width = n_in.width()
+    width = x.width()
     m = width // 2
-    
-    n_abs = tc_abs(n_in)
-    d_abs = tc_abs(d_in)
 
-    print('n_abs =', n_abs)
-    print('d_abs =', d_abs)
-
-    d_norm = normalize_left(d_abs)
-    n_norm = normalize_left(n_abs)
-
-    print('n_norm =', n_norm)
-    print('d_norm =', d_norm)
-
-    x = n_norm
-
-    y_l = d_norm[0 : m - 2]
-    y_h = d_norm[width - m - 1 : width - 1]
+    y_l = y[0 : m - 2]
+    y_h = y[width - m - 1 : width - 1]
 
     print('y_h =', y_h)
     print('y_l =', y_l)
@@ -144,6 +130,32 @@ def huang_divide(n_in, d_in):
     print('d abs as float =', d_flt)
     print('Final q comp  =', x_flt / d_flt)
     # Final shift by exponent?
+
+    return final_q
+    
+def huang_divide(n_in, d_in):
+    assert(n_in.width() == d_in.width())
+    assert(n_in.width() % 2 == 0)
+
+    width = n_in.width()
+    m = width // 2
+    
+    n_abs = tc_abs(n_in)
+    d_abs = tc_abs(d_in)
+
+    print('n_abs =', n_abs)
+    print('d_abs =', d_abs)
+
+    d_norm = normalize_left(d_abs)
+    n_norm = normalize_left(n_abs)
+
+    print('n_norm =', n_norm)
+    print('d_norm =', d_norm)
+
+    x = n_norm
+    y = d_norm
+
+    res = huang_div_normalized(x, y)
 
     n_sign = sign_bit(n_in)
     d_sign = sign_bit(d_in)
