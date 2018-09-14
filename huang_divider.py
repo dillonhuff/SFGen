@@ -205,4 +205,7 @@ def huang_divide(n_in, d_in):
     n_sign = sign_bit(n_in)
     d_sign = sign_bit(d_in)
 
+
+    assert(res.width() == 2*m)
+
     return res if n_sign == d_sign else tc_neg(res)
