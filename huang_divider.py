@@ -143,8 +143,10 @@ def huang_div_normalized(x, y):
 
     print('x      =', x)
     print('y_diff =', y_diff)
-    
-    prod = mul_fp(zero_extend(2*m + 2, x) << bv_from_int(width, 2), y_diff, 2*m + 2 - 1)
+
+    x_ext = zero_extend(2*m + 2, x) << bv_from_int(width, 2)
+    print('x_ext  =', x_ext)
+    prod = mul_fp(x_ext, y_diff, 2*m + 2 - 1)
 
     print('prod =', prod)
 
