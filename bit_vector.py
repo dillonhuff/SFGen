@@ -395,3 +395,12 @@ def zero_extend(width, b):
 
 def leading_zero_count(b):
     return bv_from_int(b.width(), b.leading_zero_count())
+
+def concat(a, b):
+    res_bits = []
+    for i in range(0, b.width()):
+        res_bits.append(b.get(i))
+    for i in range(0, a.width()):
+        res_bits.append(a.get(i))
+
+    return BV(res_bits)

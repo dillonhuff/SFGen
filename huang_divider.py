@@ -56,6 +56,14 @@ def mul_fp(a, b, decimal_place):
 
     return sliced_prod
 
+def huang_square_reciprocal(a):
+    EXP_BITS = 2
+
+    a_p = concat(bv_from_int(1, 1), a)
+    print('a_p =', a_p)
+    a_sq = mul_fp(a_p, a_p, a_p.width() - 1)
+    return a_sq
+
 def huang_div_normalized(x, y):
     assert(x.width() == y.width())
     assert(x.width() % 2 == 0)
@@ -84,6 +92,7 @@ def huang_div_normalized(x, y):
 
     y_h_2_r = compute_reciprocal(y_h_2)
 
+    # How do I figure out the exponent of this manually?
     print('y_h_2_r       =', y_h_2_r)
     print('y_h_2_r float =', fixed_point_to_float(y_h_2_r, m) / 2.0)
     print('y_h_2_r comp  =', 1 / (fixed_point_to_float(y_h, m) * fixed_point_to_float(y_h, m)))

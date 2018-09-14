@@ -147,3 +147,8 @@ def test_slice_longer():
     sl = a[3:6]
     assert(sl == bv("4'b1101"))
     
+def test_concat():
+    a = bv("9'b101101001")
+    b = bv("8'b10100001")
+    res = bv("17'b10110100110100001")
+    assert(concat(a, b) == res)
