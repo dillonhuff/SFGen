@@ -135,7 +135,10 @@ def huang_div_normalized(x, y):
     # Final shift by exponent?
 
     return final_q
-    
+
+def umax(a, b):
+    return b if a < b else a
+
 def huang_divide(n_in, d_in):
     assert(n_in.width() == d_in.width())
     assert(n_in.width() % 2 == 0)
@@ -149,8 +152,10 @@ def huang_divide(n_in, d_in):
     print('n_abs =', n_abs)
     print('d_abs =', d_abs)
 
-    d_norm = normalize_left(d_abs)
-    n_norm = normalize_left(n_abs)
+    lzd = leading_zero_count(d_abs)
+    lzn = leading_zero_count(n_abs)
+    d_norm = d_abs << lzd #normalize_left(d_abs)
+    n_norm = n_abs << lzn #normalize_left(n_abs)
 
     print('n_norm =', n_norm)
     print('d_norm =', d_norm)
@@ -158,13 +163,18 @@ def huang_divide(n_in, d_in):
     x = n_norm
     y = d_norm
 
-    res = huang_div_normalized(x, y)
+    res_norm = huang_div_normalized(x, y)
+
+    print('lzd =', lzd.to_int())
+    print('lzn =', lzn.to_int())
+
+    res = res_norm >> (umax(lzd, lzn))
 
     n_sign = sign_bit(n_in)
     d_sign = sign_bit(d_in)
 
     return res if n_sign == d_sign else tc_neg(res)
-    
+
 # def newton_raphson_divide(ne, de):
 #     assert(ne.width() == de.width())
 
