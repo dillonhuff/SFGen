@@ -914,7 +914,7 @@ def is_dead_value(v, func):
 def delete_dead_instructions(func):
     new_instrs = []
     for instr in func.instructions:
-        if isinstance(instr, BinopInstr) or isinstance(instr, UnopInstr):
+        if isinstance(instr, BinopInstr) or isinstance(instr, UnopInstr) or isinstance(instr, AssignInstr):
             res = instr.res
             if (not is_dead_value(res, func)):
                 new_instrs.append(instr)
@@ -1051,7 +1051,45 @@ def simplify_integer_assigns(spec_f):
                 not_replaced = True
     assert(not not_replaced)
 
+def func_name(instr):
+    assert(isinstance(instr, CallInstr))
+    if isinstance(instr.func, str):
+        return instr.func
 
+    assert(isinstance(instr.func, ast.Name))
+    return instr.func.id
+
+def is_builtin(func_name):
+    if func_name == 'zero_extend':
+        return True
+
+    if func_name == 'bv_from_int':
+        return True
+
+    if func_name == 'leading_zero_count':
+        return True
+
+    if func_name == 'width':
+        return True
+    
+    return False
+
+def is_synthesizable(func, spec_f, code_gen):
+    return code_gen.has_function(func) or is_builtin(func)
+
+def delete_unsynthesizable_instructions(spec_f, code_gen):
+    new_instrs = []
+    for instr in spec_f.instructions:
+        if isinstance(instr, CallInstr):
+            if is_synthesizable(func_name(instr), spec_f, code_gen):
+                new_instrs.append(instr)
+            else:
+                print('Removing un-synthesizable function', func_name(instr))
+        else:
+            new_instrs.append(instr)
+            
+    swap_instrs(spec_f, new_instrs)
+    
 def specialize_types(code_gen, func_name, func_arg_types):
     spec_name = func_name
     func = code_gen.get_function(func_name)
@@ -1077,12 +1115,13 @@ def specialize_types(code_gen, func_name, func_arg_types):
     print(spec_f.to_string())
 
     inline_all(spec_f, code_gen)
-
+    delete_unsynthesizable_instructions(spec_f, code_gen)
+    delete_dead_instructions(spec_f)
+    
     print('After inlining')
     print(spec_f.to_string())
 
     evaluate_integer_constants(spec_f)
-    #evaluate_widths(spec_f)
 
     print('After evaluating widths first')
     print(spec_f.to_string())
@@ -1093,7 +1132,6 @@ def specialize_types(code_gen, func_name, func_arg_types):
 
     i = 1
     while (not resolved_all) and i < 8:
-#    while i < 15:
         print('Resolve iteration', i)
         resolved_all = unify_types(spec_f)
         evaluate_integer_constants(spec_f)
