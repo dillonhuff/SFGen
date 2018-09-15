@@ -75,3 +75,8 @@ def test_huang():
     divide_case(huang_divide, width, 16, 4)
     divide_case(huang_divide, width, 256, 2)
     divide_case(huang_divide, width, 25, 5)
+
+    for n in range(-100, 100):
+        for d in range(-100, 100):
+            if d != 0:
+                divide_case(huang_divide, width, n, d)
