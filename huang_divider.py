@@ -231,7 +231,7 @@ def huang_divide(n_in, d_in):
     print('res_exp  =', exp)
 
     
-    res = res_norm >> (bv_from_int(width, width) + zero_extend(width, exp) - (lzd - lzn) - bv_from_int(width, 4))
+    res = res_norm >> (bv_from_int(width, width) + zero_extend(width, exp) - (lzd - lzn) - bv_from_int(width, 3))
 
     n_sign = sign_bit(n_in)
     d_sign = sign_bit(d_in)
