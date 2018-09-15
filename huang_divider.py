@@ -238,6 +238,8 @@ def huang_divide(n_in, d_in):
 
     assert(res.width() == 2*m)
 
+    print('res =', res)
+
     return res if n_sign == d_sign else tc_neg(res)
 
 width = 16
