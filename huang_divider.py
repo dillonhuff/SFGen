@@ -134,7 +134,8 @@ def huang_div_normalized(x, y):
     print('y_h_2_r_and_exp width =', y_h_2_r_and_exp.width())
     assert(y_h_2_r_and_exp.width() == (2*m + 2 + 2))
 
-    y_h2_exp = y_h_2_r_and_exp[y_h_2_r_and_exp.width() - 2 : y_h_2_r_and_exp.width() - 1]
+#    y_h2_exp = y_h_2_r_and_exp[y_h_2_r_and_exp.width() - 2 : y_h_2_r_and_exp.width() - 1]
+    y_h2_exp = y_h_2_r_and_exp[0 : 1]
     y_h2r = y_h_2_r_and_exp[y_h_2_r_and_exp.width() - (2*m + 2) : y_h_2_r_and_exp.width() - 1]
 
     print('y_h2r     =', y_h2r)
@@ -144,6 +145,8 @@ def huang_div_normalized(x, y):
     print('y_h_2_r comp  =', 1 / (fixed_point_to_float(y_h, m) * fixed_point_to_float(y_h, m)))
 
     y_diff = sub_yh(y_h, y_l)
+
+    print('y_diff =', y_diff)
 
     prod = zero_extend(2*y_diff.width(), x) * zero_extend(2*y_diff.width(), y_diff)
 
@@ -222,19 +225,22 @@ def huang_divide(n_in, d_in):
     exp = res_norm_with_exp[0:1]
     res_norm = res_norm_with_exp[2 : res_norm_with_exp.width() - 1]
 
-    # print('lzd =', lzd.to_int())
-    # print('lzn =', lzn.to_int())
+    print('lzd =', lzd.to_int())
+    print('lzn =', lzn.to_int())
     print('res_norm =', res_norm)
     print('res_exp  =', exp)
 
     
-
-#    shift_dist = bv_from_int(width, width) + zero_extend(width, exp) - (lzd - lzn) - bv_from_int(width, 3)
-
     res = res_norm >> (bv_from_int(width, width) + zero_extend(width, exp) - (lzd - lzn) - bv_from_int(width, 4))
+
     n_sign = sign_bit(n_in)
     d_sign = sign_bit(d_in)
-    #    res = res_norm >> (bv_from_int(width, width) + zero_extend(width, exp) - (lzd - lzn) - bv_from_int(width, 3))
+
     assert(res.width() == 2*m)
 
     return res if n_sign == d_sign else tc_neg(res)
+
+width = 16
+r = huang_divide(bv_from_int(16, 16), bv_from_int(width, 4))
+print('-------------- 25 / 5')
+r = huang_divide(bv_from_int(16, 25), bv_from_int(width, 5))
