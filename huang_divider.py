@@ -252,13 +252,17 @@ hd = huang_divide(-bv_from_int(width, 20), bv_from_int(width, 6))
 print('-20 hd 6 =', hd)
 print('-20 hd 6 =', hd.to_int_tc())
 
-# num_fails = 0
-# for n in range(-20, 20):
-#     for d in range(1, 20):
-#         if d != 0:
-#             res = huang_divide(bv_from_int(width, n), bv_from_int(width, d))
-#             if res != bv_from_int(width, n // d):
-#                 print('Huang failed on n =', n, 'd =', d, 'result =', res, 'but should be', bv_from_int(width, n // d))
-#                 num_fails += 1
+num_fails = 0
+for n in range(-20, 20):
+    for d in range(1, 20):
+        if d != 0:
+            res = huang_divide(bv_from_int(width, n), bv_from_int(width, d))
+            correct_mag = abs(n) // abs(d)
+            correct = correct_mag if n >= 0 and d >= 0 else -correct_mag
+            
+            if res != bv_from_int(width, correct):
 
-#print('# of failures =', num_fails)
+                print('Huang failed on n =', n, 'd =', d, 'result =', res, 'but should be', bv_from_int(width, correct))
+                num_fails += 1
+
+print('# of failures =', num_fails)
