@@ -202,6 +202,16 @@ class QuadValueBitVector():
                 r += pow(2, i)
         return r
 
+    def to_int_tc(self):
+        r = 0
+        for i in range(0, self.width() - 1):
+            if (self.get(i) == QVB(1)):
+                r += pow(2, i)
+
+        if self.get(self.width() - 1) == QVB(1):
+            r -= pow(2, self.width() - 1)
+        return r
+    
     def set_bit(self, index, bit):
         assert(isinstance(index, int))
         assert(isinstance(bit, QuadValueBit))
