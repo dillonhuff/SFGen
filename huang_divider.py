@@ -1,5 +1,8 @@
 from bit_vector import *
 
+def top_bits(b, num_bits):
+    return b[b.width() - num_bits : b.width() - 1]
+
 def tc_neg(a):
     return ~a + bv_from_int(a.width(), 1)
 
@@ -177,10 +180,14 @@ def huang_div_normalized(x, y):
     # print('Final q float =', fixed_point_to_float(final_q, width - 1))
     # print('Final q comp  =', x_flt / y_flt)
 
-    top_bits = top_bits(final_q, 2*m + 2)
-    round_bits = top_bits[0:1]
+    tbs = top_bits(final_q, 2*m + 2)
+    round_bits = tbs[0:1]
+    last_bits = top_bits(tbs, 2*m)
+    
+    rounded_q = last_bits if round_bits == bv("2'b00") else last_bits + bv_from_int(2*m, 1)
+        
 
-    rounded_q = (final_q >> bv_from_int(width, 2))[0:final_q.width() - 3]
+    #rounded_q = (final_q >> bv_from_int(width, 2))[0:final_q.width() - 3]
 
     print('rounded_q =', rounded_q)
 
@@ -224,7 +231,7 @@ def huang_divide(n_in, d_in):
 
 #    shift_dist = bv_from_int(width, width) + zero_extend(width, exp) - (lzd - lzn) - bv_from_int(width, 3)
 
-    res = res_norm >> (bv_from_int(width, width) + zero_extend(width, exp) - (lzd - lzn) - bv_from_int(width, 3))
+    res = res_norm >> (bv_from_int(width, width) + zero_extend(width, exp) - (lzd - lzn) - bv_from_int(width, 4))
     n_sign = sign_bit(n_in)
     d_sign = sign_bit(d_in)
     #    res = res_norm >> (bv_from_int(width, width) + zero_extend(width, exp) - (lzd - lzn) - bv_from_int(width, 3))
