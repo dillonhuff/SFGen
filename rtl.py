@@ -164,6 +164,17 @@ def module_for_functional_unit(unit):
         m.add_out_port('out', width)
 
         return m
+
+    if (has_prefix(unit.name, 'concat')):
+        width0 = unit.parameters[0]
+        width1 = unit.parameters[1]
+        m = Module('builtin_concat_' + str(width0) + '_' + str(width1))
+
+        m.add_in_port('in0', width0)
+        m.add_in_port('in1', width1)
+        m.add_out_port('out', width0 + width1)
+
+        return m
     
     print('Error: Unsupported functional unit:', unit.name, unit.parameters)
     assert(False)

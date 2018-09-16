@@ -634,7 +634,13 @@ def functional_unit(instr, f):
         out_width = f.get_int_constant_value(instr.args[0])
         in_width = f.symbol_type(instr.args[1]).width()
         return Operation(instr.func.id + '_' + str(out_width) + '_' + str(in_width), [out_width, in_width])
-    
+    elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and (instr.func.id == 'concat'):
+        assert(len(instr.args) == 2)
+
+        in0_width = f.symbol_type(instr.args[0]).width()
+        in1_width = f.symbol_type(instr.args[1]).width()
+        return Operation(instr.func.id + '_' + str(in0_width) + '_' + str(in1_width), [in0_width, in1_width])
+        
     elif isinstance(instr, CallInstr):
         assert(isinstance(instr.func, ast.Name))
         return Operation(instr.func.id, [])
@@ -645,9 +651,9 @@ def functional_unit(instr, f):
         low_val = f.get_int_constant_value(instr.low)
         in_width = f.symbol_type(instr.value).width()
         return Operation('slice_' + str(in_width) + '_' + str(low_val) + '_' + str(high_val), [in_width, low_val, high_val])
-    else:
-        print('Unsupported functional unit', instr)
-        assert(False)
+    #    else:
+    print('Unsupported functional unit', instr)
+    assert(False)
 
 def schedule(code_gen, f, constraints):
     s = Schedule()
