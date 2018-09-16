@@ -133,28 +133,29 @@ def huang_div_normalized(x, y):
 
     prod = zero_extend(2*y_diff.width(), x) * zero_extend(2*y_diff.width(), y_diff)
 
-    prod = prod >> bv_from_int(width, y_diff.width() - 2)
-    prod = prod[0 : 2*m + 2 - 1]
+    #return prod
+    prod0 = prod >> bv_from_int(width, y_diff.width() - 2)
+    prod1 = prod0[0 : 2*m + 2 - 1]
 
     # Contradiction before here
 
-    # assert(prod.width() == 2*m + 2)
+    assert(prod1.width() == 2*m + 2)
 
-    # # Final multiply
-    # assert(y_h2r.width() == prod.width())
+    # Final multiply
+    assert(y_h2r.width() == prod1.width())
     
-    #final_q = zero_extend(2*prod.width(), prod) * zero_extend(2*prod.width(), y_h2r)
+    final_q = zero_extend(2*prod1.width(), prod1) * zero_extend(2*prod1.width(), y_h2r)
 
     # Contradiction before here
 
-    # # Now need to shift and round up.
-    # tbs = top_bits(final_q, 2*m + 2)
-    # round_bits = tbs[0:1]
-    # last_bits = top_bits(tbs, 2*m)
+    # Now need to shift and round up.
+    tbs = top_bits(final_q, 2*m + 2)
+    round_bits = tbs[0:1]
+    last_bits = top_bits(tbs, 2*m)
     
-    # rounded_q = last_bits if round_bits == bv_from_int(2, 0) else last_bits + bv_from_int(2*m, 1)
+    rounded_q = last_bits if round_bits == bv_from_int(2, 0) else last_bits + bv_from_int(2*m, 1)
 
-    # return concat(rounded_q, y_h2_exp)
+    return concat(rounded_q, y_h2_exp)
 
 def huang_divide(n_in, d_in):
     assert(n_in.width() == d_in.width())
