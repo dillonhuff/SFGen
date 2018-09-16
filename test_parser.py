@@ -149,8 +149,20 @@ def test_huang_reciprocal():
 
 def test_huang_divider():
     code_gen = parse_file("huang_divider.py")
-    constraints = ScheduleConstraints()
     f_spec = specialize_types(code_gen, 'huang_div_normalized', [l.ArrayType(16), l.ArrayType(16)])
 
-    print(f_spec.to_string())
-    
+    #print(f_spec.to_string())
+
+    constraints = ScheduleConstraints()
+    sched = schedule(code_gen, f_spec, constraints)
+
+    print(sched.to_string())
+
+    mod = generate_rtl(f_spec, sched)
+
+    assert(mod.name == f_spec.name)
+
+    generate_verilog(mod)
+
+    res = run_iverilog_test(mod.name)
+    assert(res == 'passed\n')
