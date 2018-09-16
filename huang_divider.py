@@ -164,35 +164,17 @@ def huang_div_normalized(x, y):
     assert(prod.width() == 2*m + 2)
 
     # Final multiply
-    #print('y_h2r width = ', y_h2r.width())
     assert(y_h2r.width() == prod.width())
     
-    #    final_q = mul_fp(prod, y_h2r, y_h2r.width() - 1)
     final_q = zero_extend(2*prod.width(), prod) * zero_extend(2*prod.width(), y_h2r)
 
-    #print('Final q       =', final_q)
-
     # Now need to shift and round up.
-
-    # x_flt = fixed_point_to_float(x, width - 1)
-    # y_flt = fixed_point_to_float(y, width - 1)
-
-    # print('x abs as float =', x_flt)
-    # print('y abs as float =', y_flt)
-    
-    # print('Final q float =', fixed_point_to_float(final_q, width - 1))
-    # print('Final q comp  =', x_flt / y_flt)
 
     tbs = top_bits(final_q, 2*m + 2)
     round_bits = tbs[0:1]
     last_bits = top_bits(tbs, 2*m)
     
-    rounded_q = last_bits if round_bits == bv("2'b00") else last_bits + bv_from_int(2*m, 1)
-        
-
-    #rounded_q = (final_q >> bv_from_int(width, 2))[0:final_q.width() - 3]
-
-    #print('rounded_q =', rounded_q)
+    rounded_q = last_bits if round_bits == bv_from_int(2, 0) else last_bits + bv_from_int(2*m, 1)
 
     return concat(rounded_q, y_h2_exp)
 

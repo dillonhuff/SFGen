@@ -736,7 +736,15 @@ def unify_types(spec_f):
                 constraints.append((instr.res, l.ArrayType(int_constants[instr.args[0]])))
 
         elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'concat':
-            assert(False)
+            assert(len(instr.args) == 2)
+            
+            arg0_tp = spec_f.symbol_type(instr.args[0])
+            arg1_tp = spec_f.symbol_type(instr.args[1])
+
+            if isinstance(arg0_tp, l.ArrayType) and isinstance(arg1_tp, l.ArrayType):
+                w0 = arg0_tp.width()
+                w1 = arg1_tp.width()
+                constraints.append((instr.res, l.ArrayType(w0 + w1)))
             # if instr.args[1] in int_constants:
             #     constraints.append((instr.res, l.ArrayType(int_constants[instr.args[0]])))
                 
