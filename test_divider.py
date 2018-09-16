@@ -5,7 +5,14 @@ from huang_divider import *
 def divide_case(f, width, n_int, d_int):
     res = f(bv_from_int(width, n_int), bv_from_int(width, d_int))
     print('res =', res)
-    assert(res == bv_from_int(width, n_int // d_int))
+
+    res = huang_divide(bv_from_int(width, n_int), bv_from_int(width, d_int))
+    correct_mag = abs(n_int) // abs(d_int)
+    sgn_n = n_int >= 0
+    sgn_d = d_int >= 0
+    correct = correct_mag if sgn_n == sgn_d else -correct_mag
+
+    assert(res == bv_from_int(width, correct))
     
 def test_divide_by_two():
     width = 16
@@ -76,7 +83,7 @@ def test_huang():
     divide_case(huang_divide, width, 256, 2)
     divide_case(huang_divide, width, 25, 5)
 
-    for n in range(-100, 100):
-        for d in range(-100, 100):
+    for n in range(-10, 10):
+        for d in range(-10, 10):
             if d != 0:
                 divide_case(huang_divide, width, n, d)

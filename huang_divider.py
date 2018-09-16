@@ -242,29 +242,29 @@ def huang_divide(n_in, d_in):
 
     return res if n_sign == d_sign else tc_neg(res)
 
-width = 16
-r = huang_divide(bv_from_int(16, 16), bv_from_int(width, 4))
-print('-------------- 25 / 5')
-r = huang_divide(bv_from_int(16, 25), bv_from_int(width, 5))
+# width = 16
+# r = huang_divide(bv_from_int(16, 16), bv_from_int(width, 4))
+# print('-------------- 25 / 5')
+# r = huang_divide(bv_from_int(16, 25), bv_from_int(width, 5))
 
-print('-20 // 6 =', -20 // 6)
-hd = huang_divide(-bv_from_int(width, 20), bv_from_int(width, 6))
-print('-20 hd 6 =', hd)
-print('-20 hd 6 =', hd.to_int_tc())
+# print('-20 // 6 =', -20 // 6)
+# hd = huang_divide(-bv_from_int(width, 20), bv_from_int(width, 6))
+# print('-20 hd 6 =', hd)
+# print('-20 hd 6 =', hd.to_int_tc())
 
-num_fails = 0
-for n in range(-100, 100):
-    for d in range(-100, 100):
-        if d != 0:
-            res = huang_divide(bv_from_int(width, n), bv_from_int(width, d))
-            correct_mag = abs(n) // abs(d)
-            sgn_n = n >= 0
-            sgn_d = d >= 0
-            correct = correct_mag if sgn_n == sgn_d else -correct_mag
+# num_fails = 0
+# for n in range(-100, 100):
+#     for d in range(-100, 100):
+#         if d != 0:
+#             res = huang_divide(bv_from_int(width, n), bv_from_int(width, d))
+#             correct_mag = abs(n) // abs(d)
+#             sgn_n = n >= 0
+#             sgn_d = d >= 0
+#             correct = correct_mag if sgn_n == sgn_d else -correct_mag
             
-            if res != bv_from_int(width, correct):
+#             if res != bv_from_int(width, correct):
 
-                print('Huang failed on n =', n, 'd =', d, 'result =', res, 'but should be', bv_from_int(width, correct))
-                num_fails += 1
+#                 print('Huang failed on n =', n, 'd =', d, 'result =', res, 'but should be', bv_from_int(width, correct))
+#                 num_fails += 1
 
-print('# of failures =', num_fails)
+# print('# of failures =', num_fails)
