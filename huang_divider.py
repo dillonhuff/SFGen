@@ -253,12 +253,14 @@ print('-20 hd 6 =', hd)
 print('-20 hd 6 =', hd.to_int_tc())
 
 num_fails = 0
-for n in range(-20, 20):
-    for d in range(1, 20):
+for n in range(-100, 100):
+    for d in range(-100, 100):
         if d != 0:
             res = huang_divide(bv_from_int(width, n), bv_from_int(width, d))
             correct_mag = abs(n) // abs(d)
-            correct = correct_mag if n >= 0 and d >= 0 else -correct_mag
+            sgn_n = n >= 0
+            sgn_d = d >= 0
+            correct = correct_mag if sgn_n == sgn_d else -correct_mag
             
             if res != bv_from_int(width, correct):
 
