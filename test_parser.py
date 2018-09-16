@@ -140,9 +140,17 @@ def test_approximate_reciprocal_parse():
     res = run_iverilog_test(mod.name)
     assert(res == 'passed\n')
 
-def test_huang_divider():
+def test_huang_reciprocal():
     code_gen = parse_file("huang_divider.py")
     constraints = ScheduleConstraints()
     f_spec = specialize_types(code_gen, 'huang_square_reciprocal', [l.ArrayType(8)]) #, l.ArrayType(16)])
 
     print(f_spec.to_string())
+
+def test_huang_divider():
+    code_gen = parse_file("huang_divider.py")
+    constraints = ScheduleConstraints()
+    f_spec = specialize_types(code_gen, 'huang_div_normalized', [l.ArrayType(16), l.ArrayType(16)])
+
+    print(f_spec.to_string())
+    

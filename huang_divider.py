@@ -109,74 +109,52 @@ def huang_div_normalized(x, y):
     assert(x.width() == y.width())
     assert(x.width() % 2 == 0)
 
-    # print('x norm =', x)
-    # print('y norm =', y)
-    
     width = x.width()
     m = width // 2
 
     y_l = y[0 : m - 2]
     y_h = y[width - m - 1 : width - 1]
 
-    # print('y_h =', y_h)
-    # print('y_l =', y_l)
-
     assert(y_l.width() == m - 1)
     assert(y_h.width() == m + 1)
-
-    #print('y_h float   =', fixed_point_to_float(y_h, m))
 
     assert(y_h.get(y_h.width() - 1) == QVB(1))
     
     y_h_2_r_and_exp = huang_square_reciprocal(y_h[0 : y_h.width() - 2])
 
-    # print('y_h_2_r_and_exp       =', y_h_2_r_and_exp)
-    # print('y_h_2_r_and_exp width =', y_h_2_r_and_exp.width())
     assert(y_h_2_r_and_exp.width() == (2*m + 2 + 2))
 
-#    y_h2_exp = y_h_2_r_and_exp[y_h_2_r_and_exp.width() - 2 : y_h_2_r_and_exp.width() - 1]
     y_h2_exp = y_h_2_r_and_exp[0 : 1]
     y_h2r = y_h_2_r_and_exp[y_h_2_r_and_exp.width() - (2*m + 2) : y_h_2_r_and_exp.width() - 1]
 
-    # print('y_h2r     =', y_h2r)
-    # print('y_h2_exp =', y_h2_exp)
-
-    # print('y_h_2_r float =', fixed_point_to_float(y_h2r, y_h2r.width() - 1))
-    # print('y_h_2_r comp  =', 1 / (fixed_point_to_float(y_h, m) * fixed_point_to_float(y_h, m)))
-
     y_diff = sub_yh(y_h, y_l)
 
-    #print('y_diff =', y_diff)
+    # No contradiction up to here
 
     prod = zero_extend(2*y_diff.width(), x) * zero_extend(2*y_diff.width(), y_diff)
-
-    #x_ext = zero_extend(2*m, x) << bv_from_int(width, 2)
-    #print('x_ext  =', x_ext)
-    #prod = mul_fp(x_ext, y_diff, 2*m + 2 - 1)
-
-    #print('x*y_diff =', prod)
 
     prod = prod >> bv_from_int(width, y_diff.width() - 2)
     prod = prod[0 : 2*m + 2 - 1]
 
-    #print('Rounded prod =', prod)
+    # Contradiction before here
 
-    assert(prod.width() == 2*m + 2)
+    # assert(prod.width() == 2*m + 2)
 
-    # Final multiply
-    assert(y_h2r.width() == prod.width())
+    # # Final multiply
+    # assert(y_h2r.width() == prod.width())
     
-    final_q = zero_extend(2*prod.width(), prod) * zero_extend(2*prod.width(), y_h2r)
+    #final_q = zero_extend(2*prod.width(), prod) * zero_extend(2*prod.width(), y_h2r)
 
-    # Now need to shift and round up.
+    # Contradiction before here
 
-    tbs = top_bits(final_q, 2*m + 2)
-    round_bits = tbs[0:1]
-    last_bits = top_bits(tbs, 2*m)
+    # # Now need to shift and round up.
+    # tbs = top_bits(final_q, 2*m + 2)
+    # round_bits = tbs[0:1]
+    # last_bits = top_bits(tbs, 2*m)
     
-    rounded_q = last_bits if round_bits == bv_from_int(2, 0) else last_bits + bv_from_int(2*m, 1)
+    # rounded_q = last_bits if round_bits == bv_from_int(2, 0) else last_bits + bv_from_int(2*m, 1)
 
-    return concat(rounded_q, y_h2_exp)
+    # return concat(rounded_q, y_h2_exp)
 
 def huang_divide(n_in, d_in):
     assert(n_in.width() == d_in.width())
