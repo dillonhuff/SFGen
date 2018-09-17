@@ -1310,8 +1310,8 @@ def specialize_types(code_gen, func_name, func_arg_types):
     print('After second width evaluation')
     print(spec_f.to_string())
 
-    print('Final unification')
-    unify_types(spec_f)
+    # print('Final unification')
+    # unify_types(spec_f)
     
     all_values = set()
     for instr in spec_f.instructions:
@@ -1328,5 +1328,10 @@ def specialize_types(code_gen, func_name, func_arg_types):
 
     for s in to_erase:
         spec_f.erase_symbol(s)
+
+    # print('Final specialized functions')
+    # print(spec_f.to_string())
+
+    # assert(False)
 
     return spec_f
