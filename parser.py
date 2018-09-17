@@ -679,145 +679,6 @@ def substitute(name, tp, c):
         return tp
     else:
         return c
-
-# def unify_types(spec_f):
-#     f = spec_f
-#     constraints = []
-#     int_constants = {}
-#     for sym in spec_f.symbol_table:
-#         if spec_f.symbol_type(sym) != None:
-#             constraints.append((sym, spec_f.symbol_type(sym)))
-
-#     for instr in f.instructions:
-#         if isinstance(instr, UnopInstr):
-#             res = instr.res
-#             operand = instr.in_name
-#             constraints.append((res, operand))
-#         elif isinstance(instr, BinopInstr):
-#             if all_ops_same_width(instr):
-#                 res = instr.res
-#                 a = instr.lhs
-#                 b = instr.rhs
-#                 constraints.append((res, a))
-#                 constraints.append((a, b))
-#             elif is_shift(instr):
-#                 res = instr.res
-#                 a = instr.lhs
-#                 constraints.append((res, a))
-#         elif isinstance(instr, AssignInstr):
-#             res = instr.res
-#             a = instr.rhs
-#             constraints.append((res, a))
-#         elif isinstance(instr, ConstDecl):
-#             int_constants[instr.res_name] = instr.num
-#             constraints.append((instr.res_name, l.IntegerType()))
-#         elif isinstance(instr, CompareInstr):
-#             res = instr.res
-#             a = instr.lhs
-#             b = instr.rhs
-#             constraints.append((res, l.ArrayType(1)))
-#             constraints.append((a, b))
-#         elif isinstance(instr, ConstDecl):
-#             res = instr.res_name
-#             constraints.append((res, l.IntegerType()))
-
-#         elif isinstance(instr, ConstBVDecl):
-#             res = instr.res_name
-#             constraints.append((res, l.ArrayType(instr.value.width())))
-
-#         elif isinstance(instr, ITEInstr):
-#             constraints.append((instr.res, instr.true_exp))
-#             constraints.append((instr.res, instr.false_exp))
-#             constraints.append((instr.test, l.ArrayType(1)))
-
-#         elif isinstance(instr, CallInstr) and (instr.func == 'width'):
-#             constraints.append((instr.res, l.IntegerType()))
-
-#         elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'zero_extend':
-#             if instr.args[0] in int_constants:
-#                 constraints.append((instr.res, l.ArrayType(int_constants[instr.args[0]])))
-
-#         elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'bv_from_int':
-#             if instr.args[0] in int_constants:
-#                 constraints.append((instr.res, l.ArrayType(int_constants[instr.args[0]])))
-
-#         elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'concat':
-#             assert(len(instr.args) == 2)
-            
-#             arg0_tp = spec_f.symbol_type(instr.args[0])
-#             arg1_tp = spec_f.symbol_type(instr.args[1])
-
-#             if isinstance(arg0_tp, l.ArrayType) and isinstance(arg1_tp, l.ArrayType):
-#                 w0 = arg0_tp.width()
-#                 w1 = arg1_tp.width()
-#                 constraints.append((instr.res, l.ArrayType(w0 + w1)))
-#             # if instr.args[1] in int_constants:
-#             #     constraints.append((instr.res, l.ArrayType(int_constants[instr.args[0]])))
-                
-#         elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'leading_zero_count':
-#             constraints.append((instr.res, instr.args[0]))
-                
-#         elif isinstance(instr, SliceInstr):
-#             constraints.append((instr.high, l.IntegerType()))
-#             constraints.append((instr.low, l.IntegerType()))
-
-#             if (instr.low in int_constants) and (instr.high in int_constants):
-#                 hg = int_constants[instr.high]
-#                 lw = int_constants[instr.low]
-#                 assert(hg >= lw)
-#                 constraints.append((instr.res, l.ArrayType(hg - lw + 1)))
-#         else:
-#             print('Error: Cannot unify types in instruction', instr.to_string())
-
-#     # print('Type constraints')
-#     # for c in constraints:
-#     #     print(c)
-
-#     resolved = []
-#     clen = len(constraints)
-#     resolved_all = True
-
-#     while len(resolved) < clen:
-#         primitives = None
-#         for ind in range(0, len(constraints)):
-#             c = constraints[ind]
-#             primitives = get_primitives(c)
-#             if primitives != None:
-#                 resolved.append(c)
-# #                print('Resolved', c)
-#                 break
-
-
-#         if primitives == None:
-#             print('Unresolved constraints =', constraints)
-#             resolved_all = False
-#             # Check for contradictions
-#             for c in constraints:
-#                 if isinstance(c[0], l.Type) and isinstance(c[1], l.Type) and c[0] != c[1]:
-#                     print('Contradiction in constraints', c)
-#                     assert(False)
-
-#             break
-        
-#         new_constraints = []
-#         for i in range(0, len(constraints)):
-#             if i != ind:
-#                 other = constraints[i]
-#                 rs = substitute_constraint(primitives[0], primitives[1], other)
-#                 if rs[0] != rs[1]:
-#                     new_constraints.append(rs)
-#         constraints = new_constraints
-
-#     # After unifying resolve all calls to widths and replace the results with
-#     # appropriate constants.
-
-#     #print('Unified constraints')
-#     for c in resolved:
-#         #print(c)
-#         prim = get_primitives(c)
-#         spec_f.set_symbol_type(prim[0], prim[1])
-
-#     return resolved_all
                     
 def get_const_int(name, func):
     for instr in func.instructions:
@@ -828,69 +689,6 @@ def get_const_int(name, func):
             return get_const_int(instr.rhs, func)
 
     return None
-    # print('Error: Cannot find constant', name, 'in\n', func.to_string())
-    # assert(False)
-
-# def evaluate_widths(spec_f):
-
-#     new_instrs = []
-#     for instr in spec_f.instructions:
-#         if isinstance(instr, CallInstr):
-#             print(instr)
-#             f = instr.func
-# #            if (isinstance(f, ast.Attribute)):
-#             if (isinstance(f, str)):
-#                 #print('Attribute =', f.attr)
-#                 #assert(f.attr == 'width')
-#                 assert(f == 'width')
-#                 res = instr.res
-# #                target = f.value
-#                 target = instr.args[0]
-#                 #assert(isinstance(target, ast.Name))
-#                 print('Value =', target)
-#                 width_val = spec_f.symbol_type(target)
-
-#                 if width_val != None:
-#                     new_instrs.append(ConstDecl(instr.res, width_val.width()))
-#                 else:
-#                     # Constraint propagation has not figured out this width yet
-#                     new_instrs.append(instr)
-#             else:
-#                 new_instrs.append(instr)
-#         else:
-#             new_instrs.append(instr)
-
-#     swap_instrs(spec_f, new_instrs)
-
-#     new_instrs = []
-#     for instr in spec_f.instructions:
-#         #print('Second scan')
-#         if isinstance(instr, CallInstr):
-#             f = instr.func
-#             if isinstance(f, ast.Name) and f.id == 'bv_from_int':
-#                 #print('Is instance of bv instruction')
-
-#                 bv_width_name = instr.args[0]
-#                 bv_val_name = instr.args[1]
-
-#                 print('width =', bv_width_name)
-#                 print('val   =', bv_val_name)
-
-#                 bv_val = get_const_int(bv_width_name, spec_f)
-#                 bv_width = get_const_int(bv_val_name, spec_f)
-
-#                 if bv_val != None and bv_width != None:
-#                     new_instrs.append(ConstBVDecl(instr.res, bv_val, bv_width))
-#                 else:
-#                     new_instrs.append(instr)
-#             else:
-#                 new_instrs.append(instr)
-#         else:
-#             new_instrs.append(instr)
-
-#     swap_instrs(spec_f, new_instrs)
-
-#     return
 
 def is_argument_of(v, instr):
     if isinstance(instr, ConstDecl):
@@ -1290,29 +1088,12 @@ def specialize_types(code_gen, func_name, func_arg_types):
     print('After evaluating widths first')
     print(spec_f.to_string())
 
-    #assert(False)
-
-    # resolved_all = unify_types(spec_f)
-    # evaluate_integer_constants(spec_f)
-    # evaluate_widths(spec_f)
-
-    # i = 1
-    # while (not resolved_all) and i < 8:
-    #     print('Resolve iteration', i)
-    #     resolved_all = unify_types(spec_f)
-    #     evaluate_integer_constants(spec_f)
-    #     evaluate_widths(spec_f)
-    #     i += 1
-
     simplify_integer_assigns(spec_f)
     delete_dead_instructions(spec_f)
 
     print('After second width evaluation')
     print(spec_f.to_string())
 
-    # print('Final unification')
-    # unify_types(spec_f)
-    
     all_values = set()
     for instr in spec_f.instructions:
         for value in instr.used_values():
@@ -1331,7 +1112,5 @@ def specialize_types(code_gen, func_name, func_arg_types):
 
     # print('Final specialized functions')
     # print(spec_f.to_string())
-
-    # assert(False)
 
     return spec_f
