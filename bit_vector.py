@@ -414,3 +414,6 @@ def concat(a, b):
         res_bits.append(a.get(i))
 
     return BV(res_bits)
+
+def lookup_in_table(b, table):
+    return table(b)
