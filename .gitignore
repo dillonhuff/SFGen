@@ -9,3 +9,11 @@ tc_abs_16.v
 newton_raphson
 newton_raphson_divide_16_16
 newton_raphson_divide_16_16.v
+*.out
+*.c
+cpp_div.cpp
+huang_div_normalized_16_16
+huang_div_normalized_16_16.v
+huang_divide_16_16
+huang_divide_16_16.v
+
