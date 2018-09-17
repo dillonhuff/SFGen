@@ -1020,10 +1020,28 @@ def evaluate_integer_constants(f):
                 elif isinstance(instr.op, ast.Div):
                     values[instr.res] = values[instr.lhs] / values[instr.rhs]
                     new_instructions.append(ConstDecl(instr.res, values[instr.res]))
+
+                elif isinstance(instr.op, ast.FloorDiv):
+                    values[instr.res] = values[instr.lhs] // values[instr.rhs]
+                    new_instructions.append(ConstDecl(instr.res, values[instr.res]))
                     
             else:
                 new_instructions.append(instr)
 
+        elif isinstance(instr, UnopInstr):
+            new_instructions.append(instr)
+
+        elif isinstance(instr, ITEInstr):
+            new_instructions.append(instr)
+            
+        elif isinstance(instr, CompareInstr):
+            f.set_symbol_type(instr.res, l.ArrayType(1))
+            new_instructions.append(instr)
+
+        elif isinstance(instr, AssignInstr):
+            f.set_symbol_type(instr.res, f.symbol_type(instr.rhs))
+            new_instructions.append(instr)
+            
         elif isinstance(instr, CallInstr) and instr.func == 'width':
             assert(len(instr.args) == 1)
             if isinstance(f.symbol_type(instr.args[0]), l.ArrayType):
@@ -1032,13 +1050,49 @@ def evaluate_integer_constants(f):
             else:
                 new_instructions.append(instr)
 
+        elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'concat':
+            assert(len(instr.args) == 2)
+            if isinstance(f.symbol_type(instr.args[0]), l.ArrayType) and isinstance(f.symbol_type(instr.args[1]), l.ArrayType):
+                f.set_symbol_type(instr.res, l.ArrayType(f.symbol_type(instr.args[0]).width() + f.symbol_type(instr.args[1]).width()))
+            new_instructions.append(instr)
+
+        elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'bv_from_int':
+
+            bv_width_name = instr.args[0]
+            bv_val_name = instr.args[1]
+
+            bv_val = get_const_int(bv_width_name, f)
+            bv_width = get_const_int(bv_val_name, f)
+
+            if bv_val != None and bv_width != None:
+                new_instructions.append(ConstBVDecl(instr.res, bv_val, bv_width))
+            else:
+                new_instructions.append(instr)
+
+        elif isinstance(instr, CallInstr):
+            new_instructions.append(instr)
+
+        elif isinstance(instr, ReturnInstr):
+            new_instructions.append(instr)
+
+        elif isinstance(instr, ConstBVDecl):
+            new_instructions.append(instr)
+            
         elif isinstance(instr, AssignInstr) and (instr.rhs in values):
             values[instr.res] = values[instr.rhs]
             new_instructions.append(instr)
         elif isinstance(instr, ConstDecl):
             values[instr.res_name] = instr.num
             new_instructions.append(instr)
+        elif isinstance(instr, SliceInstr):
+            if instr.low in values and instr.high in values:
+                high_val = values[instr.high]
+                low_val = values[instr.low]
+                f.set_symbol_type(instr.res, l.ArrayType(high_val - low_val + 1))
+            new_instructions.append(instr)
         else:
+            print('Error: Evaluating constants for unhandled instruction', instr)
+            assert(False)
             new_instructions.append(instr)
     swap_instrs(f, new_instructions)
 
