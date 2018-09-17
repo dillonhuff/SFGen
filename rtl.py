@@ -241,7 +241,7 @@ class Module:
 
             elif i0.func.id == 'concat':
                 wire_connections.append(('in0', i0.args[0]))
-                wire_connections.append(('in1', i0.args[1]))                
+                wire_connections.append(('in1', i0.args[1]))
                 wire_connections.append(('out', i0.res))
 
             else:

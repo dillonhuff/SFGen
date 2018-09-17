@@ -201,7 +201,8 @@ def huang_divide(n_in, d_in):
 
     #print('res =', res)
 
-    return res if n_sign == d_sign else tc_neg(res)
+    out = res if n_sign == d_sign else tc_neg(res)
+    return out
 
 # width = 16
 # r = huang_divide(bv_from_int(16, 16), bv_from_int(width, 4))

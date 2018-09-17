@@ -149,7 +149,7 @@ def test_huang_reciprocal():
 
 def test_huang_divider():
     code_gen = parse_file("huang_divider.py")
-    f_spec = specialize_types(code_gen, 'huang_div_normalized', [l.ArrayType(16), l.ArrayType(16)])
+    f_spec = specialize_types(code_gen, 'huang_divide', [l.ArrayType(16), l.ArrayType(16)])
 
     #print(f_spec.to_string())
 
