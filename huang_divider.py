@@ -33,8 +33,6 @@ def compute_reciprocal(b):
     top_8_ext = zero_extend(2*width, top_8)
     quote = one_ext / top_8_ext
 
-    #print('Quote =', quote)
-
     sliced_quote = (normalize_left(quote))[quote.width() - width:quote.width() - 1]
 
     return sliced_quote
@@ -47,32 +45,19 @@ def mul_fp(a, b, decimal_place):
     b_ext = zero_extend(2*width, b)
     prod = a_ext * b_ext
 
-    #print('Full precision product =', prod)
-
     shifted_prod = prod >> bv_from_int(width, decimal_place)
-
-    #print('shifted_prod           =', shifted_prod)
-
     sliced_prod = shifted_prod[0:width - 1]
-
-    #print('sliced_prod            =', sliced_prod)
 
     return sliced_prod
 
 def huang_square_reciprocal(a):
     a_p = concat(bv_from_int(1, 1), a)
-    #print('a_p =', a_p)
 
-    #a_sq = mul_fp(a_p, a_p, a_p.width() - 1)
     a_sq = zero_extend(2*a_p.width(), a_p) * zero_extend(2*a_p.width(), a_p)
 
-    #print('a_sq =', a_sq)
-
     one_w = build_one_fp(2*a_sq.width(), 2*a_sq.width() - 1)
-    #print('one_w =', one_w)
 
     quot = one_w / zero_extend(one_w.width(), a_sq)
-    #print('quot =', quot)
 
     q_shifted = quot << bv_from_int(quot.width(), a_sq.width() - 2)
 
@@ -120,7 +105,7 @@ def huang_div_normalized(x, y):
 
     assert(y_h.get(y_h.width() - 1) == QVB(1))
     
-    y_h_2_r_and_exp = huang_square_reciprocal(y_h[0 : y_h.width() - 2])
+    y_h_2_r_and_exp = lookup_in_table(y_h[0 : y_h.width() - 2], huang_square_reciprocal)
 
     assert(y_h_2_r_and_exp.width() == (2*m + 2 + 2))
 
@@ -129,15 +114,11 @@ def huang_div_normalized(x, y):
 
     y_diff = sub_yh(y_h, y_l)
 
-    # No contradiction up to here
-
     prod = zero_extend(2*y_diff.width(), x) * zero_extend(2*y_diff.width(), y_diff)
 
     #return prod
     prod0 = prod >> bv_from_int(width, y_diff.width() - 2)
     prod1 = prod0[0 : 2*m + 2 - 1]
-
-    # Contradiction before here
 
     assert(prod1.width() == 2*m + 2)
 
@@ -145,8 +126,6 @@ def huang_div_normalized(x, y):
     assert(y_h2r.width() == prod1.width())
     
     final_q = zero_extend(2*prod1.width(), prod1) * zero_extend(2*prod1.width(), y_h2r)
-
-    # Contradiction before here
 
     # Now need to shift and round up.
     tbs = top_bits(final_q, 2*m + 2)
@@ -203,30 +182,3 @@ def huang_divide(n_in, d_in):
 
     out = res if n_sign == d_sign else tc_neg(res)
     return out
-
-# width = 16
-# r = huang_divide(bv_from_int(16, 16), bv_from_int(width, 4))
-# print('-------------- 25 / 5')
-# r = huang_divide(bv_from_int(16, 25), bv_from_int(width, 5))
-
-# print('-20 // 6 =', -20 // 6)
-# hd = huang_divide(-bv_from_int(width, 20), bv_from_int(width, 6))
-# print('-20 hd 6 =', hd)
-# print('-20 hd 6 =', hd.to_int_tc())
-
-# num_fails = 0
-# for n in range(-100, 100):
-#     for d in range(-100, 100):
-#         if d != 0:
-#             res = huang_divide(bv_from_int(width, n), bv_from_int(width, d))
-#             correct_mag = abs(n) // abs(d)
-#             sgn_n = n >= 0
-#             sgn_d = d >= 0
-#             correct = correct_mag if sgn_n == sgn_d else -correct_mag
-            
-#             if res != bv_from_int(width, correct):
-
-#                 print('Huang failed on n =', n, 'd =', d, 'result =', res, 'but should be', bv_from_int(width, correct))
-#                 num_fails += 1
-
-# print('# of failures =', num_fails)

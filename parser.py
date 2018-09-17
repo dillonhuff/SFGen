@@ -679,7 +679,7 @@ def substitute(name, tp, c):
         return tp
     else:
         return c
-                    
+
 def get_const_int(name, func):
     for instr in func.instructions:
         if isinstance(instr, ConstDecl):
@@ -951,7 +951,26 @@ def evaluate_integer_constants(f):
             f.set_symbol_type(instr.res, l.ArrayType(values[w]))
 
             new_instructions.append(instr)
-                
+
+        elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'lookup_in_table':
+
+            print('Found table lookup')
+
+            arg = instr.args[0]
+            table_func_name = instr.args[1]
+
+            print('arg   =', arg)
+            print('table =', table_func_name)
+
+            # assert(w in values)
+            # assert(isinstance(tp, l.IntegerType))
+
+            # f.set_symbol_type(instr.res, l.ArrayType(values[w]))
+
+            new_instructions.append(instr)
+
+            assert(False)
+            
         elif isinstance(instr, CallInstr):
             print('Error: Unhandled call', instr)
             assert(False)
@@ -1033,6 +1052,9 @@ def is_builtin(func_name):
 
     if func_name == 'width':
         return True
+
+    if func_name == 'lookup_in_table':
+        return True
     
     return False
 
@@ -1071,7 +1093,6 @@ def specialize_types(code_gen, func_name, func_arg_types):
 
     for instr in func.instructions:
         spec_f.instructions.append(instr)
-
         
     print('Before inlining')
     print(spec_f.to_string())
