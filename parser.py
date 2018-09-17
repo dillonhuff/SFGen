@@ -256,6 +256,7 @@ class LowFunctionDef:
         del self.symbol_table[name]
 
     def set_symbol_type(self, name, tp):
+        assert(isinstance(tp, l.Type))
         self.symbol_table[name] = tp
     
     def has_symbol(self, name):
@@ -733,9 +734,7 @@ def unify_types(spec_f):
             constraints.append((instr.res, l.IntegerType()))
 
         elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'zero_extend':
-#            print('Found zero extend', instr)
             if instr.args[0] in int_constants:
-#                print(instr.args[0], 'has value', int_constants[instr.args[0]])
                 constraints.append((instr.res, l.ArrayType(int_constants[instr.args[0]])))
 
         elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'bv_from_int':
@@ -997,59 +996,125 @@ def inline_all(f, code_gen):
     while inlined:
         inlined = inline_funcs(f, code_gen)
 
+def evaluate_int_unop(new_instructions, f, instr, values):
+    if isinstance(instr.op, ast.Invert):
+        values[instr.res] = ~values[instr.in_name]
+        new_instructions.append(ConstDecl(instr.res, values[instr.res]))
+
+    assert(False)
+    
+def evaluate_int_binop(new_instructions, f, instr, values):
+    if isinstance(instr.op, ast.Sub):
+        values[instr.res] = values[instr.lhs] - values[instr.rhs]
+        new_instructions.append(ConstDecl(instr.res, values[instr.res]))
+    elif isinstance(instr.op, ast.Mult):
+        values[instr.res] = values[instr.lhs] * values[instr.rhs]
+        new_instructions.append(ConstDecl(instr.res, values[instr.res]))
+    elif isinstance(instr.op, ast.Add):
+        values[instr.res] = values[instr.lhs] + values[instr.rhs]
+        new_instructions.append(ConstDecl(instr.res, values[instr.res]))
+
+    elif isinstance(instr.op, ast.FloorDiv):
+        values[instr.res] = values[instr.lhs] // values[instr.rhs]
+        new_instructions.append(ConstDecl(instr.res, values[instr.res]))
+
+    elif isinstance(instr.op, ast.Div):
+        values[instr.res] = values[instr.lhs] / values[instr.rhs]
+        new_instructions.append(ConstDecl(instr.res, values[instr.res]))
+
+    elif isinstance(instr.op, ast.FloorDiv):
+        values[instr.res] = values[instr.lhs] // values[instr.rhs]
+        new_instructions.append(ConstDecl(instr.res, values[instr.res]))
+    else:
+        print('Unsupported binop', instr)
+        assert(False)
+
+    f.set_symbol_type(instr.res, l.IntegerType())
+
 def evaluate_integer_constants(f):
     values = {}
     new_instructions = []
     for instr in f.instructions:
         if isinstance(instr, BinopInstr):
+            lhs_tp = f.symbol_type(instr.lhs)
+            rhs_tp = f.symbol_type(instr.rhs)
+
+            print('binop =', instr)
+            print('Lhs   =', instr.lhs, ':', lhs_tp)
+            print('Rhs   =', instr.rhs, ':', rhs_tp)
+
+            assert(lhs_tp != None)
+            assert(rhs_tp != None)
+            #assert(rhs_tp == lhs_tp)
+
             if (instr.lhs in values) and (instr.rhs in values):
-                if isinstance(instr.op, ast.Sub):
-                    values[instr.res] = values[instr.lhs] - values[instr.rhs]
-                    new_instructions.append(ConstDecl(instr.res, values[instr.res]))
-                elif isinstance(instr.op, ast.Mult):
-                    values[instr.res] = values[instr.lhs] * values[instr.rhs]
-                    new_instructions.append(ConstDecl(instr.res, values[instr.res]))
-                elif isinstance(instr.op, ast.Add):
-                    values[instr.res] = values[instr.lhs] + values[instr.rhs]
-                    new_instructions.append(ConstDecl(instr.res, values[instr.res]))
-
-                elif isinstance(instr.op, ast.FloorDiv):
-                    values[instr.res] = values[instr.lhs] // values[instr.rhs]
-                    new_instructions.append(ConstDecl(instr.res, values[instr.res]))
-
-                elif isinstance(instr.op, ast.Div):
-                    values[instr.res] = values[instr.lhs] / values[instr.rhs]
-                    new_instructions.append(ConstDecl(instr.res, values[instr.res]))
-
-                elif isinstance(instr.op, ast.FloorDiv):
-                    values[instr.res] = values[instr.lhs] // values[instr.rhs]
-                    new_instructions.append(ConstDecl(instr.res, values[instr.res]))
-                    
+                evaluate_int_binop(new_instructions, f, instr, values)
             else:
                 new_instructions.append(instr)
+                f.set_symbol_type(instr.res, lhs_tp)
 
         elif isinstance(instr, UnopInstr):
-            new_instructions.append(instr)
+            lhs_tp = f.symbol_type(instr.in_name)
+
+            print('OpT =', instr.in_name, ':', lhs_tp)
+
+            assert(lhs_tp != None)
+
+            if (instr.in_name in values):
+                evaluate_int_unop(new_instructions, f, instr, values)
+            else:
+                new_instructions.append(instr)
+                f.set_symbol_type(instr.res, lhs_tp)
 
         elif isinstance(instr, ITEInstr):
             new_instructions.append(instr)
+
+            test_tp = f.symbol_type(instr.test)
+            assert(test_tp == l.ArrayType(1))
+            
+            true_tp = f.symbol_type(instr.true_exp)
+            false_tp = f.symbol_type(instr.false_exp)
+
+            assert(true_tp == false_tp)
+            assert(isinstance(true_tp, l.ArrayType))
+
+            f.set_symbol_type(instr.res, true_tp)
             
         elif isinstance(instr, CompareInstr):
             f.set_symbol_type(instr.res, l.ArrayType(1))
             new_instructions.append(instr)
 
         elif isinstance(instr, AssignInstr):
+            assert(f.symbol_type(instr.rhs) != None)
+            
             f.set_symbol_type(instr.res, f.symbol_type(instr.rhs))
+            if instr.rhs in values:
+                values[instr.res] = values[instr.rhs]
             new_instructions.append(instr)
+
             
         elif isinstance(instr, CallInstr) and instr.func == 'width':
             assert(len(instr.args) == 1)
             if isinstance(f.symbol_type(instr.args[0]), l.ArrayType):
                 values[instr.res] = f.symbol_type(instr.args[0]).width()
                 new_instructions.append(ConstDecl(instr.res, values[instr.res]))
+                f.set_symbol_type(instr.res, l.IntegerType())
             else:
-                new_instructions.append(instr)
+                print('After specializing func')
+                print(f.to_string())
+                print('Error: Bad type on argument of', instr)
+                assert(False)
+                #new_instructions.append(instr)
 
+        elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'leading_zero_count':
+            assert(len(instr.args) == 1)
+            if isinstance(f.symbol_type(instr.args[0]), l.ArrayType):
+                new_instructions.append(instr)
+                f.set_symbol_type(instr.res, f.symbol_type(instr.args[0]))
+            else:
+                assert(False)
+                #new_instructions.append(instr)
+                
         elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'concat':
             assert(len(instr.args) == 2)
             if isinstance(f.symbol_type(instr.args[0]), l.ArrayType) and isinstance(f.symbol_type(instr.args[1]), l.ArrayType):
@@ -1061,16 +1126,38 @@ def evaluate_integer_constants(f):
             bv_width_name = instr.args[0]
             bv_val_name = instr.args[1]
 
-            bv_val = get_const_int(bv_width_name, f)
-            bv_width = get_const_int(bv_val_name, f)
+            # bv_val = get_const_int(bv_width_name, f)
+            # bv_width = get_const_int(bv_val_name, f)
+
+            bv_val = values[bv_val_name]
+            bv_width = values[bv_width_name]
+            print('bv_val   =', bv_val)
+            print('bv_width =', bv_width)
 
             if bv_val != None and bv_width != None:
-                new_instructions.append(ConstBVDecl(instr.res, bv_val, bv_width))
+                new_instructions.append(ConstBVDecl(instr.res, bv_width, bv_val))
+                f.set_symbol_type(instr.res, l.ArrayType(bv_width))
             else:
-                new_instructions.append(instr)
+                print('Error: Unset types for call', instr, 'val =', bv_val)
+                assert(False)
+                #new_instructions.append(instr)
 
-        elif isinstance(instr, CallInstr):
+        elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'zero_extend':
+
+            w = instr.args[0]
+            tp = f.symbol_type(w)
+
+            assert(w in values)
+            assert(isinstance(tp, l.IntegerType))
+
+            f.set_symbol_type(instr.res, l.ArrayType(values[w]))
+
             new_instructions.append(instr)
+                
+        elif isinstance(instr, CallInstr):
+            print('Error: Unhandled call', instr)
+            assert(False)
+            #new_instructions.append(instr)
 
         elif isinstance(instr, ReturnInstr):
             new_instructions.append(instr)
@@ -1078,17 +1165,19 @@ def evaluate_integer_constants(f):
         elif isinstance(instr, ConstBVDecl):
             new_instructions.append(instr)
             
-        elif isinstance(instr, AssignInstr) and (instr.rhs in values):
-            values[instr.res] = values[instr.rhs]
-            new_instructions.append(instr)
         elif isinstance(instr, ConstDecl):
             values[instr.res_name] = instr.num
             new_instructions.append(instr)
+            f.set_symbol_type(instr.res_name, l.IntegerType())
+
         elif isinstance(instr, SliceInstr):
             if instr.low in values and instr.high in values:
                 high_val = values[instr.high]
                 low_val = values[instr.low]
                 f.set_symbol_type(instr.res, l.ArrayType(high_val - low_val + 1))
+            else:
+                print('Error: Bad types on arguments to', instr)
+                assert(False)
             new_instructions.append(instr)
         else:
             print('Error: Evaluating constants for unhandled instruction', instr)
@@ -1201,17 +1290,19 @@ def specialize_types(code_gen, func_name, func_arg_types):
     print('After evaluating widths first')
     print(spec_f.to_string())
 
-    resolved_all = unify_types(spec_f)
-    evaluate_integer_constants(spec_f)
-    evaluate_widths(spec_f)
+    #assert(False)
 
-    i = 1
-    while (not resolved_all) and i < 8:
-        print('Resolve iteration', i)
-        resolved_all = unify_types(spec_f)
-        evaluate_integer_constants(spec_f)
-        evaluate_widths(spec_f)
-        i += 1
+    # resolved_all = unify_types(spec_f)
+    # evaluate_integer_constants(spec_f)
+    # evaluate_widths(spec_f)
+
+    # i = 1
+    # while (not resolved_all) and i < 8:
+    #     print('Resolve iteration', i)
+    #     resolved_all = unify_types(spec_f)
+    #     evaluate_integer_constants(spec_f)
+    #     evaluate_widths(spec_f)
+    #     i += 1
 
     simplify_integer_assigns(spec_f)
     delete_dead_instructions(spec_f)
