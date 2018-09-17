@@ -36,6 +36,9 @@ class LowInstruction:
 def is_width_call(func):
     return isinstance(func, ast.Attribute) and (func.attr == 'width')
 
+def is_table_call(func):
+    return isinstance(func, ast.Name) and (func.id == 'lookup_in_table')
+
 class ITEInstr(LowInstruction):
     def __init__(self, res, test, true_exp, false_exp):
         self.res = res
@@ -92,6 +95,25 @@ class CompareInstr(LowInstruction):
         self.lhs = f(self.lhs)
         self.rhs = f(self.rhs)        
 
+class TableLookupInstr(LowInstruction):
+    def __init__(self, res, arg, table_name):
+        self.res = res
+        self.arg = arg
+        self.table_name = table_name
+
+    def used_values(self):
+        return {self.res, self.arg, self.table_name}
+        
+    def to_string(self):
+        return '\tlookup {0} {1} {2}\n'.format(self.res, self.arg, self.table_name)
+
+    def arguments(self):
+        return {self.arg, self.table_name}
+    
+    def replace_values(self, f):
+        self.res = f(self.res)
+        self.arg = f(self.arg)
+        
 class ConstDecl(LowInstruction):
     def __init__(self, res_name, num):
         self.res_name = res_name
@@ -378,9 +400,13 @@ class LowCodeGenerator(ast.NodeVisitor):
         elif isinstance(expr, ast.Call):
             res = self.active_function.fresh_sym()
 
+            # print('Function call')
+            # print(ast.dump(expr))
+            
             if is_width_call(expr.func):
                 assert(len(expr.args) == 0)
 
+                print('Found width call')
                 # print(ast.dump(expr))
                 # assert(False)
                 self.visit_Expr(expr.func.value)
@@ -388,6 +414,23 @@ class LowCodeGenerator(ast.NodeVisitor):
                 res = self.active_function.fresh_sym()
 
                 self.active_function.add_instr(CallInstr(res, 'width', [self.expr_name(expr.func.value)]))
+            elif is_table_call(expr.func):
+                print('Found table call')
+                print(ast.dump(expr.func))
+
+                assert(len(expr.args) == 2)
+                self.visit_Expr(expr.args[0])
+
+                arg = self.expr_name(expr.args[0])
+
+                table_name = expr.args[1]
+
+                assert(isinstance(table_name, ast.Name))
+
+                res = self.active_function.fresh_sym()
+                
+                self.active_function.add_instr(TableLookupInstr(res, arg, table_name.id))
+
             else:
                 arg_exprs = []
                 for arg in expr.args:
@@ -714,6 +757,8 @@ def is_argument_of(v, instr):
             if arg == v:
                 return True
         return False
+    if isinstance(instr, TableLookupInstr):
+        return v in instr.arguments()
     
     print('Error: Unsupported instruction type', instr)
     assert(False)
@@ -829,7 +874,7 @@ def evaluate_int_binop(new_instructions, f, instr, values):
 
     f.set_symbol_type(instr.res, l.IntegerType())
 
-def evaluate_integer_constants(f):
+def evaluate_integer_constants(f, code_gen):
     values = {}
     new_instructions = []
     for instr in f.instructions:
@@ -996,6 +1041,31 @@ def evaluate_integer_constants(f):
                 print('Error: Bad types on arguments to', instr)
                 assert(False)
             new_instructions.append(instr)
+
+        elif isinstance(instr, TableLookupInstr):
+            t = f.symbol_type(instr.arg)
+            assert(isinstance(t, l.ArrayType))
+
+            print('Name = ', instr.table_name)
+            
+            called_func = code_gen.get_function(instr.table_name)
+            assert(len(called_func.args) == 1)
+
+            print('Specializing', instr.table_name, 'for type', t)
+            spec_func = specialize_types(code_gen, instr.table_name, [t])
+            print('Done specializing')
+
+            assert(isinstance(spec_func.instructions[-1], ReturnInstr))
+
+            res_tp = spec_func.symbol_type(spec_func.instructions[-1].val_name)
+            assert(res_tp != None)
+
+            print('res_tp =', res_tp)
+            f.set_symbol_type(instr.res, res_tp)
+            f.set_symbol_type(instr.table_name, l.FunctionType([t], res_tp))
+
+            new_instructions.append(instr)
+
         else:
             print('Error: Evaluating constants for unhandled instruction', instr)
             assert(False)
@@ -1075,6 +1145,8 @@ def delete_unsynthesizable_instructions(spec_f, code_gen):
     swap_instrs(spec_f, new_instrs)
     
 def specialize_types(code_gen, func_name, func_arg_types):
+    assert(isinstance(func_name, str))
+
     spec_name = func_name
     func = code_gen.get_function(func_name)
     sym_map = {}
@@ -1092,7 +1164,7 @@ def specialize_types(code_gen, func_name, func_arg_types):
         spec_f.set_symbol_type(sym, sym_map[sym])
 
     for instr in func.instructions:
-        spec_f.instructions.append(instr)
+        spec_f.instructions.append(copy.deepcopy(instr))
         
     print('Before inlining')
     print(spec_f.to_string())
@@ -1104,7 +1176,7 @@ def specialize_types(code_gen, func_name, func_arg_types):
     print('After inlining')
     print(spec_f.to_string())
 
-    evaluate_integer_constants(spec_f)
+    evaluate_integer_constants(spec_f, code_gen)
 
     print('After evaluating widths first')
     print(spec_f.to_string())
