@@ -165,7 +165,7 @@ def module_for_functional_unit(unit):
 
         return m
 
-    if (has_prefix(unit.name, 'concat')):
+    if (has_prefix(unit.name, 'concat_')):
         width0 = unit.parameters[0]
         width1 = unit.parameters[1]
         m = Module('builtin_concat_' + str(width0) + '_' + str(width1))
@@ -238,6 +238,12 @@ class Module:
             elif i0.func.id == 'zero_extend':
                 wire_connections.append(('in', i0.args[1]))
                 wire_connections.append(('out', i0.res))
+
+            elif i0.func.id == 'concat':
+                wire_connections.append(('in0', i0.args[0]))
+                wire_connections.append(('in1', i0.args[1]))                
+                wire_connections.append(('out', i0.res))
+
             else:
                 print('Unrecognized function', i0.func.id)
                 assert(False)
@@ -396,8 +402,11 @@ def verilog_string(rtl_mod):
         elif has_prefix(rtl_mod.name, 'builtin_slice_'):
             start = rtl_mod.get_parameter("start")
             end = rtl_mod.get_parameter("end")
-            mod_str += '\tassign out = in[{0}:{1}];'.format(end, start)
+            mod_str += '\tassign out = in[{0}:{1}];\n'.format(end, start)
 
+        elif has_prefix(rtl_mod.name, 'builtin_concat_'):
+            mod_str += '\tassign out = {in0, in1};\n'
+            
         else:
             print('Error: Unsupported builtin', rtl_mod.name)
             assert(False)

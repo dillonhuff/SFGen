@@ -642,6 +642,7 @@ def functional_unit(instr, f):
         return Operation(instr.func.id + '_' + str(in0_width) + '_' + str(in1_width), [in0_width, in1_width])
         
     elif isinstance(instr, CallInstr):
+        # Q: Is this really needed? Should the system crash with an unrecognized funciton error here?
         assert(isinstance(instr.func, ast.Name))
         return Operation(instr.func.id, [])
     elif isinstance(instr, ITEInstr):
