@@ -689,6 +689,11 @@ def functional_unit(instr, f):
         # Q: Is this really needed? Should the system crash with an unrecognized funciton error here?
         assert(isinstance(instr.func, ast.Name))
         return Operation(instr.func.id, [])
+
+    elif isinstance(instr, TableLookupInstr):
+        # Q: Is this really needed? Should the system crash with an unrecognized funciton error here?
+        return Operation(instr.table_name + '_table', [f.symbol_type(instr.arg).width(), f.symbol_type(instr.res).width()])
+
     elif isinstance(instr, ITEInstr):
         return Operation('ite_' + str(16), [16])
     elif isinstance(instr, SliceInstr):
@@ -696,7 +701,7 @@ def functional_unit(instr, f):
         low_val = f.get_int_constant_value(instr.low)
         in_width = f.symbol_type(instr.value).width()
         return Operation('slice_' + str(in_width) + '_' + str(low_val) + '_' + str(high_val), [in_width, low_val, high_val])
-    #    else:
+
     print('Unsupported functional unit', instr)
     assert(False)
 
