@@ -1089,11 +1089,11 @@ def simplify_integer_assigns(spec_f):
         instr = spec_f.instructions[i]
         if isinstance(instr, AssignInstr) and (spec_f.symbol_type(instr.res) == l.IntegerType()):
             replaced.add(instr.res)
-            #print('Replacing assignment to', instr.res, 'with', instr.rhs)
+
             for j in range(i + 1, len(spec_f.instructions)):
                 
                 spec_f.instructions[j].replace_values(lambda name: instr.rhs if name == instr.res else name)
-                #print('After replacing', instr.res, 'in', spec_f.instructions[j])
+
         else:
             new_instructions.append(instr)
 
