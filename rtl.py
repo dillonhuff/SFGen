@@ -441,7 +441,7 @@ def verilog_string(rtl_mod):
             in_width = rtl_mod.get_parameter('in_width')
             out_width = rtl_mod.get_parameter('out_width')
             
-            mod_str += '\t\nreg [{0}:0] {1};\n'.format(out_width - 1, 'out_reg')
+            mod_str += '\t\t\nreg [{0}:0] {1};\n'.format(out_width - 1, 'out_reg')
             mod_str += '\talways @(*) begin\n'
             mod_str += '\t\tcase(in)\n'
             for i in range(0, pow(2, in_width)):
