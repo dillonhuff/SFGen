@@ -1216,3 +1216,11 @@ def specialize_types(code_gen, func_name, func_arg_types):
     # print(spec_f.to_string())
 
     return spec_f
+
+def codegen_for_module(mod_name):
+    code_str = open(mod_name + '.py').read()
+    code = ast.parse(code_str)
+    code_gen = LowCodeGenerator(mod_name)
+    code_gen.visit(code)
+
+    return code_gen

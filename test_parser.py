@@ -20,13 +20,6 @@ def run_iverilog_test(mod_name):
 
     return res
 
-def codegen_for_module(mod_name):
-    code_str = open(mod_name + '.py').read()
-    code = ast.parse(code_str)
-    code_gen = LowCodeGenerator(mod_name)
-    code_gen.visit(code)
-
-    return code_gen
 def test_tc_neg_parse():
     code_gen = codegen_for_module('tc_neg')
     # code_str = open('tc_neg.py').read()
