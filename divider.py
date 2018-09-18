@@ -20,7 +20,7 @@ def build_one_fp(width, dist):
 
 def approximate_reciprocal(b):
     width = b.width()
-    approximation_width = 10
+    approximation_width = width - 2
     normed = normalize_left(b)
 
     top_8 = zero_extend(width, normed[width - approximation_width : width - 1])
@@ -67,7 +67,7 @@ def newton_raphson_divide(ne, de):
 
     n_ext = zero_extend(2*width, n)
 
-    X0 = approximate_reciprocal(normed_d)
+    X0 = lookup_in_table(normed_d, approximate_reciprocal) #(normed_d)
 
     print('X0 =', X0)
 

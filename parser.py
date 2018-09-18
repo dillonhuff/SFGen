@@ -240,8 +240,9 @@ class CallInstr(LowInstruction):
         return s
         
 class LowFunctionDef:
-    def __init__(self, name, args):
+    def __init__(self, name, module_name, args):
         self.name = name
+        self.module_name = module_name
         self.args = args
         self.instructions = []
         self.unique_num = 0
@@ -249,6 +250,9 @@ class LowFunctionDef:
         self.output = None
         for arg in args:
             self.symbol_table[arg] = None
+
+    def get_module_name(self):
+        return self.module_name
 
     def get_int_constant_value(self, name):
         for instr in self.instructions:
@@ -315,8 +319,9 @@ class LowFunctionDef:
         return s
 
 class LowCodeGenerator(ast.NodeVisitor):
-    def __init__(self):
+    def __init__(self, module_name):
         ast.NodeVisitor.__init__(self)
+        self.module_name = module_name
         self.active_function = None
         self.functions = {}
         self.expr_names = {}
@@ -506,7 +511,7 @@ class LowCodeGenerator(ast.NodeVisitor):
             arg_names.append(arg.arg)
             print(ast.dump(arg))
 
-        fdef = LowFunctionDef(node.name, arg_names)
+        fdef = LowFunctionDef(node.name, self.module_name, arg_names)
         self.active_function = fdef
 
         for stmt in node.body:
@@ -692,10 +697,11 @@ def functional_unit(instr, f):
 
     elif isinstance(instr, TableLookupInstr):
         # Q: Is this really needed? Should the system crash with an unrecognized funciton error here?
-        return Operation('builtin_table_lookup_' + instr.table_name, [f.symbol_type(instr.arg).width(), f.symbol_type(instr.res).width(), instr.table_name])
+        return Operation('builtin_table_lookup_' + instr.table_name, [f.symbol_type(instr.arg).width(), f.symbol_type(instr.res).width(), instr.table_name, f.get_module_name()])
 
     elif isinstance(instr, ITEInstr):
-        return Operation('ite_' + str(16), [16])
+        width = f.symbol_type(instr.res).width()
+        return Operation('ite_' + str(width), [width])
     elif isinstance(instr, SliceInstr):
         high_val = f.get_int_constant_value(instr.high)
         low_val = f.get_int_constant_value(instr.low)
@@ -1161,7 +1167,7 @@ def specialize_types(code_gen, func_name, func_arg_types):
         sym_map[func.get_arg(i)] = tp
         i += 1
 
-    spec_f = LowFunctionDef(spec_name, func.args)
+    spec_f = LowFunctionDef(spec_name, func.get_module_name(), func.args)
     spec_f.unique_num = func.unique_num
     for sym in func.symbol_table:
         spec_f.add_symbol(sym, func.symbol_type(sym))

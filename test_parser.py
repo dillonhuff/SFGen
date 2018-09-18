@@ -20,12 +20,20 @@ def run_iverilog_test(mod_name):
 
     return res
 
-def test_tc_neg_parse():
-    code_str = open('tc_neg.py').read()
+def codegen_for_module(mod_name):
+    code_str = open(mod_name + '.py').read()
     code = ast.parse(code_str)
-
-    code_gen = LowCodeGenerator()
+    code_gen = LowCodeGenerator(mod_name)
     code_gen.visit(code)
+
+    return code_gen
+def test_tc_neg_parse():
+    code_gen = codegen_for_module('tc_neg')
+    # code_str = open('tc_neg.py').read()
+    # code = ast.parse(code_str)
+
+    # code_gen = LowCodeGenerator()
+    # code_gen.visit(code)
 
     print(code_gen.get_function("tc_neg").to_string())
 
@@ -58,12 +66,13 @@ def test_tc_neg_parse():
     assert(res == 'passed\n')
     
 def test_tc_abs_parse():
-    code_str = open('tc_abs.py').read()
-    code = ast.parse(code_str)
+    # code_str = open('tc_abs.py').read()
+    # code = ast.parse(code_str)
 
-    code_gen = LowCodeGenerator()
-    code_gen.visit(code)
+    # code_gen = LowCodeGenerator()
+    # code_gen.visit(code)
 
+    code_gen = codegen_for_module('tc_abs')
     print(code_gen.get_function("tc_abs").to_string())
 
     constraints = ScheduleConstraints()
@@ -93,12 +102,13 @@ def test_instr_replacemant():
     assert(call.args[0] == 'a')
     
 def test_approximate_reciprocal_parse():
-    code_str = open('divider.py').read()
-    code = ast.parse(code_str)
+    # code_str = open('divider.py').read()
+    # code = ast.parse(code_str)
 
-    code_gen = LowCodeGenerator()
-    code_gen.visit(code)
+    # code_gen = LowCodeGenerator()
+    # code_gen.visit(code)
 
+    code_gen = codegen_for_module('divider')
     print(code_gen.get_function("approximate_reciprocal").to_string())
 
     constraints = ScheduleConstraints()
@@ -115,18 +125,20 @@ def parse_file(file_name):
 
     return code_gen
 
-def test_approximate_reciprocal_parse():
-    code_gen = parse_file("divider.py")
+def test_approximate_divider_parse():
+    #code_gen = parse_file("divider")
+
+    code_gen = codegen_for_module('divider')
     print(code_gen.get_function("newton_raphson_divide").to_string())
 
     constraints = ScheduleConstraints()
-    f_spec = specialize_types(code_gen, "newton_raphson_divide", [l.ArrayType(16), l.ArrayType(16)])
+    f_spec = specialize_types(code_gen, "newton_raphson_divide", [l.ArrayType(8), l.ArrayType(8)])
 
     print('')
     print(f_spec.to_string())
 
-    assert(f_spec.symbol_type('n') == l.ArrayType(16))
-    assert(f_spec.symbol_type('d') == l.ArrayType(16))    
+    assert(f_spec.symbol_type('n') == l.ArrayType(8))
+    assert(f_spec.symbol_type('d') == l.ArrayType(8))    
     sched = schedule(code_gen, f_spec, constraints)
 
     print(sched.to_string())
@@ -141,14 +153,19 @@ def test_approximate_reciprocal_parse():
     assert(res == 'passed\n')
 
 def test_huang_reciprocal():
-    code_gen = parse_file("huang_divider.py")
+
+    code_gen = codegen_for_module('huang_divider')    
+    # code_gen = parse_file("huang_divider.py")
+
+    # code_gen = parse_file("divider")    
     constraints = ScheduleConstraints()
     f_spec = specialize_types(code_gen, 'huang_square_reciprocal', [l.ArrayType(8)]) #, l.ArrayType(16)])
 
     print(f_spec.to_string())
 
 def test_huang_divider():
-    code_gen = parse_file("huang_divider.py")
+    #code_gen = parse_file("huang_divider.py")
+    code_gen = codegen_for_module('huang_divider')    
     f_spec = specialize_types(code_gen, 'huang_divide', [l.ArrayType(16), l.ArrayType(16)])
 
     #print(f_spec.to_string())

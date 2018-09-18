@@ -183,6 +183,7 @@ def module_for_functional_unit(unit):
         out_width = unit.parameters[1]
 
         table_name = unit.parameters[2]
+        module_name = unit.parameters[3]
 
         m = Module('builtin_table_lookup_{0}_{1}_{2}'.format(table_name, in_width, out_width))
 
@@ -190,6 +191,7 @@ def module_for_functional_unit(unit):
         m.add_out_port('out', out_width)
 
         m.add_parameter('table_name', table_name)
+        m.add_parameter('module_name', module_name)
         m.add_parameter('in_width', in_width)
         m.add_parameter('out_width', out_width)        
 
@@ -434,7 +436,7 @@ def verilog_string(rtl_mod):
             table_name = rtl_mod.get_parameter('table_name')
 
             # NOTE: Assumes the module is huang divider!!
-            mod_name = 'huang_divider'
+            mod_name = rtl_mod.get_parameter('module_name')
             mod = importlib.import_module(mod_name)
             table_function = getattr(mod, table_name)
             
