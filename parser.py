@@ -744,7 +744,7 @@ def schedule(code_gen, f, constraints):
                 resources_used_this_cycle[op] += 1
                 units_used = resources_used_this_cycle[op]
                 if constraints.is_limited_unit(op) and units_used > constraints.available_units(op):
-                    print('Error: Combinational schedule needs', units_used, 'but only', constraints.available_units(op), 'are available')
+                    print('Error: Combinational schedule needs', units_used, 'of operation:', op, 'but only', constraints.available_units(op), 'are available')
                     assert(False)
             else:
                 resources_used_this_cycle[op] = 1
