@@ -691,12 +691,10 @@ def functional_unit(instr, f):
         return Operation(instr.func.id + '_' + str(in0_width) + '_' + str(in1_width), [in0_width, in1_width])
         
     elif isinstance(instr, CallInstr):
-        # Q: Is this really needed? Should the system crash with an unrecognized funciton error here?
         assert(isinstance(instr.func, ast.Name))
-        return Operation(instr.func.id, [])
+        assert(False)
 
     elif isinstance(instr, TableLookupInstr):
-        # Q: Is this really needed? Should the system crash with an unrecognized funciton error here?
         return Operation('builtin_table_lookup_' + instr.table_name, [f.symbol_type(instr.arg).width(), f.symbol_type(instr.res).width(), instr.table_name, f.get_module_name()])
 
     elif isinstance(instr, ITEInstr):
