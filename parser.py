@@ -692,7 +692,7 @@ def functional_unit(instr, f):
 
     elif isinstance(instr, TableLookupInstr):
         # Q: Is this really needed? Should the system crash with an unrecognized funciton error here?
-        return Operation(instr.table_name + '_table', [f.symbol_type(instr.arg).width(), f.symbol_type(instr.res).width()])
+        return Operation('builtin_table_lookup_' + instr.table_name, [f.symbol_type(instr.arg).width(), f.symbol_type(instr.res).width(), instr.table_name])
 
     elif isinstance(instr, ITEInstr):
         return Operation('ite_' + str(16), [16])

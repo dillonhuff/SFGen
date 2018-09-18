@@ -2,6 +2,8 @@ from utils import *
 import language as l
 import parser as p
 import ast
+import importlib
+import bit_vector
 
 class Wire:
     def __init__(self, name, width, is_in, is_out):
@@ -175,7 +177,23 @@ def module_for_functional_unit(unit):
         m.add_out_port('out', width0 + width1)
 
         return m
-    
+
+    if (has_prefix(unit.name, 'builtin_table_lookup_')):
+        in_width = unit.parameters[0]
+        out_width = unit.parameters[1]
+
+        table_name = unit.parameters[2]
+
+        m = Module('builtin_table_lookup_{0}_{1}_{2}'.format(table_name, in_width, out_width))
+
+        m.add_in_port('in', in_width)
+        m.add_out_port('out', out_width)
+
+        m.add_parameter('table_name', table_name)
+        m.add_parameter('in_width', in_width)
+        m.add_parameter('out_width', out_width)        
+
+        return m
     print('Error: Unsupported functional unit:', unit.name, unit.parameters)
     assert(False)
     
@@ -227,6 +245,10 @@ class Module:
         elif isinstance(i0, p.CompareInstr):
             wire_connections.append(('in0', i0.lhs))
             wire_connections.append(('in1', i0.rhs))            
+            wire_connections.append(('out', i0.res))
+
+        elif isinstance(i0, p.TableLookupInstr):
+            wire_connections.append(('in', i0.arg))
             wire_connections.append(('out', i0.res))
             
         elif isinstance(i0, p.ConstBVDecl):
@@ -406,6 +428,29 @@ def verilog_string(rtl_mod):
 
         elif has_prefix(rtl_mod.name, 'builtin_concat_'):
             mod_str += '\tassign out = {in0, in1};\n'
+
+        elif has_prefix(rtl_mod.name, 'builtin_table_lookup_'):
+
+            table_name = rtl_mod.get_parameter('table_name')
+
+            # NOTE: Assumes the module is huang divider!!
+            mod_name = 'huang_divider'
+            mod = importlib.import_module(mod_name)
+            table_function = getattr(mod, table_name)
+            
+            in_width = rtl_mod.get_parameter('in_width')
+            out_width = rtl_mod.get_parameter('out_width')
+            
+            mod_str += '\t\nreg [{0}:0] {1};\n'.format(out_width - 1, 'out_reg')
+            mod_str += '\talways @(*) begin\n'
+            mod_str += '\t\tcase(in)\n'
+            for i in range(0, pow(2, in_width)):
+                arg = bit_vector.bv_from_int(in_width, i)
+                res = bit_vector.bv_from_int(out_width, 0)
+                mod_str += "\t\t\t{0}'b{1}: out_reg = {2}'b{3};\n".format(in_width, arg, out_width, table_function(arg))
+            mod_str += '\t\tendcase\n'
+            mod_str += '\tend\n'            
+            mod_str += '\tassign out = out_reg;\n';
             
         else:
             print('Error: Unsupported builtin', rtl_mod.name)
