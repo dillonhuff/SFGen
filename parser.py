@@ -542,6 +542,12 @@ class ScheduleConstraints:
     def set_resource_count(self, resource_name, count):
         self.resource_counts[resource_name] = count
 
+    def is_limited_unit(self, resource_name):
+        return resource_name in self.resource_counts
+
+    def available_units(self, resource_name):
+        return self.resource_counts[resource_name]
+    
 class Schedule:
     def __init__(self):
         self.unique_num = 0
@@ -720,23 +726,36 @@ def schedule(code_gen, f, constraints):
     unbound_instructions = set(f.instructions)
 
     cycle_time = 0
+    resources_used_this_cycle = {}    
+
     while len(bound_instructions) < len(f.instructions):
-        resources_used_this_cycle = {}
+
         #for instr in f.instructions:
         instr = next(iter(unbound_instructions))
         unbound_instructions.remove(instr)
         if not isinstance(instr, ReturnInstr) and not isinstance(instr, ConstDecl):
+            opN = functional_unit(instr, f)
+            op = opN.name
             unit_name = s.add_unit(functional_unit(instr, f))
             
-            s.bind_instruction(unit_name, 0, instr)
-            if unit_name in resources_used_this_cycle:
-                resources_used_this_cycle[unit_name] += 1
+            s.bind_instruction(unit_name, cycle_time, instr)
+
+            if op in resources_used_this_cycle:
+                resources_used_this_cycle[op] += 1
+                units_used = resources_used_this_cycle[op]
+                if constraints.is_limited_unit(op) and units_used > constraints.available_units(op):
+                    print('Error: Combinational schedule needs', units_used, 'but only', constraints.available_units(op), 'are available')
+                    assert(False)
             else:
-                resources_used_this_cycle[unit_name] = 1
+                resources_used_this_cycle[op] = 1
 
             bound_instructions.add(instr)
         else:
             bound_instructions.add(instr)
+
+    print('Resources used')
+    for r in resources_used_this_cycle:
+        print('\t', r, ' -> ', resources_used_this_cycle[r])
 
     return s
 
