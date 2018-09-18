@@ -537,6 +537,10 @@ def swap_instrs(new_func, new_instrs):
 class ScheduleConstraints:
     def __init__(self):
         self.num_cycles = 1
+        self.resource_counts = {}
+
+    def set_resource_count(self, resource_name, count):
+        self.resource_counts[resource_name] = count
 
 class Schedule:
     def __init__(self):
@@ -711,10 +715,28 @@ def functional_unit(instr, f):
 
 def schedule(code_gen, f, constraints):
     s = Schedule()
-    for instr in f.instructions:
+    cycle_num = 0
+    bound_instructions = set([])
+    unbound_instructions = set(f.instructions)
+
+    cycle_time = 0
+    while len(bound_instructions) < len(f.instructions):
+        resources_used_this_cycle = {}
+        #for instr in f.instructions:
+        instr = next(iter(unbound_instructions))
+        unbound_instructions.remove(instr)
         if not isinstance(instr, ReturnInstr) and not isinstance(instr, ConstDecl):
             unit_name = s.add_unit(functional_unit(instr, f))
+            
             s.bind_instruction(unit_name, 0, instr)
+            if unit_name in resources_used_this_cycle:
+                resources_used_this_cycle[unit_name] += 1
+            else:
+                resources_used_this_cycle[unit_name] = 1
+
+            bound_instructions.add(instr)
+        else:
+            bound_instructions.add(instr)
 
     return s
 
@@ -1175,26 +1197,26 @@ def specialize_types(code_gen, func_name, func_arg_types):
     for instr in func.instructions:
         spec_f.instructions.append(copy.deepcopy(instr))
         
-    print('Before inlining')
-    print(spec_f.to_string())
+    # print('Before inlining')
+    # print(spec_f.to_string())
 
     inline_all(spec_f, code_gen)
     delete_unsynthesizable_instructions(spec_f, code_gen)
     delete_dead_instructions(spec_f)
     
-    print('After inlining')
-    print(spec_f.to_string())
+    # print('After inlining')
+    # print(spec_f.to_string())
 
     evaluate_integer_constants(spec_f, code_gen)
 
-    print('After evaluating widths first')
-    print(spec_f.to_string())
+    # print('After evaluating widths first')
+    # print(spec_f.to_string())
 
     simplify_integer_assigns(spec_f)
     delete_dead_instructions(spec_f)
 
-    print('After second width evaluation')
-    print(spec_f.to_string())
+    # print('After second width evaluation')
+    # print(spec_f.to_string())
 
     all_values = set()
     for instr in spec_f.instructions:

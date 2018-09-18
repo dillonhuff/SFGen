@@ -22,12 +22,6 @@ def run_iverilog_test(mod_name):
 
 def test_tc_neg_parse():
     code_gen = codegen_for_module('tc_neg')
-    # code_str = open('tc_neg.py').read()
-    # code = ast.parse(code_str)
-
-    # code_gen = LowCodeGenerator()
-    # code_gen.visit(code)
-
     print(code_gen.get_function("tc_neg").to_string())
 
     constraints = ScheduleConstraints()
