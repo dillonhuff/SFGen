@@ -730,29 +730,36 @@ def schedule(code_gen, f, constraints):
 
     while len(bound_instructions) < len(f.instructions):
 
-        #for instr in f.instructions:
         instr = next(iter(unbound_instructions))
-        unbound_instructions.remove(instr)
+
+        bound = True
         if not isinstance(instr, ReturnInstr) and not isinstance(instr, ConstDecl):
             opN = functional_unit(instr, f)
             op = opN.name
             unit_name = s.add_unit(functional_unit(instr, f))
             
-            s.bind_instruction(unit_name, cycle_time, instr)
 
             if op in resources_used_this_cycle:
                 resources_used_this_cycle[op] += 1
-                units_used = resources_used_this_cycle[op]
-                if constraints.is_limited_unit(op) and units_used > constraints.available_units(op):
-                    print('Error: Combinational schedule needs', units_used, 'of operation:', op, 'but only', constraints.available_units(op), 'are available')
-                    assert(False)
             else:
                 resources_used_this_cycle[op] = 1
-
-            bound_instructions.add(instr)
+                
+            units_used = resources_used_this_cycle[op]
+            if constraints.is_limited_unit(op) and units_used > constraints.available_units(op):
+                print('Combinational schedule needs at least', units_used, 'of operation:', op, 'but only', constraints.available_units(op), 'are available. Adding a cycle')
+                resources_used_this_cycle = {}                
+                cycle_time += 1
+                bound = False
+            else:
+                s.bind_instruction(unit_name, cycle_time, instr)
         else:
             bound_instructions.add(instr)
 
+        if bound:
+            bound_instructions.add(instr)
+            unbound_instructions.remove(instr)
+
+    s.total_num_cycles = cycle_time
     print('Resources used')
     for r in resources_used_this_cycle:
         print('\t', r, ' -> ', resources_used_this_cycle[r])
