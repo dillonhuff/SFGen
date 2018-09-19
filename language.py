@@ -76,7 +76,7 @@ class LowInstruction:
         return None
 
     def to_string(self):
-        return '\tUNKNOWN_INSTR\n'
+        return 'UNKNOWN_INSTR'
 
     def __repr__(self):
         return self.to_string()
@@ -104,7 +104,7 @@ class ITEInstr(LowInstruction):
         return {self.res, self.test, self.true_exp, self.false_exp}
 
     def to_string(self):
-        return '\tite {0} {1} {2} {3}\n'.format(self.res, self.test, self.true_exp, self.false_exp)
+        return 'ite {0} {1} {2} {3}'.format(self.res, self.test, self.true_exp, self.false_exp)
 
 class SliceInstr(LowInstruction):
     def __init__(self, res, value, low, high):
@@ -123,7 +123,7 @@ class SliceInstr(LowInstruction):
         return {self.res, self.value, self.low, self.high}
         
     def to_string(self):
-        return '\tslice {0} {1} {2} {3}\n'.format(self.res, self.value, self.low, self.high)
+        return 'slice {0} {1} {2} {3}'.format(self.res, self.value, self.low, self.high)
 
 class CompareInstr(LowInstruction):
     def __init__(self, op, res, lhs, rhs):
@@ -136,7 +136,7 @@ class CompareInstr(LowInstruction):
         return {self.res, self.lhs, self.rhs}
         
     def to_string(self):
-        return '\tcmp {0} {1} {2}\n'.format(self.res, self.lhs, self.rhs)
+        return 'cmp {0} {1} {2}'.format(self.res, self.lhs, self.rhs)
 
     def replace_values(self, f):
         self.res = f(self.res)
@@ -153,7 +153,7 @@ class TableLookupInstr(LowInstruction):
         return {self.res, self.arg, self.table_name}
         
     def to_string(self):
-        return '\tlookup {0} {1} {2}\n'.format(self.res, self.arg, self.table_name)
+        return 'lookup {0} {1} {2}'.format(self.res, self.arg, self.table_name)
 
     def arguments(self):
         return {self.arg, self.table_name}
@@ -174,7 +174,7 @@ class ConstDecl(LowInstruction):
         return {self.res_name}
         
     def to_string(self):
-        return '\tconst ' + self.res_name + ' ' + str(self.num) + '\n'
+        return 'const ' + self.res_name + ' ' + str(self.num)
 
 class ConstBVDecl:
     def __init__(self, res_name, width, val):
@@ -188,7 +188,7 @@ class ConstBVDecl:
         return {self.res_name}
         
     def to_string(self):
-        return '\tconstbv ' + self.res_name + ' ' + str(self.value) + '\n'
+        return 'constbv ' + self.res_name + ' ' + str(self.value)
 
 class AssignInstr(LowInstruction):
     def __init__(self, res, rhs):
@@ -203,7 +203,7 @@ class AssignInstr(LowInstruction):
         return {self.res, self.rhs}
         
     def to_string(self):
-        return '\tassign {0} {1}\n'.format(self.res, self.rhs)
+        return 'assign {0} {1}'.format(self.res, self.rhs)
 
 class ReturnInstr(LowInstruction):
     def __init__(self, name):
@@ -216,7 +216,7 @@ class ReturnInstr(LowInstruction):
         return {self.val_name}
         
     def to_string(self):
-        return '\treturn ' + self.val_name + '\n'
+        return 'return ' + self.val_name
 
 class BinopInstr(LowInstruction):
     def __init__(self, op, res, lhs, rhs):
@@ -234,7 +234,7 @@ class BinopInstr(LowInstruction):
         return {self.res, self.lhs, self.rhs}
         
     def to_string(self):
-        return '\tbinop ' + str(self.op) + ' ' + self.res + ' ' + self.lhs + ' ' + self.rhs + '\n'
+        return 'binop ' + str(self.op) + ' ' + self.res + ' ' + self.lhs + ' ' + self.rhs
 
 class UnopInstr(LowInstruction):
     def __init__(self, op, res, in_name):
@@ -251,7 +251,7 @@ class UnopInstr(LowInstruction):
         return {self.res, self.in_name}
         
     def to_string(self):
-        return '\tunop ' + str(self.op) + ' ' + self.res + ' ' + self.in_name + '\n'
+        return 'unop ' + str(self.op) + ' ' + self.res + ' ' + self.in_name
         
 class CallInstr(LowInstruction):
     def __init__(self, res, func, args):
@@ -275,15 +275,14 @@ class CallInstr(LowInstruction):
         
     def to_string(self):
         if isinstance(self.func, str):
-            s = '\tcall ' + self.res + ' ' + str(self.func) + ' '
+            s = 'call ' + self.res + ' ' + str(self.func) + ' '
         else:
             assert(isinstance(self.func, ast.Name))
-            s = '\tcall ' + self.res + ' ' + str(self.func.id) + ' '
+            s = 'call ' + self.res + ' ' + str(self.func.id) + ' '
         arg_strs = []
         for a in self.args:
             arg_strs.append(str(a))
         s += comma_list(arg_strs)
-        s += '\n'
 
         return s
         
@@ -362,6 +361,6 @@ class LowFunctionDef:
         s += 'function ' + self.name + '('
         s += comma_list(self.args) + ')\n'
         for instr in self.instructions:
-            s += instr.to_string()
+            s += '\t' + instr.to_string() + '\n'
         s += 'end'
         return s

@@ -312,8 +312,6 @@ def generate_rtl(f, sched):
         elif isinstance(f.symbol_type(sym), l.ArrayType):
             mod.add_wire(sym, f.symbol_type(sym).width())
 
-    #assert(sched.num_cycles() == 0)
-
     for unit in sched.get_functional_units():
         print('Unit = ', unit)
         unit_type = unit[0]
