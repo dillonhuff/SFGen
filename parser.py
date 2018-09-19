@@ -583,7 +583,14 @@ class Schedule:
 
     def bind_instruction(self, unit_name, start_time, instruction):
         unit = self.functional_units[unit_name]
-        unit[1].append(instruction)
+        sched = self.get_schedule(unit_name)
+
+        assert(len(sched) <= start_time)
+        i = len(sched)
+        while i < start_time:
+            sched.append(None)
+            i += 1
+        sched.append(instruction)
 
     def fresh_name(self, prefix):
         n = prefix + '_' + str(self.unique_num)

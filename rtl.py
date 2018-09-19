@@ -24,10 +24,6 @@ class Wire:
     def is_output(self):
         return self.is_port and (not self.is_in)
 
-class Cell:
-    def __init__(self):
-        return None
-
 def module_for_functional_unit(unit):
     if (has_prefix(unit.name, 'add_')):
         width = unit.parameters[0]
@@ -293,8 +289,7 @@ class Module:
 
     def out_port_names(self):
         return list(self.out_ports)
-    
-    
+
 def generate_rtl(f, sched):
     mod = Module(f.name)
 
