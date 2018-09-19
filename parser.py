@@ -760,7 +760,6 @@ def schedule(code_gen, f, constraints):
     unbound_instructions = set(f.instructions)
 
     cycle_time = 0
-    resources_used_this_cycle = {}    
 
     while len(bound_instructions) < len(f.instructions):
 
@@ -771,20 +770,11 @@ def schedule(code_gen, f, constraints):
             opN = functional_unit(instr, f)
             op = opN.name
 
-            #s.add_unit(functional_unit(instr, f))
             unit_name = get_unit(functional_unit(instr, f), constraints, s, cycle_time)
 
-            # if unit != None:
-            # if op in resources_used_this_cycle:
-            #     resources_used_this_cycle[op] += 1
-            # else:
-            #     resources_used_this_cycle[op] = 1
-                
-            # units_used = resources_used_this_cycle[op]
-            # if constraints.is_limited_unit(op) and units_used > constraints.available_units(op):
             if unit_name == None:
                 #print('Combinational schedule needs at least', units_used, 'of operation:', op, 'but only', constraints.available_units(op), 'are available. Adding a cycle')
-                resources_used_this_cycle = {}                
+
                 cycle_time += 1
                 bound = False
             else:
