@@ -103,7 +103,7 @@ class Operation:
         self.parameters = parameters
 
     def to_string(self):
-        return self.name
+        return 'Op[{0}]'.format(self.name)
 
     def __repr__(self):
         return self.to_string()

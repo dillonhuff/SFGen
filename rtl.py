@@ -313,7 +313,14 @@ def generate_rtl(f, sched):
 
     for unit in sched.get_functional_units():
         print('Unit = ', unit)
-        mod.add_cell(module_for_functional_unit(unit[0]), unit[1], unit[2])
+        unit_sched = sched.get_schedule(unit[2])
+        print('sched      = ', unit_sched)
+        print('len(sched) = ', len(unit_sched))
+        if len(unit_sched) < 2:
+            mod.add_cell(module_for_functional_unit(unit[0]), unit[1], unit[2])
+        else:
+            print('Schedule with more than 1 unit', unit)
+            assert(False)
 
     return mod
 

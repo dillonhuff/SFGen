@@ -13,11 +13,11 @@ def test_schedule():
 
     assert(sched.num_cycles() == 2)
 
-    # mod = generate_rtl(f_spec, sched)
+    mod = generate_rtl(f_spec, sched)
 
-    # assert(mod.name == f_spec.name)
+    assert(mod.name == f_spec.name)
 
-    # generate_verilog(mod)
+    generate_verilog(mod)
 
-    # res = run_iverilog_test(mod.name)
-    # assert(res == 'passed\n')
+    res = run_iverilog_test(mod.name)
+    assert(res == 'passed\n')
