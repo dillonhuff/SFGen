@@ -409,9 +409,9 @@ def evaluate_integer_constants(f, code_gen):
             lhs_tp = f.symbol_type(instr.lhs)
             rhs_tp = f.symbol_type(instr.rhs)
 
-            print('binop =', instr)
-            print('Lhs   =', instr.lhs, ':', lhs_tp)
-            print('Rhs   =', instr.rhs, ':', rhs_tp)
+            # print('binop =', instr)
+            # print('Lhs   =', instr.lhs, ':', lhs_tp)
+            # print('Rhs   =', instr.rhs, ':', rhs_tp)
 
             assert(lhs_tp != None)
             assert(rhs_tp != None)

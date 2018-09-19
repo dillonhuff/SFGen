@@ -199,11 +199,8 @@ def module_for_functional_unit(unit):
     print('Error: Unsupported functional unit:', unit.name, unit.parameters)
     assert(False)
 
-def build_module_connections(cell_module, port_connections, cell_name):
+def get_port_map(i0):
     wire_connections = {}
-    assert(len(port_connections) == 1)
-
-    i0 = port_connections[0]
     if isinstance(i0, p.BinopInstr):
         wire_connections['in0'] = [i0.lhs]
         wire_connections['in1'] = [i0.rhs]
@@ -256,6 +253,21 @@ def build_module_connections(cell_module, port_connections, cell_name):
     else:
          print('No connections for instruction', i0)
          assert(False)
+
+    return wire_connections
+    
+def build_module_connections(cell_module, bound_instructions, cell_name):
+    wire_connections = {}
+
+    for i0 in bound_instructions:
+        i0 = bound_instructions[0]
+        i_conns = get_port_map(i0)
+        for val in i_conns:
+            if val in wire_connections:
+                for conn in i_conns[val]:
+                    wire_connections[val].append(conn)
+            else:
+                wire_connections[val] = i_conns[val]
 
     return wire_connections
         
@@ -323,13 +335,26 @@ def generate_rtl(f, sched):
 
         mod_fu = module_for_functional_unit(unit_type)
         wire_connection_map = build_module_connections(mod_fu, unit_sched, cell_name)
-        wire_connections = []
+
+        mux_to_output_connections = []
+        driven_by_output = []
 
         # Assemble the input port muxes
         for port in wire_connection_map:
-            assert(len(wire_connection_map[port]) == 1)
-            for in_wire in wire_connection_map[port]:
-                wire_connections.append((port, in_wire))
+            connected_wires = wire_connection_map[port]
+
+            if port in mod_fu.in_port_names():
+                
+                for out_wire in connected_wires:
+                    wire_connections.append((port, in_wire))
+                
+            else:
+                assert(port in mod_fu.out_port_names())
+                out_w = mod.fresh_wire()
+                wire_connections.append((port, out_w))
+            
+                for out_wire in connected_wires:
+                    wire_connections.append((port, in_wire))
 
         mod.add_cell(mod_fu, wire_connections, cell_name)
 
