@@ -1,3 +1,8 @@
+import ast
+import bit_vector as b
+import copy
+from utils import *
+
 class Type:
     def __init__(self):
         return None
@@ -65,3 +70,298 @@ class ArrayType(Type):
 
     def __repr__(self):
         return self.to_string()
+
+class LowInstruction:
+    def __init__(self):
+        return None
+
+    def to_string(self):
+        return '\tUNKNOWN_INSTR\n'
+
+    def __repr__(self):
+        return self.to_string()
+
+def is_width_call(func):
+    return isinstance(func, ast.Attribute) and (func.attr == 'width')
+
+def is_table_call(func):
+    return isinstance(func, ast.Name) and (func.id == 'lookup_in_table')
+
+class ITEInstr(LowInstruction):
+    def __init__(self, res, test, true_exp, false_exp):
+        self.res = res
+        self.test = test
+        self.true_exp = true_exp
+        self.false_exp = false_exp
+
+    def replace_values(self, f):
+        self.res = f(self.res)
+        self.test = f(self.test)
+        self.true_exp = f(self.true_exp)
+        self.false_exp = f(self.false_exp)
+        
+    def used_values(self):
+        return {self.res, self.test, self.true_exp, self.false_exp}
+
+    def to_string(self):
+        return '\tite {0} {1} {2} {3}\n'.format(self.res, self.test, self.true_exp, self.false_exp)
+
+class SliceInstr(LowInstruction):
+    def __init__(self, res, value, low, high):
+        self.res = res
+        self.value = value
+        self.low = low
+        self.high = high
+
+    def replace_values(self, f):
+        self.res = f(self.res)
+        self.value = f(self.value)
+        self.low = f(self.low)        
+        self.high = f(self.high)                
+
+    def used_values(self):
+        return {self.res, self.value, self.low, self.high}
+        
+    def to_string(self):
+        return '\tslice {0} {1} {2} {3}\n'.format(self.res, self.value, self.low, self.high)
+
+class CompareInstr(LowInstruction):
+    def __init__(self, op, res, lhs, rhs):
+        self.op = op
+        self.res = res
+        self.lhs = lhs
+        self.rhs = rhs
+
+    def used_values(self):
+        return {self.res, self.lhs, self.rhs}
+        
+    def to_string(self):
+        return '\tcmp {0} {1} {2}\n'.format(self.res, self.lhs, self.rhs)
+
+    def replace_values(self, f):
+        self.res = f(self.res)
+        self.lhs = f(self.lhs)
+        self.rhs = f(self.rhs)        
+
+class TableLookupInstr(LowInstruction):
+    def __init__(self, res, arg, table_name):
+        self.res = res
+        self.arg = arg
+        self.table_name = table_name
+
+    def used_values(self):
+        return {self.res, self.arg, self.table_name}
+        
+    def to_string(self):
+        return '\tlookup {0} {1} {2}\n'.format(self.res, self.arg, self.table_name)
+
+    def arguments(self):
+        return {self.arg, self.table_name}
+    
+    def replace_values(self, f):
+        self.res = f(self.res)
+        self.arg = f(self.arg)
+        
+class ConstDecl(LowInstruction):
+    def __init__(self, res_name, num):
+        self.res_name = res_name
+        self.num = num
+
+    def replace_values(self, f):
+        self.res_name = f(self.res_name)
+
+    def used_values(self):
+        return {self.res_name}
+        
+    def to_string(self):
+        return '\tconst ' + self.res_name + ' ' + str(self.num) + '\n'
+
+class ConstBVDecl:
+    def __init__(self, res_name, width, val):
+        self.res_name = res_name
+        self.value = b.bv_from_int(width, val)
+
+    def replace_values(self, f):
+        self.res_name = f(self.res_name)
+        
+    def used_values(self):
+        return {self.res_name}
+        
+    def to_string(self):
+        return '\tconstbv ' + self.res_name + ' ' + str(self.value) + '\n'
+
+class AssignInstr(LowInstruction):
+    def __init__(self, res, rhs):
+        self.res = res
+        self.rhs = rhs
+
+    def replace_values(self, f):
+        self.res = f(self.res)
+        self.rhs = f(self.rhs)
+        
+    def used_values(self):
+        return {self.res, self.rhs}
+        
+    def to_string(self):
+        return '\tassign {0} {1}\n'.format(self.res, self.rhs)
+
+class ReturnInstr(LowInstruction):
+    def __init__(self, name):
+        self.val_name = name
+
+    def replace_values(self, f):
+        self.val_name = f(self.val_name)
+
+    def used_values(self):
+        return {self.val_name}
+        
+    def to_string(self):
+        return '\treturn ' + self.val_name + '\n'
+
+class BinopInstr(LowInstruction):
+    def __init__(self, op, res, lhs, rhs):
+        self.op = op
+        self.res = res
+        self.lhs = lhs
+        self.rhs = rhs
+
+    def replace_values(self, f):
+        self.res = f(self.res)
+        self.lhs = f(self.lhs)
+        self.rhs = f(self.rhs)        
+        
+    def used_values(self):
+        return {self.res, self.lhs, self.rhs}
+        
+    def to_string(self):
+        return '\tbinop ' + str(self.op) + ' ' + self.res + ' ' + self.lhs + ' ' + self.rhs + '\n'
+
+class UnopInstr(LowInstruction):
+    def __init__(self, op, res, in_name):
+        self.op = op
+        self.res = res
+        self.in_name = in_name
+
+
+    def replace_values(self, f):
+        self.res = f(self.res)
+        self.in_name = f(self.in_name)
+        
+    def used_values(self):
+        return {self.res, self.in_name}
+        
+    def to_string(self):
+        return '\tunop ' + str(self.op) + ' ' + self.res + ' ' + self.in_name + '\n'
+        
+class CallInstr(LowInstruction):
+    def __init__(self, res, func, args):
+        self.res = res
+        self.func = func
+        self.args = args
+
+    def replace_values(self, f):
+        self.res = f(self.res)
+        new_args = []
+        for arg in self.args:
+            new_args.append(f(arg))
+        self.args = new_args
+
+    def used_values(self):
+        s = {self.res}
+        for arg in self.args:
+            s.add(arg)
+
+        return s
+        
+    def to_string(self):
+        if isinstance(self.func, str):
+            s = '\tcall ' + self.res + ' ' + str(self.func) + ' '
+        else:
+            assert(isinstance(self.func, ast.Name))
+            s = '\tcall ' + self.res + ' ' + str(self.func.id) + ' '
+        arg_strs = []
+        for a in self.args:
+            arg_strs.append(str(a))
+        s += comma_list(arg_strs)
+        s += '\n'
+
+        return s
+        
+class LowFunctionDef:
+    def __init__(self, name, module_name, args):
+        self.name = name
+        self.module_name = module_name
+        self.args = args
+        self.instructions = []
+        self.unique_num = 0
+        self.symbol_table = {}
+        self.output = None
+        for arg in args:
+            self.symbol_table[arg] = None
+
+    def get_module_name(self):
+        return self.module_name
+
+    def get_int_constant_value(self, name):
+        for instr in self.instructions:
+            if isinstance(instr, ConstDecl) and instr.res_name == name:
+                return instr.num
+
+        print('Cannot find constant', name)
+        assert(False)
+                
+    def unique_suffix(self):
+        suf = '_us_' + str(self.unique_num)
+        self.unique_num += 1
+        return suf
+
+    def input_names(self):
+        return self.args
+
+    def get_arg(self, ind):
+        assert(isinstance(ind, int))
+        return self.args[ind]
+
+    def symbol_type(self, name):
+        assert(name in self.symbol_table)
+        return self.symbol_table[name]
+
+    def erase_symbol(self, name):
+        del self.symbol_table[name]
+
+    def set_symbol_type(self, name, tp):
+        assert(isinstance(tp, Type))
+        self.symbol_table[name] = tp
+    
+    def has_symbol(self, name):
+        return name in self.symbol_table
+
+    def add_instr(self, instr):
+        assert(self.output == None)
+        self.instructions.append(instr)
+        if (isinstance(instr, ReturnInstr)):
+            self.output = instr.val_name
+
+    def output_name(self):
+        return self.output
+
+    def add_symbol(self, name, tp):
+        self.symbol_table[name] = tp
+
+    def fresh_sym(self):
+        name = "fs_" + str(self.unique_num)
+        self.unique_num += 1
+        self.add_symbol(name, None)
+        return name
+        
+    def to_string(self):
+        s = 'symbols\n';
+        for sym in self.symbol_table:
+            s += '\t' + sym + ' -> ' + str(self.symbol_table[sym]) + '\n'
+        s += 'endsymbols\n\n'
+        s += 'function ' + self.name + '('
+        s += comma_list(self.args) + ')\n'
+        for instr in self.instructions:
+            s += instr.to_string()
+        s += 'end'
+        return s

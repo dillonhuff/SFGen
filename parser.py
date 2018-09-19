@@ -1,5 +1,5 @@
 import ast
-import language as l
+from language import *
 import bit_vector as b
 import copy
 
@@ -22,301 +22,6 @@ def anyinstance(i, tps):
         if isinstance(i, t):
             return True
     return False
-
-class LowInstruction:
-    def __init__(self):
-        return None
-
-    def to_string(self):
-        return '\tUNKNOWN_INSTR\n'
-
-    def __repr__(self):
-        return self.to_string()
-
-def is_width_call(func):
-    return isinstance(func, ast.Attribute) and (func.attr == 'width')
-
-def is_table_call(func):
-    return isinstance(func, ast.Name) and (func.id == 'lookup_in_table')
-
-class ITEInstr(LowInstruction):
-    def __init__(self, res, test, true_exp, false_exp):
-        self.res = res
-        self.test = test
-        self.true_exp = true_exp
-        self.false_exp = false_exp
-
-    def replace_values(self, f):
-        self.res = f(self.res)
-        self.test = f(self.test)
-        self.true_exp = f(self.true_exp)
-        self.false_exp = f(self.false_exp)
-        
-    def used_values(self):
-        return {self.res, self.test, self.true_exp, self.false_exp}
-
-    def to_string(self):
-        return '\tite {0} {1} {2} {3}\n'.format(self.res, self.test, self.true_exp, self.false_exp)
-
-class SliceInstr(LowInstruction):
-    def __init__(self, res, value, low, high):
-        self.res = res
-        self.value = value
-        self.low = low
-        self.high = high
-
-    def replace_values(self, f):
-        self.res = f(self.res)
-        self.value = f(self.value)
-        self.low = f(self.low)        
-        self.high = f(self.high)                
-
-    def used_values(self):
-        return {self.res, self.value, self.low, self.high}
-        
-    def to_string(self):
-        return '\tslice {0} {1} {2} {3}\n'.format(self.res, self.value, self.low, self.high)
-
-class CompareInstr(LowInstruction):
-    def __init__(self, op, res, lhs, rhs):
-        self.op = op
-        self.res = res
-        self.lhs = lhs
-        self.rhs = rhs
-
-    def used_values(self):
-        return {self.res, self.lhs, self.rhs}
-        
-    def to_string(self):
-        return '\tcmp {0} {1} {2}\n'.format(self.res, self.lhs, self.rhs)
-
-    def replace_values(self, f):
-        self.res = f(self.res)
-        self.lhs = f(self.lhs)
-        self.rhs = f(self.rhs)        
-
-class TableLookupInstr(LowInstruction):
-    def __init__(self, res, arg, table_name):
-        self.res = res
-        self.arg = arg
-        self.table_name = table_name
-
-    def used_values(self):
-        return {self.res, self.arg, self.table_name}
-        
-    def to_string(self):
-        return '\tlookup {0} {1} {2}\n'.format(self.res, self.arg, self.table_name)
-
-    def arguments(self):
-        return {self.arg, self.table_name}
-    
-    def replace_values(self, f):
-        self.res = f(self.res)
-        self.arg = f(self.arg)
-        
-class ConstDecl(LowInstruction):
-    def __init__(self, res_name, num):
-        self.res_name = res_name
-        self.num = num
-
-    def replace_values(self, f):
-        self.res_name = f(self.res_name)
-
-    def used_values(self):
-        return {self.res_name}
-        
-    def to_string(self):
-        return '\tconst ' + self.res_name + ' ' + str(self.num) + '\n'
-
-class ConstBVDecl:
-    def __init__(self, res_name, width, val):
-        self.res_name = res_name
-        self.value = b.bv_from_int(width, val)
-
-    def replace_values(self, f):
-        self.res_name = f(self.res_name)
-        
-    def used_values(self):
-        return {self.res_name}
-        
-    def to_string(self):
-        return '\tconstbv ' + self.res_name + ' ' + str(self.value) + '\n'
-
-class AssignInstr(LowInstruction):
-    def __init__(self, res, rhs):
-        self.res = res
-        self.rhs = rhs
-
-    def replace_values(self, f):
-        self.res = f(self.res)
-        self.rhs = f(self.rhs)
-        
-    def used_values(self):
-        return {self.res, self.rhs}
-        
-    def to_string(self):
-        return '\tassign {0} {1}\n'.format(self.res, self.rhs)
-
-class ReturnInstr(LowInstruction):
-    def __init__(self, name):
-        self.val_name = name
-
-    def replace_values(self, f):
-        self.val_name = f(self.val_name)
-
-    def used_values(self):
-        return {self.val_name}
-        
-    def to_string(self):
-        return '\treturn ' + self.val_name + '\n'
-
-class BinopInstr(LowInstruction):
-    def __init__(self, op, res, lhs, rhs):
-        self.op = op
-        self.res = res
-        self.lhs = lhs
-        self.rhs = rhs
-
-    def replace_values(self, f):
-        self.res = f(self.res)
-        self.lhs = f(self.lhs)
-        self.rhs = f(self.rhs)        
-        
-    def used_values(self):
-        return {self.res, self.lhs, self.rhs}
-        
-    def to_string(self):
-        return '\tbinop ' + str(self.op) + ' ' + self.res + ' ' + self.lhs + ' ' + self.rhs + '\n'
-
-class UnopInstr(LowInstruction):
-    def __init__(self, op, res, in_name):
-        self.op = op
-        self.res = res
-        self.in_name = in_name
-
-
-    def replace_values(self, f):
-        self.res = f(self.res)
-        self.in_name = f(self.in_name)
-        
-    def used_values(self):
-        return {self.res, self.in_name}
-        
-    def to_string(self):
-        return '\tunop ' + str(self.op) + ' ' + self.res + ' ' + self.in_name + '\n'
-        
-class CallInstr(LowInstruction):
-    def __init__(self, res, func, args):
-        self.res = res
-        self.func = func
-        self.args = args
-
-    def replace_values(self, f):
-        self.res = f(self.res)
-        new_args = []
-        for arg in self.args:
-            new_args.append(f(arg))
-        self.args = new_args
-
-    def used_values(self):
-        s = {self.res}
-        for arg in self.args:
-            s.add(arg)
-
-        return s
-        
-    def to_string(self):
-        if isinstance(self.func, str):
-            s = '\tcall ' + self.res + ' ' + str(self.func) + ' '
-        else:
-            assert(isinstance(self.func, ast.Name))
-            s = '\tcall ' + self.res + ' ' + str(self.func.id) + ' '
-        arg_strs = []
-        for a in self.args:
-            arg_strs.append(str(a))
-        s += comma_list(arg_strs)
-        s += '\n'
-
-        return s
-        
-class LowFunctionDef:
-    def __init__(self, name, module_name, args):
-        self.name = name
-        self.module_name = module_name
-        self.args = args
-        self.instructions = []
-        self.unique_num = 0
-        self.symbol_table = {}
-        self.output = None
-        for arg in args:
-            self.symbol_table[arg] = None
-
-    def get_module_name(self):
-        return self.module_name
-
-    def get_int_constant_value(self, name):
-        for instr in self.instructions:
-            if isinstance(instr, ConstDecl) and instr.res_name == name:
-                return instr.num
-
-        print('Cannot find constant', name)
-        assert(False)
-                
-    def unique_suffix(self):
-        suf = '_us_' + str(self.unique_num)
-        self.unique_num += 1
-        return suf
-
-    def input_names(self):
-        return self.args
-
-    def get_arg(self, ind):
-        assert(isinstance(ind, int))
-        return self.args[ind]
-
-    def symbol_type(self, name):
-        assert(name in self.symbol_table)
-        return self.symbol_table[name]
-
-    def erase_symbol(self, name):
-        del self.symbol_table[name]
-
-    def set_symbol_type(self, name, tp):
-        assert(isinstance(tp, l.Type))
-        self.symbol_table[name] = tp
-    
-    def has_symbol(self, name):
-        return name in self.symbol_table
-
-    def add_instr(self, instr):
-        assert(self.output == None)
-        self.instructions.append(instr)
-        if (isinstance(instr, ReturnInstr)):
-            self.output = instr.val_name
-
-    def output_name(self):
-        return self.output
-
-    def add_symbol(self, name, tp):
-        self.symbol_table[name] = tp
-
-    def fresh_sym(self):
-        name = "fs_" + str(self.unique_num)
-        self.unique_num += 1
-        self.add_symbol(name, None)
-        return name
-        
-    def to_string(self):
-        s = 'symbols\n';
-        for sym in self.symbol_table:
-            s += '\t' + sym + ' -> ' + str(self.symbol_table[sym]) + '\n'
-        s += 'endsymbols\n\n'
-        s += 'function ' + self.name + '('
-        s += comma_list(self.args) + ')\n'
-        for instr in self.instructions:
-            s += instr.to_string()
-        s += 'end'
-        return s
 
 class LowCodeGenerator(ast.NodeVisitor):
     def __init__(self, module_name):
@@ -828,9 +533,9 @@ def schedule(code_gen, f, constraints):
     return s
 
 def get_primitives(c):
-    if isinstance(c[0], l.Type) and isinstance(c[1], str):
+    if isinstance(c[0], Type) and isinstance(c[1], str):
         return (c[1], c[0])
-    if isinstance(c[1], l.Type) and isinstance(c[0], str):
+    if isinstance(c[1], Type) and isinstance(c[0], str):
         return (c[0], c[1])
 
     return None
@@ -990,7 +695,7 @@ def evaluate_int_binop(new_instructions, f, instr, values):
         print('Unsupported binop', instr)
         assert(False)
 
-    f.set_symbol_type(instr.res, l.IntegerType())
+    f.set_symbol_type(instr.res, IntegerType())
 
 def evaluate_integer_constants(f, code_gen):
     values = {}
@@ -1031,18 +736,18 @@ def evaluate_integer_constants(f, code_gen):
             new_instructions.append(instr)
 
             test_tp = f.symbol_type(instr.test)
-            assert(test_tp == l.ArrayType(1))
+            assert(test_tp == ArrayType(1))
             
             true_tp = f.symbol_type(instr.true_exp)
             false_tp = f.symbol_type(instr.false_exp)
 
             assert(true_tp == false_tp)
-            assert(isinstance(true_tp, l.ArrayType))
+            assert(isinstance(true_tp, ArrayType))
 
             f.set_symbol_type(instr.res, true_tp)
             
         elif isinstance(instr, CompareInstr):
-            f.set_symbol_type(instr.res, l.ArrayType(1))
+            f.set_symbol_type(instr.res, ArrayType(1))
             new_instructions.append(instr)
 
         elif isinstance(instr, AssignInstr):
@@ -1056,10 +761,10 @@ def evaluate_integer_constants(f, code_gen):
             
         elif isinstance(instr, CallInstr) and instr.func == 'width':
             assert(len(instr.args) == 1)
-            if isinstance(f.symbol_type(instr.args[0]), l.ArrayType):
+            if isinstance(f.symbol_type(instr.args[0]), ArrayType):
                 values[instr.res] = f.symbol_type(instr.args[0]).width()
                 new_instructions.append(ConstDecl(instr.res, values[instr.res]))
-                f.set_symbol_type(instr.res, l.IntegerType())
+                f.set_symbol_type(instr.res, IntegerType())
             else:
                 print('After specializing func')
                 print(f.to_string())
@@ -1069,7 +774,7 @@ def evaluate_integer_constants(f, code_gen):
 
         elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'leading_zero_count':
             assert(len(instr.args) == 1)
-            if isinstance(f.symbol_type(instr.args[0]), l.ArrayType):
+            if isinstance(f.symbol_type(instr.args[0]), ArrayType):
                 new_instructions.append(instr)
                 f.set_symbol_type(instr.res, f.symbol_type(instr.args[0]))
             else:
@@ -1078,8 +783,8 @@ def evaluate_integer_constants(f, code_gen):
                 
         elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'concat':
             assert(len(instr.args) == 2)
-            if isinstance(f.symbol_type(instr.args[0]), l.ArrayType) and isinstance(f.symbol_type(instr.args[1]), l.ArrayType):
-                f.set_symbol_type(instr.res, l.ArrayType(f.symbol_type(instr.args[0]).width() + f.symbol_type(instr.args[1]).width()))
+            if isinstance(f.symbol_type(instr.args[0]), ArrayType) and isinstance(f.symbol_type(instr.args[1]), ArrayType):
+                f.set_symbol_type(instr.res, ArrayType(f.symbol_type(instr.args[0]).width() + f.symbol_type(instr.args[1]).width()))
             new_instructions.append(instr)
 
         elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and instr.func.id == 'bv_from_int':
@@ -1097,7 +802,7 @@ def evaluate_integer_constants(f, code_gen):
 
             if bv_val != None and bv_width != None:
                 new_instructions.append(ConstBVDecl(instr.res, bv_width, bv_val))
-                f.set_symbol_type(instr.res, l.ArrayType(bv_width))
+                f.set_symbol_type(instr.res, ArrayType(bv_width))
             else:
                 print('Error: Unset types for call', instr, 'val =', bv_val)
                 assert(False)
@@ -1109,9 +814,9 @@ def evaluate_integer_constants(f, code_gen):
             tp = f.symbol_type(w)
 
             assert(w in values)
-            assert(isinstance(tp, l.IntegerType))
+            assert(isinstance(tp, IntegerType))
 
-            f.set_symbol_type(instr.res, l.ArrayType(values[w]))
+            f.set_symbol_type(instr.res, ArrayType(values[w]))
 
             new_instructions.append(instr)
 
@@ -1148,13 +853,13 @@ def evaluate_integer_constants(f, code_gen):
         elif isinstance(instr, ConstDecl):
             values[instr.res_name] = instr.num
             new_instructions.append(instr)
-            f.set_symbol_type(instr.res_name, l.IntegerType())
+            f.set_symbol_type(instr.res_name, IntegerType())
 
         elif isinstance(instr, SliceInstr):
             if instr.low in values and instr.high in values:
                 high_val = values[instr.high]
                 low_val = values[instr.low]
-                f.set_symbol_type(instr.res, l.ArrayType(high_val - low_val + 1))
+                f.set_symbol_type(instr.res, ArrayType(high_val - low_val + 1))
             else:
                 print('Error: Bad types on arguments to', instr)
                 assert(False)
@@ -1162,7 +867,7 @@ def evaluate_integer_constants(f, code_gen):
 
         elif isinstance(instr, TableLookupInstr):
             t = f.symbol_type(instr.arg)
-            assert(isinstance(t, l.ArrayType))
+            assert(isinstance(t, ArrayType))
 
             print('Name = ', instr.table_name)
             
@@ -1180,7 +885,7 @@ def evaluate_integer_constants(f, code_gen):
 
             print('res_tp =', res_tp)
             f.set_symbol_type(instr.res, res_tp)
-            f.set_symbol_type(instr.table_name, l.FunctionType([t], res_tp))
+            f.set_symbol_type(instr.table_name, FunctionType([t], res_tp))
 
             new_instructions.append(instr)
 
@@ -1196,7 +901,7 @@ def simplify_integer_assigns(spec_f):
     replaced = set()
     for i in range(0, len(spec_f.instructions)):
         instr = spec_f.instructions[i]
-        if isinstance(instr, AssignInstr) and (spec_f.symbol_type(instr.res) == l.IntegerType()):
+        if isinstance(instr, AssignInstr) and (spec_f.symbol_type(instr.res) == IntegerType()):
             replaced.add(instr.res)
 
             for j in range(i + 1, len(spec_f.instructions)):
