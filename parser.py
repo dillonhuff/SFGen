@@ -587,6 +587,14 @@ class Schedule:
         self.unique_num += 1
         return n
 
+    def num_units_of_type(self, op_name):
+        n = 0
+        for u in self.functional_units:
+            if self.get_operation(u) == op_name:
+                n += 1
+
+        return n
+
     def get_functional_units(self):
         units = []
         for unit in self.functional_units:
@@ -732,13 +740,14 @@ def functional_unit(instr, f):
     assert(False)
 
 def get_unit(op, constraints, s, cycle_time):
-    if not constraints.is_limited_unit(op.name):
+    if not constraints.is_limited_unit(op.name) or s.num_units_of_type(op.name) < constraints.available_units(op.name):
         return s.add_unit(op)
 
     for unit in s.functional_units:
         n = s.get_operation(unit).name
         if n == op:
             unit_sched = s.get_schedule(unit)
+            print('Unit sched =', unit_sched)
             if len(unit_sched) <= cycle_time:
                 return unit
 
