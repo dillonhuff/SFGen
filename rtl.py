@@ -198,7 +198,67 @@ def module_for_functional_unit(unit):
         return m
     print('Error: Unsupported functional unit:', unit.name, unit.parameters)
     assert(False)
-    
+
+def build_module_connections(cell_module, port_connections, cell_name):
+    wire_connections = []
+    assert(len(port_connections) == 1)
+
+    i0 = port_connections[0]
+    if isinstance(i0, p.BinopInstr):
+        wire_connections.append(('in0', i0.lhs))
+        wire_connections.append(('in1', i0.rhs))
+        wire_connections.append(('out', i0.res))
+
+    elif isinstance(i0, p.ITEInstr):
+        wire_connections.append(('in0', i0.false_exp))
+        wire_connections.append(('in1', i0.true_exp))
+        wire_connections.append(('sel', i0.test))            
+        wire_connections.append(('out', i0.res))
+            
+    elif isinstance(i0, p.UnopInstr):
+        wire_connections.append(('in', i0.in_name))
+        wire_connections.append(('out', i0.res))
+    elif  isinstance(i0, p.SliceInstr):
+        wire_connections.append(('in', i0.value))
+        wire_connections.append(('out', i0.res))
+
+    elif isinstance(i0, p.AssignInstr):
+        wire_connections.append(('in', i0.rhs))
+        wire_connections.append(('out', i0.res))
+
+    elif isinstance(i0, p.CompareInstr):
+        wire_connections.append(('in0', i0.lhs))
+        wire_connections.append(('in1', i0.rhs))            
+        wire_connections.append(('out', i0.res))
+
+    elif isinstance(i0, p.TableLookupInstr):
+        wire_connections.append(('in', i0.arg))
+        wire_connections.append(('out', i0.res))
+
+    elif isinstance(i0, p.ConstBVDecl):
+        wire_connections.append(('out', i0.res_name))
+    elif isinstance(i0, p.CallInstr) and isinstance(i0.func, ast.Name):
+        if i0.func.id == 'leading_zero_count':
+            wire_connections.append(('in', i0.args[0]))
+            wire_connections.append(('out', i0.res))
+        elif i0.func.id == 'zero_extend':
+            wire_connections.append(('in', i0.args[1]))
+            wire_connections.append(('out', i0.res))
+
+        elif i0.func.id == 'concat':
+            wire_connections.append(('in0', i0.args[0]))
+            wire_connections.append(('in1', i0.args[1]))
+            wire_connections.append(('out', i0.res))
+
+        else:
+            print('Unrecognized function', i0.func.id)
+            assert(False)
+    else:
+         print('No connections for instruction', i0)
+         assert(False)
+
+    return wire_connections
+        
 class Module:
     def __init__(self, name):
         self.name = name
@@ -218,64 +278,7 @@ class Module:
     def all_cells(self):
         return self.cells
     
-    def add_cell(self, cell_module, port_connections, cell_name):
-        wire_connections = []
-        assert(len(port_connections) == 1)
-
-        i0 = port_connections[0]
-        if isinstance(i0, p.BinopInstr):
-            wire_connections.append(('in0', i0.lhs))
-            wire_connections.append(('in1', i0.rhs))
-            wire_connections.append(('out', i0.res))
-
-        elif isinstance(i0, p.ITEInstr):
-            wire_connections.append(('in0', i0.false_exp))
-            wire_connections.append(('in1', i0.true_exp))
-            wire_connections.append(('sel', i0.test))            
-            wire_connections.append(('out', i0.res))
-            
-        elif isinstance(i0, p.UnopInstr):
-            wire_connections.append(('in', i0.in_name))
-            wire_connections.append(('out', i0.res))
-        elif  isinstance(i0, p.SliceInstr):
-            wire_connections.append(('in', i0.value))
-            wire_connections.append(('out', i0.res))
-
-        elif isinstance(i0, p.AssignInstr):
-            wire_connections.append(('in', i0.rhs))
-            wire_connections.append(('out', i0.res))
-
-        elif isinstance(i0, p.CompareInstr):
-            wire_connections.append(('in0', i0.lhs))
-            wire_connections.append(('in1', i0.rhs))            
-            wire_connections.append(('out', i0.res))
-
-        elif isinstance(i0, p.TableLookupInstr):
-            wire_connections.append(('in', i0.arg))
-            wire_connections.append(('out', i0.res))
-            
-        elif isinstance(i0, p.ConstBVDecl):
-            wire_connections.append(('out', i0.res_name))
-        elif isinstance(i0, p.CallInstr) and isinstance(i0.func, ast.Name):
-            if i0.func.id == 'leading_zero_count':
-                wire_connections.append(('in', i0.args[0]))
-                wire_connections.append(('out', i0.res))
-            elif i0.func.id == 'zero_extend':
-                wire_connections.append(('in', i0.args[1]))
-                wire_connections.append(('out', i0.res))
-
-            elif i0.func.id == 'concat':
-                wire_connections.append(('in0', i0.args[0]))
-                wire_connections.append(('in1', i0.args[1]))
-                wire_connections.append(('out', i0.res))
-
-            else:
-                print('Unrecognized function', i0.func.id)
-                assert(False)
-        else:
-            print('No connections for instruction', i0)
-            assert(False)
-            
+    def add_cell(self, cell_module, wire_connections, cell_name):
         self.cells.append((cell_module, wire_connections, cell_name))
 
     def add_wire(self, name, width):
@@ -313,11 +316,17 @@ def generate_rtl(f, sched):
 
     for unit in sched.get_functional_units():
         print('Unit = ', unit)
-        unit_sched = sched.get_schedule(unit[2])
+        unit_type = unit[0]
+        cell_name = unit[2]
+        unit_sched = sched.get_schedule(cell_name)
+
         print('sched      = ', unit_sched)
         print('len(sched) = ', len(unit_sched))
+
         if len(unit_sched) < 2:
-            mod.add_cell(module_for_functional_unit(unit[0]), unit[1], unit[2])
+            mod_fu = module_for_functional_unit(unit_type)
+            wire_connections = build_module_connections(mod_fu, unit_sched, cell_name)
+            mod.add_cell(mod_fu, wire_connections, cell_name)
         else:
             print('Schedule with more than 1 unit', unit)
             assert(False)
