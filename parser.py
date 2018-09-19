@@ -731,6 +731,19 @@ def functional_unit(instr, f):
     print('Unsupported functional unit', instr)
     assert(False)
 
+def get_unit(op, constraints, s, cycle_time):
+    if not constraints.is_limited_unit(op.name):
+        return s.add_unit(op)
+
+    for unit in s.functional_units:
+        n = s.get_operation(unit).name
+        if n == op:
+            unit_sched = s.get_schedule(unit)
+            if len(unit_sched) <= cycle_time:
+                return unit
+
+    return None
+    
 def schedule(code_gen, f, constraints):
     s = Schedule()
     cycle_num = 0
@@ -748,17 +761,20 @@ def schedule(code_gen, f, constraints):
         if not isinstance(instr, ReturnInstr) and not isinstance(instr, ConstDecl):
             opN = functional_unit(instr, f)
             op = opN.name
-            unit_name = s.add_unit(functional_unit(instr, f))
-            
 
-            if op in resources_used_this_cycle:
-                resources_used_this_cycle[op] += 1
-            else:
-                resources_used_this_cycle[op] = 1
+            #s.add_unit(functional_unit(instr, f))
+            unit_name = get_unit(functional_unit(instr, f), constraints, s, cycle_time)
+
+            # if unit != None:
+            # if op in resources_used_this_cycle:
+            #     resources_used_this_cycle[op] += 1
+            # else:
+            #     resources_used_this_cycle[op] = 1
                 
-            units_used = resources_used_this_cycle[op]
-            if constraints.is_limited_unit(op) and units_used > constraints.available_units(op):
-                print('Combinational schedule needs at least', units_used, 'of operation:', op, 'but only', constraints.available_units(op), 'are available. Adding a cycle')
+            # units_used = resources_used_this_cycle[op]
+            # if constraints.is_limited_unit(op) and units_used > constraints.available_units(op):
+            if unit_name == None:
+                #print('Combinational schedule needs at least', units_used, 'of operation:', op, 'but only', constraints.available_units(op), 'are available. Adding a cycle')
                 resources_used_this_cycle = {}                
                 cycle_time += 1
                 bound = False
