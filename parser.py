@@ -557,6 +557,9 @@ class Schedule:
     def num_cycles(self):
         return self.total_num_cycles
 
+    def get_operation(self, name):
+        return self.functional_units[name][0]
+    
     def get_binding(self, instr):
         for func_name in self.functional_units:
             func = self.functional_units[func_name]
@@ -608,6 +611,15 @@ class Operation:
     def __init__(self, name, parameters):
         self.name = name
         self.parameters = parameters
+
+    def to_string(self):
+        return self.name
+
+    def __repr__(self):
+        return self.to_string()
+
+    def __str__(self):
+        return self.to_string()
 
     def __eq__(self, other):
         if not isinstance(other, Operation):
@@ -760,9 +772,29 @@ def schedule(code_gen, f, constraints):
             unbound_instructions.remove(instr)
 
     s.total_num_cycles = cycle_time
+
+    # Check that resource usage matches synthesis constraints
+    total_resources = {}
+    print('Units')
+    for unit in s.functional_units:
+        op_name = s.get_operation(unit).name
+        if op_name in total_resources:
+            total_resources[op_name] += 1
+        else:
+            total_resources[op_name] = 1
+
     print('Resources used')
-    for r in resources_used_this_cycle:
-        print('\t', r, ' -> ', resources_used_this_cycle[r])
+    for r in total_resources:
+        print('\t', r, ' -> ', total_resources[r])
+
+    for r in constraints.resource_counts:
+        max_val = constraints.resource_counts[r]
+        if r in total_resources and max_val < total_resources[r]:
+            print('Error: Too many uses of', r)
+            print('r          =', r)
+            print('max use    =', max_val)
+            print('actual use =', total_resources[r])
+            assert(False)
 
     return s
 
