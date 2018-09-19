@@ -2,6 +2,7 @@ from parser import *
 import language as l
 import ast
 from rtl import *
+from scheduling import *
 
 def test_schedule():
     code_gen = codegen_for_module('divider')
