@@ -200,55 +200,55 @@ def module_for_functional_unit(unit):
     assert(False)
 
 def build_module_connections(cell_module, port_connections, cell_name):
-    wire_connections = []
+    wire_connections = {}
     assert(len(port_connections) == 1)
 
     i0 = port_connections[0]
     if isinstance(i0, p.BinopInstr):
-        wire_connections.append(('in0', i0.lhs))
-        wire_connections.append(('in1', i0.rhs))
-        wire_connections.append(('out', i0.res))
+        wire_connections['in0'] = [i0.lhs]
+        wire_connections['in1'] = [i0.rhs]
+        wire_connections['out'] = [i0.res]
 
     elif isinstance(i0, p.ITEInstr):
-        wire_connections.append(('in0', i0.false_exp))
-        wire_connections.append(('in1', i0.true_exp))
-        wire_connections.append(('sel', i0.test))            
-        wire_connections.append(('out', i0.res))
+        wire_connections['in0'] = [i0.false_exp]
+        wire_connections['in1'] = [i0.true_exp]
+        wire_connections['sel'] = [i0.test]
+        wire_connections['out'] = [i0.res]
             
     elif isinstance(i0, p.UnopInstr):
-        wire_connections.append(('in', i0.in_name))
-        wire_connections.append(('out', i0.res))
+        wire_connections['in'] = [i0.in_name]
+        wire_connections['out'] = [i0.res]
     elif  isinstance(i0, p.SliceInstr):
-        wire_connections.append(('in', i0.value))
-        wire_connections.append(('out', i0.res))
+        wire_connections['in'] = [i0.value]
+        wire_connections['out'] = [i0.res]
 
     elif isinstance(i0, p.AssignInstr):
-        wire_connections.append(('in', i0.rhs))
-        wire_connections.append(('out', i0.res))
+        wire_connections['in'] = [i0.rhs]
+        wire_connections['out'] = [i0.res]
 
     elif isinstance(i0, p.CompareInstr):
-        wire_connections.append(('in0', i0.lhs))
-        wire_connections.append(('in1', i0.rhs))            
-        wire_connections.append(('out', i0.res))
+        wire_connections['in0'] = [i0.lhs]
+        wire_connections['in1'] = [i0.rhs]           
+        wire_connections['out'] = [i0.res]
 
     elif isinstance(i0, p.TableLookupInstr):
-        wire_connections.append(('in', i0.arg))
-        wire_connections.append(('out', i0.res))
+        wire_connections['in'] = [i0.arg]
+        wire_connections['out'] = [i0.res]
 
     elif isinstance(i0, p.ConstBVDecl):
-        wire_connections.append(('out', i0.res_name))
+        wire_connections['out'] = [i0.res_name]
     elif isinstance(i0, p.CallInstr) and isinstance(i0.func, ast.Name):
         if i0.func.id == 'leading_zero_count':
-            wire_connections.append(('in', i0.args[0]))
-            wire_connections.append(('out', i0.res))
+            wire_connections['in'] = [i0.args[0]]
+            wire_connections['out'] = [i0.res]
         elif i0.func.id == 'zero_extend':
-            wire_connections.append(('in', i0.args[1]))
-            wire_connections.append(('out', i0.res))
+            wire_connections['in'] = [i0.args[1]]
+            wire_connections['out'] = [i0.res]
 
         elif i0.func.id == 'concat':
-            wire_connections.append(('in0', i0.args[0]))
-            wire_connections.append(('in1', i0.args[1]))
-            wire_connections.append(('out', i0.res))
+            wire_connections['in0'] = [i0.args[0]]
+            wire_connections['in1'] = [i0.args[1]]
+            wire_connections['out'] = [i0.res]
 
         else:
             print('Unrecognized function', i0.func.id)
@@ -321,13 +321,17 @@ def generate_rtl(f, sched):
         print('sched      = ', unit_sched)
         print('len(sched) = ', len(unit_sched))
 
-        if len(unit_sched) < 2:
-            mod_fu = module_for_functional_unit(unit_type)
-            wire_connections = build_module_connections(mod_fu, unit_sched, cell_name)
-            mod.add_cell(mod_fu, wire_connections, cell_name)
-        else:
-            print('Schedule with more than 1 unit', unit)
-            assert(False)
+        mod_fu = module_for_functional_unit(unit_type)
+        wire_connection_map = build_module_connections(mod_fu, unit_sched, cell_name)
+        wire_connections = []
+
+        # Assemble the input port muxes
+        for port in wire_connection_map:
+            assert(len(wire_connection_map[port]) == 1)
+            for in_wire in wire_connection_map[port]:
+                wire_connections.append((port, in_wire))
+
+        mod.add_cell(mod_fu, wire_connections, cell_name)
 
     return mod
 
