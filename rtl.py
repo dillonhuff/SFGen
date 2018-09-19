@@ -6,9 +6,10 @@ import importlib
 import bit_vector
 
 class Wire:
-    def __init__(self, name, width, is_in, is_out):
+    def __init__(self, name, width, is_in, is_out, is_reg):
         self.name = name
         self.width = width
+        self.is_register = is_reg
         if is_in or is_out:
             self.is_port = True
             if is_in:
@@ -17,6 +18,9 @@ class Wire:
                 self.is_in = False
         else:
             self.is_port = False
+
+    def is_reg(self):
+        return is_register
 
     def is_input(self):
         return self.is_port and self.is_in
@@ -217,6 +221,7 @@ class Module:
     def add_cell(self, cell_module, port_connections, cell_name):
         wire_connections = []
         assert(len(port_connections) == 1)
+
         i0 = port_connections[0]
         if isinstance(i0, p.BinopInstr):
             wire_connections.append(('in0', i0.lhs))
@@ -274,14 +279,17 @@ class Module:
         self.cells.append((cell_module, wire_connections, cell_name))
 
     def add_wire(self, name, width):
-        self.wires.append(Wire(name, width, False, False))
+        self.wires.append(Wire(name, width, False, False, False))
 
+    def add_reg(self, name, width):
+        self.wires.append(Wire(name, width, False, False, True))
+        
     def add_in_port(self, name, width):
-        self.wires.append(Wire(name, width, True, False))
+        self.wires.append(Wire(name, width, True, False, False))
         self.in_ports.add(name)
 
     def add_out_port(self, name, width):
-        self.wires.append(Wire(name, width, False, True))
+        self.wires.append(Wire(name, width, False, True, False))
         self.out_ports.add(name)
         
     def in_port_names(self):
@@ -301,7 +309,7 @@ def generate_rtl(f, sched):
         elif isinstance(f.symbol_type(sym), l.ArrayType):
             mod.add_wire(sym, f.symbol_type(sym).width())
 
-    assert(sched.num_cycles() == 0)
+    #assert(sched.num_cycles() == 0)
 
     for unit in sched.get_functional_units():
         print('Unit = ', unit)
