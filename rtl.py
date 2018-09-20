@@ -209,7 +209,7 @@ def module_for_functional_unit(unit):
     print('Error: Unsupported functional unit:', unit.name, unit.parameters)
     assert(False)
 
-def get_port_map(i0):
+def get_port_map(i0, cell_module):
     wire_connections = {}
     if isinstance(i0, p.BinopInstr):
         wire_connections['in0'] = [i0.lhs]
@@ -260,6 +260,13 @@ def get_port_map(i0):
         else:
             print('Unrecognized function', i0.func.id)
             assert(False)
+
+    elif i0 == None:
+        for in_port in cell_module.in_port_names():
+            wire_connections[in_port] = [None]
+        for out_port in cell_module.out_port_names():
+            wire_connections[out_port] = [None]
+
     else:
          print('No connections for instruction', i0)
          assert(False)
@@ -271,7 +278,7 @@ def build_module_connections(cell_module, bound_instructions, cell_name):
 
     for i0 in bound_instructions:
         i0 = bound_instructions[0]
-        i_conns = get_port_map(i0)
+        i_conns = get_port_map(i0, cell_module)
         for val in i_conns:
             if val in wire_connections:
                 for conn in i_conns[val]:

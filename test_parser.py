@@ -3,23 +3,7 @@ import language as l
 import ast
 from rtl import *
 from scheduling import *
-
-import os
-
-def run_cmd(cmd):
-    res = os.system(cmd)
-    return res == 0
-
-def run_iverilog_test(mod_name):
-    # Compile iverilogmod
-    assert(run_cmd('iverilog -o {0} {0}.v {0}_tb.v'.format(mod_name)))
-    assert(run_cmd('./{0} > {0}_res.txt'.format(mod_name)))
-
-    f = open('{0}_res.txt'.format(mod_name), 'r')
-    res = f.read()
-    f.close()
-
-    return res
+from utils import *
 
 def test_tc_neg_parse():
     code_gen = codegen_for_module('tc_neg')

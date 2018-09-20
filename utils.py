@@ -1,3 +1,5 @@
+import os
+
 def has_prefix(name, prefix):
     return name[:len(prefix)] == prefix
 
@@ -11,3 +13,19 @@ def comma_list(strs):
         
     return ls
 
+
+
+def run_cmd(cmd):
+    res = os.system(cmd)
+    return res == 0
+
+def run_iverilog_test(mod_name):
+    # Compile iverilogmod
+    assert(run_cmd('iverilog -o {0} {0}.v {0}_tb.v'.format(mod_name)))
+    assert(run_cmd('./{0} > {0}_res.txt'.format(mod_name)))
+
+    f = open('{0}_res.txt'.format(mod_name), 'r')
+    res = f.read()
+    f.close()
+
+    return res
