@@ -4,9 +4,10 @@ import parser as p
 import ast
 import importlib
 import bit_vector
+from scheduling import *
 
 class Wire:
-    def __init__(self, name, width, is_in, is_out, is_reg):
+    def __init__(self, name, width, is_in=False, is_out=False, is_reg=False):
         self.name = name
         self.width = width
         self.is_register = is_reg
@@ -25,6 +26,15 @@ class Wire:
     def is_input(self):
         return self.is_port and self.is_in
 
+    def to_string(self):
+        return '{0} : [{1}]'.format(self.name, self.width)
+
+    def __repr__(self):
+        return self.to_string()
+
+    def __str__(self):
+        return self.to_string()
+    
     def is_output(self):
         return self.is_port and (not self.is_in)
 
@@ -281,6 +291,14 @@ class Module:
         self.out_ports = set([])
         self.cells = []
 
+    def add_assign(self, res_name, rhs_name, width):
+        cell_mod = module_for_functional_unit(Operation('assign_' + str(width), [width]))
+
+        in_wire = rhs_name #Wire(rhs_name, width)
+        res_wire = res_name #Wire(res_name, width)
+        self.add_cell(cell_mod, [('in', in_wire), ('out', res_wire)], 'fresh_assign_' + str(self.unique_num))
+        self.unique_num += 1
+        
     def add_parameter(self, name, value):
         self.parameters[name] = value
 
@@ -289,9 +307,23 @@ class Module:
     
     def all_cells(self):
         return self.cells
-    
+
+    def get_wire_width(self, name):
+        for w in self.wires:
+            if w.name == name:
+                return w.width
+
+
+        assert(False)
+
     def add_cell(self, cell_module, wire_connections, cell_name):
         self.cells.append((cell_module, wire_connections, cell_name))
+
+    def fresh_wire(self, width):
+        n = 'fresh_wire_' + str(self.unique_num)
+        self.unique_num += 1
+        self.add_wire(n, width)
+        return n
 
     def add_wire(self, name, width):
         self.wires.append(Wire(name, width, False, False, False))
@@ -339,22 +371,25 @@ def generate_rtl(f, sched):
         mux_to_output_connections = []
         driven_by_output = []
 
+        wire_connections = []
+
         # Assemble the input port muxes
         for port in wire_connection_map:
             connected_wires = wire_connection_map[port]
 
             if port in mod_fu.in_port_names():
                 
-                for out_wire in connected_wires:
+                for in_wire in connected_wires:
                     wire_connections.append((port, in_wire))
                 
             else:
                 assert(port in mod_fu.out_port_names())
-                out_w = mod.fresh_wire()
+                out_w = mod.fresh_wire(mod_fu.get_wire_width(port))
+
                 wire_connections.append((port, out_w))
             
                 for out_wire in connected_wires:
-                    wire_connections.append((port, in_wire))
+                    mod.add_assign(out_wire, out_w, mod.get_wire_width(out_w))
 
         mod.add_cell(mod_fu, wire_connections, cell_name)
 
