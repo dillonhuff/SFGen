@@ -7,6 +7,9 @@ import bit_vector
 from scheduling import *
 import math
 
+def storage_width(w):
+    return math.ceil(math.log2(w)) + 1
+
 class Wire:
     def __init__(self, name, width, is_in=False, is_out=False, is_reg=False):
         self.name = name
@@ -378,6 +381,7 @@ def build_mux(container_module, connected_inputs, output_to, width):
     mux_mod.add_parameter('width', width)
 
     wire_connections = []
+    wire_connections.append(('sel', 'global_stage_counter'))
     for i in range(len(connected_inputs)):
         mux_mod.add_in_port('in' + str(i), width)
         next_in = connected_inputs[i]
@@ -409,6 +413,16 @@ def generate_rtl(f, sched):
     if sched.num_cycles() > 1:
         stage_width = math.ceil(math.log2(sched.num_cycles())) + 1
         mod.add_reg('global_stage_counter', stage_width)
+        mod.add_in_port('clk', 1)
+        mod.add_in_port('en', 1)
+        
+        counter_mod = Module('builtin_counter_' + str(stage_width))
+        counter_mod.add_parameter('num_stages', sched.num_cycles())
+        counter_mod.add_in_port('clk', 1)
+        counter_mod.add_in_port('rst', 1)        
+        counter_mod.add_out_port('out', stage_width)
+        
+        mod.add_cell(counter_mod, [('clk', 'clk'), ('rst', 'en'), ('out', 'global_stage_counter')], 'stage_counter')
 
     for unit in sched.get_functional_units():
         print('Unit = ', unit)
@@ -607,6 +621,20 @@ def verilog_string(rtl_mod):
             mod_str += '\t\tendcase\t\n'
             mod_str += '\tend\n'
             mod_str += '\tassign out = out_reg;\n'
+        elif has_prefix(rtl_mod.name, 'builtin_counter'):
+            num_stages = rtl_mod.get_parameter('num_stages')
+            width = storage_width(num_stages)
+            mod_str += '\treg [{0}:0] {1};\n'.format(width - 1, 'stage_num')
+            mod_str += '\talways @(posedge clk) begin\n'
+            mod_str += '\t\tif (rst) begin\n'
+            mod_str += '\t\t\tstage_num <= 0;\n'
+            mod_str += '\t\tend else if (stage_num == {0}) begin\n'.format(num_stages - 1)
+            mod_str += '\t\t\tstage_num <= 0;\n'
+            mod_str += '\t\tend else begin\n'
+            mod_str += '\t\t\tstage_num <= stage_num + 1;\n'
+            mod_str += '\t\tend\n'            
+            mod_str += '\tend\n'            
+            mod_str += '\tassign out = stage_num;\n'
         else:
             print('Error: Unsupported builtin', rtl_mod.name)
             assert(False)
