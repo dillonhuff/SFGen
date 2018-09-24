@@ -417,8 +417,7 @@ def generate_rtl(f, sched):
                     res_wire = build_mux(mod, connected_wires, port, mod_fu.get_wire_width(port))
                     wire_connections.append((port, res_wire))                    
                 else:
-                    for in_wire in connected_wires:
-                        wire_connections.append((port, in_wire))
+                    wire_connections.append((port, connected_wires[0]))
 
             else:
                 assert(port in mod_fu.out_port_names())
