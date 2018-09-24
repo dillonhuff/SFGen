@@ -22,7 +22,7 @@ def instructions_in_order(sched, f):
             earlier_cycle = sched.get_binding(earlier)[1]
             if earlier_cycle > cycle_num:
                 print('other =', earlier, 'bound at', earlier_cycle)
-                print('instr =', instr, 'bound at', cycle_num)                
+                print('instr =', instr, 'bound at', cycle_num)
                 assert(not earlier in earlier_instructions)
         
         earlier_instructions.add(instr)

@@ -246,7 +246,12 @@ def get_unit(op, constraints, s, cycle_time):
 
     print('Cannot schedule', op, 'at time', cycle_time)
     return None
-    
+
+# Simpler IR: Just have instruction resource pairs, or just instructions
+# that respect the total resource counts available? Schedule is a list of lists
+# of instructions? Then convert that to a schedule data structure once we are done?
+
+# Note: Assumption is that we have zero delay, but possible resource limited units
 def schedule(code_gen, f, constraints):
     s = Schedule()
     cycle_num = 0
