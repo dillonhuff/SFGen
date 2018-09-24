@@ -54,3 +54,27 @@ def test_schedule():
 
     res = run_iverilog_test(mod.name)
     assert(res == 'passed\n')
+
+def test_schedule():
+    code_gen = codegen_for_module('mult')
+    f_spec = specialize_types(code_gen, 'quart', [l.ArrayType(32), l.ArrayType(32)])
+    constraints = ScheduleConstraints()
+    constraints.set_resource_count('mult_32', 1)
+    sched = schedule(code_gen, f_spec, constraints)
+
+    assert(sched.num_cycles() == 2)
+
+    assert(instructions_in_order(sched, f_spec))
+
+    mod = generate_rtl(f_spec, sched)
+
+    assert(mod.name == f_spec.name)
+
+    generate_verilog(mod)
+
+    print('Function')
+    print(f_spec.to_string())    
+
+    res = run_iverilog_test(mod.name)
+    assert(res == 'passed\n')
+    

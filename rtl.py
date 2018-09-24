@@ -390,7 +390,7 @@ def build_mux(sched, container_module, connected_inputs, output_to, width):
     print('mux inputs =', connected_inputs)
     mux_mod = Module('builtin_mux_' + str(len(connected_inputs)) + '_' + str(width))
 
-    mux_mod.add_parameter('depth', len(connected_inputs))    
+    mux_mod.add_parameter('depth', len(connected_inputs))
     mux_mod.add_parameter('width', width)
 
     wire_connections = []
@@ -399,7 +399,7 @@ def build_mux(sched, container_module, connected_inputs, output_to, width):
         mux_mod.add_in_port('in' + str(i), width)
         next_in = connected_inputs[i]
         if next_in != None:
-            # insert a delay here
+
             produced_time = 0
             if not next_in in container_module.in_port_names():
                 produced_time = sched.production_time(next_in)
