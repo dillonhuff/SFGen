@@ -75,6 +75,9 @@ class LowInstruction:
     def __init__(self):
         return None
 
+    def result_name(self):
+        assert(False)
+
     def to_string(self):
         return 'UNKNOWN_INSTR'
 
@@ -94,6 +97,9 @@ class ITEInstr(LowInstruction):
         self.true_exp = true_exp
         self.false_exp = false_exp
 
+    def result_name(self):
+        return self.res
+        
     def replace_values(self, f):
         self.res = f(self.res)
         self.test = f(self.test)
@@ -113,6 +119,9 @@ class SliceInstr(LowInstruction):
         self.low = low
         self.high = high
 
+    def result_name(self):
+        return self.res
+        
     def replace_values(self, f):
         self.res = f(self.res)
         self.value = f(self.value)
@@ -132,6 +141,9 @@ class CompareInstr(LowInstruction):
         self.lhs = lhs
         self.rhs = rhs
 
+    def result_name(self):
+        return self.res
+        
     def used_values(self):
         return {self.res, self.lhs, self.rhs}
         
@@ -149,6 +161,9 @@ class TableLookupInstr(LowInstruction):
         self.arg = arg
         self.table_name = table_name
 
+    def result_name(self):
+        return self.res
+        
     def used_values(self):
         return {self.res, self.arg, self.table_name}
         
@@ -167,6 +182,9 @@ class ConstDecl(LowInstruction):
         self.res_name = res_name
         self.num = num
 
+    def result_name(self):
+        return self.res_name
+        
     def replace_values(self, f):
         self.res_name = f(self.res_name)
 
@@ -181,6 +199,9 @@ class ConstBVDecl:
         self.res_name = res_name
         self.value = b.bv_from_int(width, val)
 
+    def result_name(self):
+        return self.res_name
+        
     def replace_values(self, f):
         self.res_name = f(self.res_name)
         
@@ -195,6 +216,9 @@ class AssignInstr(LowInstruction):
         self.res = res
         self.rhs = rhs
 
+    def result_name(self):
+        return self.res
+        
     def replace_values(self, f):
         self.res = f(self.res)
         self.rhs = f(self.rhs)
@@ -209,6 +233,9 @@ class ReturnInstr(LowInstruction):
     def __init__(self, name):
         self.val_name = name
 
+    def result_name(self):
+        return self.val_name
+        
     def replace_values(self, f):
         self.val_name = f(self.val_name)
 
@@ -224,6 +251,9 @@ class BinopInstr(LowInstruction):
         self.res = res
         self.lhs = lhs
         self.rhs = rhs
+
+    def result_name(self):
+        return self.res
 
     def replace_values(self, f):
         self.res = f(self.res)
@@ -242,6 +272,8 @@ class UnopInstr(LowInstruction):
         self.res = res
         self.in_name = in_name
 
+    def result_name(self):
+        return self.res
 
     def replace_values(self, f):
         self.res = f(self.res)
@@ -259,6 +291,9 @@ class CallInstr(LowInstruction):
         self.func = func
         self.args = args
 
+    def result_name(self):
+        return self.res
+        
     def replace_values(self, f):
         self.res = f(self.res)
         new_args = []

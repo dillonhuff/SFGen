@@ -33,7 +33,24 @@ class Schedule:
 
     def get_operation(self, name):
         return self.functional_units[name][0]
-    
+
+    def production_time(self, name):
+        for func_name in self.functional_units:
+            func = self.functional_units[func_name]
+            sched = func[1]
+
+            print('checking', func_name)
+            print('\tsched =', sched)
+
+            for i in range(0, len(sched)):
+
+                it = sched[i]
+                if it != None and (it.result_name() == name):
+                    return i
+
+        print('Error: No binding for', name)
+        assert(False)
+        
     def get_binding(self, instr):
         for func_name in self.functional_units:
             func = self.functional_units[func_name]

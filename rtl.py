@@ -313,7 +313,20 @@ class Module:
         const_mod.add_parameter('width', width)
         self.add_cell(const_mod, [('out', out_name)], mod_name)
         return out_name
+
+    def add_fifo(self, delay, width, output, inp, clk):
+        cell_mod = Module('builtin_fifo_{0}_{1}'.format(delay, width))
+        cell_mod.add_parameter('delay', delay)
+        cell_mod.add_parameter('width', width)
+
+        cell_mod.add_in_port('in', width)
+        cell_mod.add_in_port('clk', 1)
+        cell_mod.add_out_port('out', width)
         
+        conns = [('in', inp), ('out', output), ('clk', clk)]
+        n = self.fresh_name('fifo')
+        self.add_cell(cell_mod, conns, n)
+
     def add_assign(self, res_name, rhs_name, width):
         cell_mod = module_for_functional_unit(Operation('assign_' + str(width), [width]))
 
@@ -373,10 +386,10 @@ class Module:
     def out_port_names(self):
         return list(self.out_ports)
 
-def build_mux(container_module, connected_inputs, output_to, width):
+def build_mux(sched, container_module, connected_inputs, output_to, width):
     print('mux inputs =', connected_inputs)
     mux_mod = Module('builtin_mux_' + str(len(connected_inputs)) + '_' + str(width))
-    #mux_mod.add_parameter('depth', connected_inputs)
+
     mux_mod.add_parameter('depth', len(connected_inputs))    
     mux_mod.add_parameter('width', width)
 
@@ -386,12 +399,21 @@ def build_mux(container_module, connected_inputs, output_to, width):
         mux_mod.add_in_port('in' + str(i), width)
         next_in = connected_inputs[i]
         if next_in != None:
-            wire_connections.append(('in' + str(i), connected_inputs[i]))
+            # insert a delay here
+            produced_time = 0
+            if not next_in in container_module.in_port_names():
+                produced_time = sched.production_time(next_in)
+            next_in_w = container_module.fresh_wire(width)
+
+            assert(produced_time <= i)
+            
+            container_module.add_fifo(i - produced_time, width, next_in_w, next_in, 'clk')
+            wire_connections.append(('in' + str(i), next_in_w))
         else:
             x_const = container_module.build_x_constant(width)
             wire_connections.append(('in' + str(i), x_const))
 
-    mux_mod.add_in_port('sel', storage_width(len(connected_inputs))) #math.ceil(math.log2(len(connected_inputs))) + 1)
+    mux_mod.add_in_port('sel', storage_width(len(connected_inputs)))
     mux_mod.add_out_port('out', width)
 
     out_w = container_module.fresh_wire(width)
@@ -449,7 +471,7 @@ def generate_rtl(f, sched):
             if port in mod_fu.in_port_names():
 
                 if len(connected_wires) > 1:
-                    res_wire = build_mux(mod, connected_wires, port, mod_fu.get_wire_width(port))
+                    res_wire = build_mux(sched, mod, connected_wires, port, mod_fu.get_wire_width(port))
                     wire_connections.append((port, res_wire))
                 else:
                     wire_connections.append((port, connected_wires[0]))
@@ -635,6 +657,20 @@ def verilog_string(rtl_mod):
             mod_str += '\t\tend\n'            
             mod_str += '\tend\n'            
             mod_str += '\tassign out = stage_num;\n'
+        elif has_prefix(rtl_mod.name, 'builtin_fifo'):
+            delay = rtl_mod.get_parameter('delay')
+            width = rtl_mod.get_parameter('width')
+
+            current_out = 'in'
+            for i in range(delay):
+                next_out = 'delay_reg_{0}'.format(i)
+                mod_str += '\treg [{0}:0] {1};\n'.format(width - 1, next_out)
+                mod_str += '\talways @(posedge clk) begin\n'
+                mod_str += '\t\t{0} <= {1};\n'.format(next_out, current_out)
+                mod_str += '\tend\n'
+                current_out = next_out
+
+            mod_str += '\tassign out = {0};\n'.format(current_out)
         else:
             print('Error: Unsupported builtin', rtl_mod.name)
             assert(False)
