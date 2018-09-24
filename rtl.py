@@ -360,8 +360,10 @@ class Module:
 
 def build_mux(container_module, connected_inputs, output_to, width):
     print('mux inputs =', connected_inputs)
-    mux_mod = Module('mux_' + str(len(connected_inputs)) + '_' + str(width))
-    mux_mod.add_parameter('depth', connected_inputs)
+    mux_mod = Module('builtin_mux_' + str(len(connected_inputs)) + '_' + str(width))
+    #mux_mod.add_parameter('depth', connected_inputs)
+    mux_mod.add_parameter('depth', len(connected_inputs))    
+    mux_mod.add_parameter('width', width)
 
     wire_connections = []
     for i in range(len(connected_inputs)):
@@ -573,7 +575,20 @@ def verilog_string(rtl_mod):
             mod_str += '\t\tendcase\n'
             mod_str += '\tend\n'            
             mod_str += '\tassign out = out_reg;\n';
-            
+        elif has_prefix(rtl_mod.name, 'builtin_mux_'):
+            width = rtl_mod.get_parameter('width')
+            depth = rtl_mod.get_parameter('depth')
+            sel_width = math.ceil(math.log2(depth)) + 1
+
+            mod_str += '\treg [{0}:0] {1};\n'.format(width - 1, 'out_reg')
+            mod_str += '\talways @(*) begin\n'
+            mod_str += '\t\tcase(sel)\n'
+            for i in range(depth):
+                arg = bit_vector.bv_from_int(sel_width, i)
+                mod_str += "\t\t\t{0}'b{1}: out_reg = in{2};\n".format(sel_width, arg, i)
+            mod_str += '\t\tendcase\t\n'
+            mod_str += '\tend\n'
+            mod_str += '\tassign out = out_reg;\n'
         else:
             print('Error: Unsupported builtin', rtl_mod.name)
             assert(False)
