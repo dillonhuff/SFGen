@@ -42,6 +42,8 @@ class Schedule:
                 it = sched[i]
                 if it == instr:
                     return (func_name, i)
+
+        print('Error: No binding for', instr)
         assert(False)
 
     def get_schedule(self, unit_name):
@@ -52,6 +54,12 @@ class Schedule:
         for unit in self.functional_units:
             s += '\t' + unit + ' -> ' + str(self.functional_units[unit]) + '\n'
         return s
+
+    def __repr__(self):
+        return self.to_string()
+
+    def __str__(self):
+        return self.to_string()
 
     def bind_instruction(self, unit_name, start_time, instruction):
         unit = self.functional_units[unit_name]
