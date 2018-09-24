@@ -31,10 +31,10 @@ def approximate_reciprocal(b):
     top_8_ext = zero_extend(2*width, top_8)
     quote = one_ext / top_8_ext
 
-    print('Quote =', quote)
+    #print('Quote =', quote)
 
     sliced_quote = (normalize_left(quote))[quote.width() - width:quote.width() - 1]
-    print('Sliced quote =', sliced_quote)
+    #print('Sliced quote =', sliced_quote)
 
     return sliced_quote
 
