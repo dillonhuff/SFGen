@@ -367,7 +367,7 @@ def build_mux(container_module, connected_inputs, output_to, width):
         mux_mod.add_in_port('in' + str(i), width)
         wire_connections.append(('in' + str(i), connected_inputs[i]))
 
-    mux_mod.add_in_port('sel', math.ceil(math.log2(len(connected_inputs))))
+    mux_mod.add_in_port('sel', math.ceil(math.log2(len(connected_inputs))) + 1)
     mux_mod.add_out_port('out', width)
 
     out_w = container_module.fresh_wire(width)
@@ -385,6 +385,10 @@ def generate_rtl(f, sched):
             mod.add_out_port(f.output_name(), f.symbol_type(f.output_name()).width())
         elif isinstance(f.symbol_type(sym), l.ArrayType):
             mod.add_wire(sym, f.symbol_type(sym).width())
+
+    if sched.num_cycles() > 1:
+        stage_width = math.ceil(math.log2(sched.num_cycles())) + 1
+        mod.add_reg('global_stage_counter', stage_width)
 
     for unit in sched.get_functional_units():
         print('Unit = ', unit)
@@ -439,9 +443,9 @@ def verilog_wire_decls(rtl_mod):
     return decls
 
 def verilog_port_connections(input_schedule, module):
-    print('Input schedule for', module)
-    for i in input_schedule:
-        print('\t', i)
+    #print('Input schedule for', module)
+    # for i in input_schedule:
+    #     print('\t', i)
 
     #assert(len(input_schedule) == 1)
     
@@ -572,7 +576,7 @@ def verilog_string(rtl_mod):
             assert(False)
     else:
         for cell in rtl_mod.cells:
-            print('Cell =', cell)
+            #print('Cell =', cell)
             mod_str += '\t' + cell[0].name + ' ' + cell[2] + '(' + comma_list(verilog_port_connections(cell[1], cell[0])) + ');\n'
 
     mod_str += '\nendmodule\n\n'
