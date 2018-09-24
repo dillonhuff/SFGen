@@ -39,7 +39,7 @@ def test_schedule():
     constraints.set_resource_count('mult_8', 1)
     sched = schedule(code_gen, f_spec, constraints)
 
-    assert(sched.num_cycles() == 2)
+    assert(sched.num_cycles() == 3)
 
     assert(instructions_in_order(sched, f_spec))
 

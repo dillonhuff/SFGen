@@ -8,7 +8,7 @@ from scheduling import *
 import math
 
 def storage_width(w):
-    return math.ceil(math.log2(w)) + 1
+    return math.ceil(math.log2(w))
 
 class Wire:
     def __init__(self, name, width, is_in=False, is_out=False, is_reg=False):
@@ -391,7 +391,7 @@ def build_mux(container_module, connected_inputs, output_to, width):
             x_const = container_module.build_x_constant(width)
             wire_connections.append(('in' + str(i), x_const))
 
-    mux_mod.add_in_port('sel', math.ceil(math.log2(len(connected_inputs))) + 1)
+    mux_mod.add_in_port('sel', storage_width(len(connected_inputs))) #math.ceil(math.log2(len(connected_inputs))) + 1)
     mux_mod.add_out_port('out', width)
 
     out_w = container_module.fresh_wire(width)
@@ -411,7 +411,7 @@ def generate_rtl(f, sched):
             mod.add_wire(sym, f.symbol_type(sym).width())
 
     if sched.num_cycles() > 1:
-        stage_width = math.ceil(math.log2(sched.num_cycles())) + 1
+        stage_width = storage_width(sched.num_cycles()) #math.ceil(math.log2(sched.num_cycles())) + 1
         mod.add_reg('global_stage_counter', stage_width)
         mod.add_in_port('clk', 1)
         mod.add_in_port('en', 1)
@@ -610,7 +610,7 @@ def verilog_string(rtl_mod):
         elif has_prefix(rtl_mod.name, 'builtin_mux_'):
             width = rtl_mod.get_parameter('width')
             depth = rtl_mod.get_parameter('depth')
-            sel_width = math.ceil(math.log2(depth)) + 1
+            sel_width = storage_width(depth) #math.ceil(math.log2(depth)) + 1
 
             mod_str += '\treg [{0}:0] {1};\n'.format(width - 1, 'out_reg')
             mod_str += '\talways @(*) begin\n'

@@ -4,13 +4,32 @@ module top();
 
    reg [7:0] a;
    reg [7:0] b;
+   reg       en;
+   reg       clk;
+   
    
    wire [7:0] out;
    
    initial begin
+      #1 clk = 0;
+
+      #1 en = 1;
       #1 a = 8'd2;
       #1 b = 8'd3;
-      #1 $display("out = %d", out);
+      
+      #1 clk = 1;
+      #1 clk = 0;
+
+      #1 en = 0;
+
+      #1 clk = 1;
+      #1 clk = 0;
+
+      #1 clk = 1;
+      #1 clk = 0;
+      
+
+//      #1 $display("out = %d", out);
       
       #1 `assert(out, 2 * 3 * 3 * 3);
 
@@ -18,7 +37,7 @@ module top();
       
    end
 
-   mult_8_8 div(.a(a), .b(b), .out(out));
+   mult_8_8 div(.a(a), .b(b), .out(out), .en(en), .clk(clk));
    
 
 endmodule

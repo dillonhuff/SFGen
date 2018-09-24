@@ -27,7 +27,9 @@ class Schedule:
         self.total_num_cycles = 0
 
     def num_cycles(self):
-        return self.total_num_cycles
+        if self.total_num_cycles == 0:
+            return 0
+        return self.total_num_cycles + 1
 
     def get_operation(self, name):
         return self.functional_units[name][0]
