@@ -5,6 +5,7 @@ import ast
 import importlib
 import bit_vector
 from scheduling import *
+import math
 
 class Wire:
     def __init__(self, name, width, is_in=False, is_out=False, is_reg=False):
@@ -326,6 +327,11 @@ class Module:
     def add_cell(self, cell_module, wire_connections, cell_name):
         self.cells.append((cell_module, wire_connections, cell_name))
 
+    def fresh_name(self, prefix):
+        n = prefix + '_' + str(self.unique_num)
+        self.unique_num += 1
+        return n
+
     def fresh_wire(self, width):
         n = 'fresh_wire_' + str(self.unique_num)
         self.unique_num += 1
@@ -351,6 +357,23 @@ class Module:
 
     def out_port_names(self):
         return list(self.out_ports)
+
+def build_mux(container_module, connected_inputs, output_to, width):
+    mux_mod = Module('mux_' + str(len(connected_inputs)) + '_' + str(width))
+    mux_mod.add_parameter('depth', connected_inputs)
+
+    wire_connections = []
+    for i in range(len(connected_inputs)):
+        mux_mod.add_in_port('in' + str(i), width)
+        wire_connections.append(('in' + str(i), connected_inputs[i]))
+
+    mux_mod.add_in_port('sel', math.ceil(math.log2(len(connected_inputs))))
+    mux_mod.add_out_port('out', width)
+
+    out_w = container_module.fresh_wire(width)
+    wire_connections.append(('out', out_w))
+    container_module.add_cell(mux_mod, wire_connections, container_module.fresh_name('in_mux'))
+    return out_w
 
 def generate_rtl(f, sched):
     mod = Module(f.name)
@@ -385,9 +408,11 @@ def generate_rtl(f, sched):
             connected_wires = wire_connection_map[port]
 
             if port in mod_fu.in_port_names():
-                
-                for in_wire in connected_wires:
-                    wire_connections.append((port, in_wire))
+
+                res_wire = build_mux(mod, connected_wires, port, mod_fu.get_wire_width(port))
+                wire_connections.append((port, res_wire))
+                # for in_wire in connected_wires:
+                #     wire_connections.append((port, in_wire))
                 
             else:
                 assert(port in mod_fu.out_port_names())
