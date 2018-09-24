@@ -417,3 +417,9 @@ def concat(a, b):
 
 def lookup_in_table(b, table):
     return table(b)
+
+def unknown_bits(width):
+    bits = []
+    for i in range(width):
+        bits.append(QVB(X))
+    return BV(bits)

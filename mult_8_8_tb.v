@@ -10,7 +10,8 @@ module top();
    initial begin
       #1 a = 8'd2;
       #1 b = 8'd3;
-
+      #1 $display("out = %d", out);
+      
       #1 `assert(out, 2 * 3 * 3 * 3);
 
       #1 $display("passed");

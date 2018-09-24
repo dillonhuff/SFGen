@@ -299,6 +299,18 @@ class Module:
         self.out_ports = set([])
         self.cells = []
 
+    def build_x_constant(self, width):
+        mod_name = self.fresh_name('x_const')
+        out_name = self.fresh_name('undefined_value')
+        self.add_wire(out_name, width)
+        val = bit_vector.unknown_bits(width)
+        const_mod = Module('builtin_constant_' + str(width) + '_' + str(val))
+        const_mod.add_out_port('out', width)
+        const_mod.add_parameter('value', val)
+        const_mod.add_parameter('width', width)
+        self.add_cell(const_mod, [('out', out_name)], mod_name)
+        return out_name
+        
     def add_assign(self, res_name, rhs_name, width):
         cell_mod = module_for_functional_unit(Operation('assign_' + str(width), [width]))
 
@@ -368,7 +380,12 @@ def build_mux(container_module, connected_inputs, output_to, width):
     wire_connections = []
     for i in range(len(connected_inputs)):
         mux_mod.add_in_port('in' + str(i), width)
-        wire_connections.append(('in' + str(i), connected_inputs[i]))
+        next_in = connected_inputs[i]
+        if next_in != None:
+            wire_connections.append(('in' + str(i), connected_inputs[i]))
+        else:
+            x_const = container_module.build_x_constant(width)
+            wire_connections.append(('in' + str(i), x_const))
 
     mux_mod.add_in_port('sel', math.ceil(math.log2(len(connected_inputs))) + 1)
     mux_mod.add_out_port('out', width)
@@ -430,7 +447,8 @@ def generate_rtl(f, sched):
                 wire_connections.append((port, out_w))
             
                 for out_wire in connected_wires:
-                    mod.add_assign(out_wire, out_w, mod.get_wire_width(out_w))
+                    if out_wire != None:
+                        mod.add_assign(out_wire, out_w, mod.get_wire_width(out_w))
 
         mod.add_cell(mod_fu, wire_connections, cell_name)
 
