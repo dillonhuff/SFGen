@@ -278,7 +278,7 @@ def build_module_connections(cell_module, bound_instructions, cell_name):
     wire_connections = {}
 
     for i0 in bound_instructions:
-        i0 = bound_instructions[0]
+        #i0 = bound_instructions[0]
         i_conns = get_port_map(i0, cell_module)
         for val in i_conns:
             if val in wire_connections:
@@ -359,6 +359,7 @@ class Module:
         return list(self.out_ports)
 
 def build_mux(container_module, connected_inputs, output_to, width):
+    print('mux inputs =', connected_inputs)
     mux_mod = Module('mux_' + str(len(connected_inputs)) + '_' + str(width))
     mux_mod.add_parameter('depth', connected_inputs)
 
@@ -402,6 +403,7 @@ def generate_rtl(f, sched):
         mod_fu = module_for_functional_unit(unit_type)
         wire_connection_map = build_module_connections(mod_fu, unit_sched, cell_name)
 
+        print('Wire connection map =', wire_connection_map)
         mux_to_output_connections = []
         driven_by_output = []
 
@@ -415,7 +417,7 @@ def generate_rtl(f, sched):
 
                 if len(connected_wires) > 1:
                     res_wire = build_mux(mod, connected_wires, port, mod_fu.get_wire_width(port))
-                    wire_connections.append((port, res_wire))                    
+                    wire_connections.append((port, res_wire))
                 else:
                     wire_connections.append((port, connected_wires[0]))
 
