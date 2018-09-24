@@ -278,7 +278,7 @@ def build_module_connections(cell_module, bound_instructions, cell_name):
     wire_connections = {}
 
     for i0 in bound_instructions:
-        #i0 = bound_instructions[0]
+
         i_conns = get_port_map(i0, cell_module)
         for val in i_conns:
             if val in wire_connections:

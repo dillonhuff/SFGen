@@ -20,5 +20,8 @@ def test_schedule():
 
     generate_verilog(mod)
 
+    print('Function')
+    print(f_spec.to_string())    
+
     res = run_iverilog_test(mod.name)
     assert(res == 'passed\n')
