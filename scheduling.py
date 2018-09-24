@@ -256,7 +256,10 @@ def schedule(code_gen, f, constraints):
     s = Schedule()
     cycle_num = 0
     bound_instructions = set([])
-    unbound_instructions = set(f.instructions)
+    unbound_instructions = []
+    for instr in f.instructions:
+        unbound_instructions.append(instr)
+        #set(f.instructions)
 
     cycle_time = 0
 
@@ -283,7 +286,8 @@ def schedule(code_gen, f, constraints):
 
         if bound:
             bound_instructions.add(instr)
-            unbound_instructions.remove(instr)
+            unbound_instructions.pop(0)
+            #unbound_instructions.remove(instr)
 
     s.total_num_cycles = cycle_time
 

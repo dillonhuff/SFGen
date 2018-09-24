@@ -13,6 +13,9 @@ def instructions_in_order(sched, f):
     print('instructions =', f.instructions)
     print('schedule     =', sched)
     for instr in f.instructions:
+        if isinstance(instr, ReturnInstr) or isinstance(instr, ConstDecl):
+            continue
+        
         binding = sched.get_binding(instr)
         cycle_num = binding[1]
 
