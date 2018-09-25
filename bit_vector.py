@@ -441,8 +441,8 @@ def binary_double(num):
         while len(bin_str) < 64:
             bin_str = '0' + bin_str
 
-    print('bin_str =', bin_str)
-    print('len     =', len(bin_str))
+    # print('bin_str =', bin_str)
+    # print('len     =', len(bin_str))
     assert(len(bin_str) == 64)
     return bin_str
 
