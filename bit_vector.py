@@ -438,8 +438,11 @@ def binary_double(num):
     bin_str = bin(struct.unpack('!Q',struct.pack('!d', num))[0])
     bin_str = bin_str[2:]
     if num >= 0:
-        bin_str = '0' + bin_str
+        while len(bin_str) < 64:
+            bin_str = '0' + bin_str
 
+    print('bin_str =', bin_str)
+    print('len     =', len(bin_str))
     assert(len(bin_str) == 64)
     return bin_str
 
