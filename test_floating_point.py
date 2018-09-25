@@ -30,7 +30,7 @@ def test_double_conversion_complicated():
     assert(a_bv == res_bv)
     assert(double_from_bv(bv_from_double(a)) == a)
     
-def test_double_mul():
+def test_double_mul_one():
     a = 1.0
     a_bv = bv_from_double(a)
 
@@ -39,3 +39,28 @@ def test_double_mul():
     print('r = ', r)
 
     assert(double_from_bv(r) == a*a)
+
+def test_double_mul_minus_one():
+    a = -1.0
+    a_bv = bv_from_double(a)
+
+    r = float_multiply(a_bv, a_bv, 52, 62, 0, 51)
+
+    print('r = ', r)
+
+    assert(double_from_bv(r) == a*a)
+
+
+def test_double_mul_mixed_one():
+    a = -1.0
+    b = 1.0
+    
+    a_bv = bv_from_double(a)
+    b_bv = bv_from_double(b)
+
+    r = float_multiply(a_bv, b_bv, 52, 62, 0, 51)
+
+    print('r = ', r)
+
+    assert(double_from_bv(r) == a*b)
+    
