@@ -434,8 +434,25 @@ def binary_float(num):
     assert(len(bin_str) == 32)
     return bin_str
 
+def binary_double(num):
+    bin_str = bin(struct.unpack('!Q',struct.pack('!d', num))[0])
+    bin_str = bin_str[2:]
+    if num >= 0:
+        bin_str = '0' + bin_str
+
+    assert(len(bin_str) == 64)
+    return bin_str
+
 def bv_from_float(f):
     bit_str = binary_float(f)
+    bits = []
+    for digit in bit_str:
+        bits.append(to_qb(digit))
+    bits.reverse()
+    return BV(bits)
+
+def bv_from_double(f):
+    bit_str = binary_double(f)
     bits = []
     for digit in bit_str:
         bits.append(to_qb(digit))
@@ -458,11 +475,18 @@ def int_to_bytes(n, minlen=0):  # Helper function
     return bytearray(reversed(b))  # High bytes first.
 
 def bin_to_float(b):
-    """ Convert binary string to a float. """
-    bf = int_to_bytes(int(b, 2), 4)  # 8 bytes needed for IEEE 754 binary64.
+    bf = int_to_bytes(int(b, 2), 4)
     return struct.unpack('>f', bf)[0]
+
+def bin_to_double(b):
+    bf = int_to_bytes(int(b, 2), 8)
+    return struct.unpack('>d', bf)[0]
 
 def float_from_bv(b):
     assert(b.width() == 32)
     return bin_to_float(b.to_string())
+
+def double_from_bv(b):
+    assert(b.width() == 64)
+    return bin_to_double(b.to_string())
 

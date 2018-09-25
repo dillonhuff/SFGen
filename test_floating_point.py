@@ -11,4 +11,22 @@ def test_float_conversion_pos():
 
 def test_float_conversion_complicated():
     a = -23.491
-    assert(float_from_bv(bv_from_float(a)) == a)
+    a_bv = bv_from_float(a)
+    res_bv = bv_from_float(float_from_bv(bv_from_float(a)))
+
+    print('a_bv   =', a_bv)
+    print('res_bv =', res_bv)
+
+    assert(a_bv == res_bv)
+
+def test_double_conversion_complicated():
+    a = -23.491
+    a_bv = bv_from_double(a)
+    res_bv = bv_from_double(double_from_bv(bv_from_double(a)))
+
+    print('a_bv   =', a_bv)
+    print('res_bv =', res_bv)
+
+    assert(a_bv == res_bv)
+    assert(double_from_bv(bv_from_double(a)) == a)
+    
