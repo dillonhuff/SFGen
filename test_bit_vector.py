@@ -18,7 +18,18 @@ def test_equals():
 
     assert(a == b)
 
+def test_not_equals():    
+    a = bv("2'b00")
+    b = bv("2'b01")
 
+    assert(a != b)
+
+def test_not_equals_false():    
+    a = bv("2'b00")
+    b = bv("2'b00")
+
+    assert(not (a != b))
+    
 def test_invert():
     a = bv_from_list([QVB(1), QVB(0)])
     correct = bv_from_list([QVB(0), QVB(1)])
@@ -152,3 +163,5 @@ def test_concat():
     b = bv("8'b10100001")
     res = bv("17'b10110100110100001")
     assert(concat(a, b) == res)
+
+    

@@ -3,6 +3,9 @@ from bit_vector import *
 def high_bit(a):
     return a[a.width() - 1 : a.width() - 1]
 
+def get_bit(a, val):
+    return a[val : val]
+
 def float_multiply(a, b, exp_start, exp_end, mant_start, mant_end, exp_bias):
     assert(isinstance(a, QuadValueBitVector))
     assert(isinstance(b, QuadValueBitVector))    
@@ -39,7 +42,26 @@ def float_multiply(a, b, exp_start, exp_end, mant_start, mant_end, exp_bias):
     print('sigprod         =', prod)
     print('sigprod shifted =', prod_shifted)
 
-    prod_sliced = (prod_shifted >> bv_from_int(a.width(), mant_width))[0 : mant_width - 1]
+    M0 = zero_extend(2, get_bit(prod_shifted, mant_width))
+    R = zero_extend(2, get_bit(prod_shifted, mant_width - 1))
+    S = zero_extend(2, orr(prod_shifted[0 : mant_width - 2]))
+
+    print('M0 =', M0)
+    print('R  =', R)
+    print('S  =', S)
+    print('RD =', R*(M0 + S))
+    if (R*(M0 + S) != bv_from_int(M0.width(), 0)):
+        print('Rounding')
+        rounded = bv_from_int(prod_shifted.width(), 1) << bv_from_int(a.width(), 52)
+
+        assert(rounded.width() == prod_shifted.width())
+        prod_shifted_rounded = prod_shifted + rounded
+    else:
+        print('Not rounding')
+        prod_shifted_rounded = prod_shifted
+
+    print('Prod shifted rounded =', prod_shifted_rounded)
+    prod_sliced = (prod_shifted_rounded >> bv_from_int(a.width(), mant_width))[0 : mant_width - 1]
 
     print('prod sliced =', prod_sliced)
     

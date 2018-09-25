@@ -108,6 +108,9 @@ class QuadValueBitVector():
 
         return BV(res_bits)
 
+    def __ne__(self, other):
+        return not (self == other)
+    
     def __eq__(self, other):
         if (not isinstance(other, QuadValueBitVector)):
             return False
@@ -493,3 +496,16 @@ def double_from_bv(b):
     assert(b.width() == 64)
     return bin_to_double(b.to_string())
 
+def andr(b):
+    for b in b.bits:
+        if b != QVB(1):
+            return BV([QVB(0)])
+    
+    return BV([QVB(1)])
+
+def orr(b):
+    for b in b.bits:
+        if b == QVB(1):
+            return BV([QVB(1)])
+    
+    return BV([QVB(0)])
