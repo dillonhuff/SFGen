@@ -401,8 +401,8 @@ def evaluate_int_binop(new_instructions, f, instr, values):
 
     f.set_symbol_type(instr.res, IntegerType())
 
-def evaluate_integer_constants(f, code_gen):
-    values = {}
+def evaluate_integer_constants(values, f, code_gen):
+#    values = {}
     new_instructions = []
     for instr in f.instructions:
         if isinstance(instr, BinopInstr):
@@ -677,10 +677,17 @@ def specialize_types(code_gen, func_name, func_arg_types):
     spec_name = func_name
     func = code_gen.get_function(func_name)
     sym_map = {}
+    values = {}
     i = 0
     for tp in func_arg_types:
-        spec_name += '_' + str(tp.width())
-        sym_map[func.get_arg(i)] = tp
+        if isinstance(tp, Type):
+            spec_name += '_' + str(tp.width())
+            sym_map[func.get_arg(i)] = tp
+        else:
+            assert(isinstance(tp, int))
+            spec_name += '_' + str(tp)
+            sym_map[func.get_arg(i)] = IntegerType()
+            values[func.get_arg(i)] = tp
         i += 1
 
     spec_f = LowFunctionDef(spec_name, func.get_module_name(), func.args)
@@ -703,7 +710,7 @@ def specialize_types(code_gen, func_name, func_arg_types):
     # print('After inlining')
     # print(spec_f.to_string())
 
-    evaluate_integer_constants(spec_f, code_gen)
+    evaluate_integer_constants(values, spec_f, code_gen)
 
     # print('After evaluating widths first')
     # print(spec_f.to_string())

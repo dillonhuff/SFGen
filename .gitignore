@@ -18,3 +18,5 @@ huang_divide_16_16
 huang_divide_16_16.v
 newton_raphson_divide_8_8
 newton_raphson_divide_8_8.v
+mult_8_8
+mult_8_8.v

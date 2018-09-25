@@ -153,3 +153,23 @@ def test_huang_divider():
 
     res = run_iverilog_test(mod.name)
     assert(res == 'passed\n')
+
+def test_make_const():
+
+    code_gen = codegen_for_module('make_const')    
+    f_spec = specialize_types(code_gen, 'make_const', [l.ArrayType(16), 27])
+
+    constraints = ScheduleConstraints()
+    sched = schedule(code_gen, f_spec, constraints)
+
+    print(sched.to_string())
+
+    mod = generate_rtl(f_spec, sched)
+
+    assert(mod.name == f_spec.name)
+
+    generate_verilog(mod)
+
+    res = run_iverilog_test(mod.name)
+    assert(res == 'passed\n')
+    
