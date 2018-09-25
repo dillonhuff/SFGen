@@ -1,5 +1,6 @@
 from bit_vector import *
 from floating_point import *
+import random
 
 def test_float_conversion_neg():
     a = -2.0
@@ -106,3 +107,19 @@ def test_double_mul_large_and_complicated():
 
     assert(double_from_bv(r) == a * b)
     
+def test_random():
+    for i in range(0, 100):
+        a = random.uniform(-1e-40, 1e40)
+        b = random.uniform(-1e-40, 1e40)
+        a_bv = bv_from_double(a)
+        b_bv = bv_from_double(b)
+
+        print('a =', a)
+        print('b =', b)
+        
+        r = float_multiply(a_bv, b_bv, 52, 62, 0, 51, 1023)
+
+        print('r       =', r)
+        print('correct =', bv_from_double(a*b))
+        
+        assert(double_from_bv(r) == a*b)

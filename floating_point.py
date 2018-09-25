@@ -47,7 +47,7 @@ def float_multiply(a, b, exp_start, exp_end, mant_start, mant_end, exp_bias):
     sign_a = high_bit(a)
     sign_b = high_bit(b)
     result_sign = bv_from_int(1, 0) if sign_a == sign_b else bv_from_int(1, 1)
-    r = prod_sliced #a[mant_start : mant_end]
+    r = prod_sliced
     r_exp = concat(exp_shifted, r)
     r_signed = concat(result_sign, r_exp)
 
