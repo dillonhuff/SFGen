@@ -423,3 +423,6 @@ def unknown_bits(width):
     for i in range(width):
         bits.append(QVB(X))
     return BV(bits)
+
+def bv_from_float(f):
+    assert(False)
