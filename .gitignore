@@ -20,3 +20,7 @@ newton_raphson_divide_8_8
 newton_raphson_divide_8_8.v
 mult_8_8
 mult_8_8.v
+make_const_16
+make_const_16.v
+make_const_16_27
+make_const_16_27.v
