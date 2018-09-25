@@ -92,3 +92,17 @@ def test_double_mul_exact_rep():
 
     assert(double_from_bv(r) == a*b)
     
+def test_double_mul_large_and_complicated():
+    a = -234.13087877343224
+    b = 9834.230498130842842088
+    
+    a_bv = bv_from_double(a)
+    b_bv = bv_from_double(b)
+
+    r = float_multiply(a_bv, b_bv, 52, 62, 0, 51, 1023)
+    
+    print('r       =', r)
+    print('correct =', bv_from_double(a*b))
+
+    assert(double_from_bv(r) == a * b)
+    
