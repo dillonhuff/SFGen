@@ -1,4 +1,5 @@
 import re
+import struct
 
 X = 2
 Z = 3
@@ -424,5 +425,44 @@ def unknown_bits(width):
         bits.append(QVB(X))
     return BV(bits)
 
+def binary_float(num):
+    bin_str = bin(struct.unpack('!I',struct.pack('!f', num))[0])
+    bin_str = bin_str[2:]
+    if num >= 0:
+        bin_str = '0' + bin_str
+
+    assert(len(bin_str) == 32)
+    return bin_str
+
 def bv_from_float(f):
-    assert(False)
+    bit_str = binary_float(f)
+    bits = []
+    for digit in bit_str:
+        bits.append(to_qb(digit))
+    bits.reverse()
+    return BV(bits)
+
+def int_to_bytes(n, minlen=0):  # Helper function
+    """ Int/long to byte string.
+        Python 3.2+ has a built-in int.to_bytes() method that could be
+        used instead, but the following is portable.
+    """
+    nbits = n.bit_length() + (1 if n < 0 else 0)  # +1 for any sign bit.
+    nbytes = (nbits+7) // 8  # Number of whole bytes.
+    b = bytearray()
+    for _ in range(nbytes):
+        b.append(n & 0xff)
+        n >>= 8
+    if minlen and len(b) < minlen:  # Zero padding needed?
+        b.extend([0] * (minlen-len(b)))
+    return bytearray(reversed(b))  # High bytes first.
+
+def bin_to_float(b):
+    """ Convert binary string to a float. """
+    bf = int_to_bytes(int(b, 2), 4)  # 8 bytes needed for IEEE 754 binary64.
+    return struct.unpack('>f', bf)[0]
+
+def float_from_bv(b):
+    assert(b.width() == 32)
+    return bin_to_float(b.to_string())
+
