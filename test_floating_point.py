@@ -78,3 +78,17 @@ def test_double_mul_powers_of_two():
 
     assert(double_from_bv(r) == a*b)
     
+def test_double_mul_exact_rep():
+    a = 12.0
+    b = 12.0
+    
+    a_bv = bv_from_double(a)
+    b_bv = bv_from_double(b)
+
+    r = float_multiply(a_bv, b_bv, 52, 62, 0, 51, 1023)
+    
+    print('r       =', r)
+    print('correct =', bv_from_double(a*b))
+
+    assert(double_from_bv(r) == a*b)
+    
