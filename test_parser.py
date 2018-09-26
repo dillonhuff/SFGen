@@ -5,6 +5,25 @@ from rtl import *
 from scheduling import *
 from utils import *
 
+def test_repeated_assignment():
+    code_gen = codegen_for_module('many_assigns')    
+    f_spec = specialize_types(code_gen, 'many_assigns', [l.ArrayType(32)])
+
+    constraints = ScheduleConstraints()
+    sched = schedule(code_gen, f_spec, constraints)
+
+    print(sched.to_string())
+
+    mod = generate_rtl(f_spec, sched)
+
+    assert(mod.name == f_spec.name)
+
+    generate_verilog(mod)
+
+    res = run_iverilog_test(mod.name)
+    assert(res == 'passed\n')
+    
+
 def test_tc_neg_parse():
     code_gen = codegen_for_module('tc_neg')
     print(code_gen.get_function("tc_neg").to_string())

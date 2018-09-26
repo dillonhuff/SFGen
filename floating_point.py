@@ -32,10 +32,10 @@ def float_multiply(a, b, exp_start, exp_end, mant_start, mant_end, exp_bias):
     b_lz = leading_zero_count(b_mant_tmp)
 
     if a_is_subnorm and a_exp == bv_from_int(exp_width, 0):
-        return bv_from_int(64, 0)
+        return bv_from_int(a.width(), 0)
 
     if b_is_subnorm and b_exp == bv_from_int(exp_width, 0):
-        return bv_from_int(64, 0)
+        return bv_from_int(a.width(), 0)
     
     if a_is_subnorm:
         a_mant_tmp = a_mant_tmp << (a_lz + bv_from_int(a_lz.width(), 1))
