@@ -8,7 +8,7 @@ module top();
    initial begin
       #1 y = 10;
 
-      $display("out = %d", out);
+//      $display("out = %d", out);
       
       #1 `assert(out, (y + 1)*(y + 1));
 

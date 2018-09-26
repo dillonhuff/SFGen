@@ -670,7 +670,28 @@ def delete_unsynthesizable_instructions(spec_f, code_gen):
             new_instrs.append(instr)
             
     swap_instrs(spec_f, new_instrs)
-    
+
+def make_result_names_unique(f):
+    used_names = {}
+    for i in range(len(f.instructions)):
+        instr = f.instructions[i]
+
+        if not isinstance(instr, ReturnInstr):
+            old_name = instr.result_name()
+
+            if old_name in used_names:
+                used_names[instr.result_name()] += 1
+                next_num = used_names[instr.result_name()]
+
+
+                new_name = instr.result_name() + '_' + str(next_num)
+                
+                for j in range(i, len(f.instructions)):
+                    other = f.instructions[j]
+                    other.replace_values(lambda name : new_name if name == old_name else name)
+            else:
+                used_names[old_name] = 0
+
 def specialize_types(code_gen, func_name, func_arg_types):
     assert(isinstance(func_name, str))
 
@@ -709,6 +730,8 @@ def specialize_types(code_gen, func_name, func_arg_types):
     
     # print('After inlining')
     # print(spec_f.to_string())
+
+    make_result_names_unique(spec_f)
 
     evaluate_integer_constants(values, spec_f, code_gen)
 

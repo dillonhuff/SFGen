@@ -20,7 +20,11 @@ def test_repeated_assignment():
 
     generate_verilog(mod)
 
+    print('Function before verilog tb run')
+    print(f_spec.to_string())
+
     res = run_iverilog_test(mod.name)
+    print('res =', res)
     assert(res == 'passed\n')
     
 

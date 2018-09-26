@@ -24,3 +24,5 @@ make_const_16
 make_const_16.v
 make_const_16_27
 make_const_16_27.v
+many_assigns_32
+many_assigns_32.v
