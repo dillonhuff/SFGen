@@ -109,9 +109,9 @@ def test_double_mul_large_and_complicated():
 
 
 def test_mul_subnormal():
-    z_exp = bv_from_int(11, 1)
-    a_s = bv_from_int(52, 0)
-    b_s = bv_from_int(52, 3)    
+    z_exp = bv_from_int(11, 0)
+    a_s = bv_from_int(52, 1)
+    b_s = bv_from_int(52, 2)    
     s = bv_from_int(1, 0)
     a_bv = concat(concat(s, z_exp), a_s)
     b_bv = concat(concat(s, z_exp), b_s)
