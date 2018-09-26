@@ -106,9 +106,34 @@ def test_double_mul_large_and_complicated():
     print('correct =', bv_from_double(a*b))
 
     assert(double_from_bv(r) == a * b)
+
+
+def test_mul_subnormal():
+    z_exp = bv_from_int(11, 1)
+    a_s = bv_from_int(52, 0)
+    b_s = bv_from_int(52, 3)    
+    s = bv_from_int(1, 0)
+    a_bv = concat(concat(s, z_exp), a_s)
+    b_bv = concat(concat(s, z_exp), b_s)
+
+    print('a_bv =', a_bv)
+    print('b_bv =', b_bv)
+
+    a = double_from_bv(a_bv)
+    b = double_from_bv(b_bv)
+
+    assert(bv_from_double(a) == a_bv)
+    assert(bv_from_double(b) == b_bv)
+
+    print('a =', a)
+    print('b =', b)
+
+    r = float_multiply(a_bv, b_bv, 52, 62, 0, 51, 1023)
+
+    assert(double_from_bv(r) == a * b)
     
 def test_random():
-    for i in range(0, 100):
+    for i in range(0, 10):
         a = random.uniform(-1e-40, 1e40)
         b = random.uniform(-1e-40, 1e40)
         a_bv = bv_from_double(a)
@@ -123,3 +148,4 @@ def test_random():
         print('correct =', bv_from_double(a*b))
         
         assert(double_from_bv(r) == a*b)
+

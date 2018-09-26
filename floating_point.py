@@ -32,6 +32,9 @@ def float_multiply(a, b, exp_start, exp_end, mant_start, mant_end, exp_bias):
     a_mant_ext = zero_extend(2*a_mant.width(), a_mant)
     b_mant_ext = zero_extend(2*a_mant.width(), b_mant)
 
+    print('a_mant_ext =', a_mant_ext)
+    print('b_mant_ext =', b_mant_ext)
+
     prod = a_mant_ext * b_mant_ext
 
     carry_out = high_bit(prod) == bv_from_int(1, 1)
