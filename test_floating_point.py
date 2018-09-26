@@ -110,8 +110,9 @@ def test_double_mul_large_and_complicated():
 
 def test_mul_subnormal():
     z_exp = bv_from_int(11, 0)
-    a_s = bv_from_int(52, 1)
-    b_s = bv_from_int(52, 2)    
+    a_s = bv_from_int(52, 1 << 51)
+    b_s = bv_from_int(52, 1 << 51)
+
     s = bv_from_int(1, 0)
     a_bv = concat(concat(s, z_exp), a_s)
     b_bv = concat(concat(s, z_exp), b_s)
@@ -125,11 +126,15 @@ def test_mul_subnormal():
     assert(bv_from_double(a) == a_bv)
     assert(bv_from_double(b) == b_bv)
 
-    print('a =', a)
-    print('b =', b)
+    print('a   =', a)
+    print('b   =', b)
+    print('a*b =', a*b)
 
     r = float_multiply(a_bv, b_bv, 52, 62, 0, 51, 1023)
 
+    print('r       =', r)
+    print('correct =', bv_from_double(a*b))
+    
     assert(double_from_bv(r) == a * b)
     
 def test_random():

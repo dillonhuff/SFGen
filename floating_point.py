@@ -17,17 +17,34 @@ def float_multiply(a, b, exp_start, exp_end, mant_start, mant_end, exp_bias):
 
     assert(exp_width + mant_width + 1 == a.width())
 
-    # Tentative exponent computation
+    # Check subnormals
     
     a_exp = a[exp_start : exp_end]
     b_exp = b[exp_start : exp_end]
 
-    tentative = (a_exp + b_exp) - bv_from_int(exp_width, exp_bias)
-    exp_result = tentative
+    a_is_subnorm = a_exp == bv_from_int(exp_width, 0)
+    b_is_subnorm = b_exp == bv_from_int(exp_width, 0)
 
     # Mantissa computation
-    a_mant = concat(bv_from_int(1, 1), a[mant_start : mant_end])
-    b_mant = concat(bv_from_int(1, 1), b[mant_start : mant_end])
+    #a_leading_zeros = bv_from_int(a_mant.width(), 0)
+    a_mant_tmp = a[mant_start : mant_end]
+    b_mant_tmp = b[mant_start : mant_end]
+
+    a_lz = leading_zero_count(a_mant_tmp)
+    b_lz = leading_zero_count(b_mant_tmp)
+
+    if a_is_subnorm:
+        a_mant_tmp = a_mant_tmp << (a_lz + bv_from_int(a_lz.width(), 1))
+        a_exp = bv_from_int(b_exp.width(), 1) - a_lz[0:a_exp.width() - 1]
+    if b_is_subnorm:
+        b_mant_tmp = a_mant_tmp << (a_lz + bv_from_int(a_lz.width(), 1))
+        b_exp = bv_from_int(b_exp.width(), 1) - b_lz[0:a_exp.width() - 1]
+
+    a_mant = concat(bv_from_int(1, 1), a_mant_tmp)
+    b_mant = concat(bv_from_int(1, 1), b_mant_tmp)
+
+    print('a subnorm =', a_is_subnorm)
+    print('b subnorm =', b_is_subnorm)
 
     a_mant_ext = zero_extend(2*a_mant.width(), a_mant)
     b_mant_ext = zero_extend(2*a_mant.width(), b_mant)
@@ -35,6 +52,14 @@ def float_multiply(a, b, exp_start, exp_end, mant_start, mant_end, exp_bias):
     print('a_mant_ext =', a_mant_ext)
     print('b_mant_ext =', b_mant_ext)
 
+    print('a_exp =', a_exp)
+    print('b_exp =', b_exp)
+
+    # Get tentative exponent
+    tentative = (a_exp + b_exp) - bv_from_int(exp_width, exp_bias)
+    exp_result = tentative
+
+    # Compute product
     prod = a_mant_ext * b_mant_ext
 
     carry_out = high_bit(prod) == bv_from_int(1, 1)
