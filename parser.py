@@ -323,12 +323,6 @@ def delete_dead_instructions(func):
             new_instrs.append(instr)
 
     swap_instrs(func, new_instrs)
-    #func.instructions = new_instrs
-
-# def inline_symtab(receiver, source, instr):
-#     for name in instr.used_values():
-#         if not receiver.has_symbol(name):
-#             receiver.add_symbol(name, source.symbol_type())
 
 def inline_function(receiver, new_instructions, to_inline, arg_map, returned):
     s = receiver.unique_suffix()
@@ -341,22 +335,20 @@ def inline_function(receiver, new_instructions, to_inline, arg_map, returned):
             receiver.add_symbol(inlined_name, to_inline.symbol_type(n))
             
         icpy.replace_values(lambda name: arg_map[name] if name in arg_map else name + '_' + s)
-        #replace_values(arg_map, s, icpy)
 
-        #inline_symtab(receiver, icpy)
         if not isinstance(icpy, ReturnInstr):
             new_instructions.append(icpy)
         else:
             new_instructions.append(AssignInstr(returned, icpy.val_name))
     return None
 
-def inline_funcs(f, code_gen):
+def inline_funcs(f, code_gen, functions_to_skip):
     inlined_any = False
     new_instructions = []
     for instr in f.instructions:
         if isinstance(instr, CallInstr):
             called_func = instr.func
-            if code_gen.has_function(name_string(called_func)):
+            if code_gen.has_function(name_string(called_func)) and not (name_string(called_func) in functions_to_skip):
                 print('User defined function', name_string(called_func))
 
                 called_func_def = code_gen.get_function(name_string(called_func))
@@ -377,10 +369,10 @@ def inline_funcs(f, code_gen):
     swap_instrs(f, new_instructions)
     return inlined_any
 
-def inline_all(f, code_gen):
-    inlined = inline_funcs(f, code_gen)
+def inline_all(f, code_gen, dont_inline):
+    inlined = inline_funcs(f, code_gen, dont_inline)
     while inlined:
-        inlined = inline_funcs(f, code_gen)
+        inlined = inline_funcs(f, code_gen, dont_inline)
 
 def evaluate_int_unop(new_instructions, f, instr, values):
     if isinstance(instr.op, ast.Invert):

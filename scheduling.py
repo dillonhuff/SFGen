@@ -281,7 +281,11 @@ def get_unit(op, constraints, s, cycle_time):
 
 # Note: Assumption is that we have zero delay, but possible resource limited units
 def schedule(code_gen, f, constraints):
-    inline_all(f, code_gen)
+    print('before inlining')
+    print(f.to_string())
+
+    print('skipping', constraints.no_inlines)
+    inline_all(f, code_gen, constraints.no_inlines)
     print('after inlining')
     print(f.to_string())
 
