@@ -36,6 +36,8 @@ def test_non_inlined_functions():
     constraints.set_resource_count('plus_nums_32', 1)
     sched = schedule(code_gen, f_spec, constraints)
 
+    assert(sched.get_subschedule("plus_nums_32").num_cycles() == 0)
+
     print(sched.to_string())
 
     mod = generate_rtl(f_spec, sched)

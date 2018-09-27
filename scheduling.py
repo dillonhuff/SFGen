@@ -29,6 +29,10 @@ class Schedule:
         self.unique_num = 0
         self.functional_units = {}
         self.total_num_cycles = 0
+        self.subschedules = {}
+
+    def get_subschedule(self, name):
+        return self.subschedules[name]
 
     def num_cycles(self):
         if self.total_num_cycles == 0:
@@ -72,6 +76,7 @@ class Schedule:
     def get_schedule(self, unit_name):
         return self.functional_units[unit_name][1]
 
+    
     def to_string(self):
         s = '--- Schedule\n'
         for unit in self.functional_units:
