@@ -32,8 +32,8 @@ def test_non_inlined_functions():
     f_spec = specialize_types(code_gen, 'non_inlined', [l.ArrayType(32)])
 
     constraints = ScheduleConstraints()
-    constraints.no_inline('plus_nums_32')
-    constraints.set_resource_count('plus_nums_32', 1)
+    constraints.no_inline('plus_nums_32_32')
+    constraints.set_resource_count('plus_nums_32_32', 1)
     sched = schedule(code_gen, f_spec, constraints)
 
     assert(sched.get_subschedule("plus_nums_32").num_cycles() == 0)
