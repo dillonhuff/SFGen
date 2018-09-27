@@ -772,3 +772,4 @@ def codegen_for_module(mod_name):
     code_gen.visit(code)
 
     return code_gen
+# Idea: Preventing power viruses? Use solvers to fix this problem?
