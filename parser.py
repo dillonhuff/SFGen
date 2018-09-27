@@ -5,6 +5,12 @@ import copy
 
 from utils import *
 
+def name_string(n):
+    if isinstance(n, ast.Name):
+        return n.id
+    assert(isinstance(n, str))
+    return n
+
 def all_ops_same_width(instr):
     if anyinstance(instr.op, [ast.Mult, ast.Add, ast.Sub, ast.Div]):
         return True
@@ -29,8 +35,12 @@ class LowCodeGenerator(ast.NodeVisitor):
         self.expr_names = {}
 
     def get_function(self, name):
-        assert(name in self.functions)
-        return self.functions[name]
+        if isinstance(name, str):
+            assert(name in self.functions)
+            return self.functions[name]
+        else:
+            assert(name.id in self.functions)
+            return self.functions[name.id]
 
     def has_function(self, name):
         return name in self.functions
@@ -315,19 +325,25 @@ def delete_dead_instructions(func):
     swap_instrs(func, new_instrs)
     #func.instructions = new_instrs
 
-def inline_symtab(receiver, instr):
-    for name in instr.used_values():
-        if not receiver.has_symbol(name):
-            receiver.add_symbol(name, None)
+# def inline_symtab(receiver, source, instr):
+#     for name in instr.used_values():
+#         if not receiver.has_symbol(name):
+#             receiver.add_symbol(name, source.symbol_type())
 
 def inline_function(receiver, new_instructions, to_inline, arg_map, returned):
     s = receiver.unique_suffix()
+    name_map = {}
     for instr in to_inline.instructions:
         icpy = copy.deepcopy(instr)
+
+        for n in icpy.used_values():
+            inlined_name = arg_map[n] if n in arg_map else n + '_' + s
+            receiver.add_symbol(inlined_name, to_inline.symbol_type(n))
+            
         icpy.replace_values(lambda name: arg_map[name] if name in arg_map else name + '_' + s)
         #replace_values(arg_map, s, icpy)
 
-        inline_symtab(receiver, icpy)
+        #inline_symtab(receiver, icpy)
         if not isinstance(icpy, ReturnInstr):
             new_instructions.append(icpy)
         else:
@@ -340,10 +356,10 @@ def inline_funcs(f, code_gen):
     for instr in f.instructions:
         if isinstance(instr, CallInstr):
             called_func = instr.func
-            if isinstance(called_func, ast.Name) and code_gen.has_function(called_func.id):
-                print('User defined function', called_func.id)
+            if code_gen.has_function(name_string(called_func)):
+                print('User defined function', name_string(called_func))
 
-                called_func_def = code_gen.get_function(called_func.id)
+                called_func_def = code_gen.get_function(name_string(called_func))
                 arg_map = {}
                 i = 0
                 for arg in called_func_def.args:
@@ -544,8 +560,43 @@ def evaluate_integer_constants(values, f, code_gen):
             assert(False)
             
         elif isinstance(instr, CallInstr):
-            print('Error: Unhandled call', instr)
-            assert(False)
+
+            print('Name = ', instr)
+
+            called_func = code_gen.get_function(instr.func)
+
+            #assert(len(called_func.args) == 1)
+
+            #print('Specializing in', f.to_string())
+            tps = []
+            for arg in instr.args:
+                arg_tp = f.symbol_type(arg)
+                assert(isinstance(arg_tp, ArrayType) or isinstance(arg_tp, IntegerType))
+                if isinstance(arg_tp, ArrayType):
+                    tps.append(arg_tp)
+                else:
+                    tps.append(values[arg])
+
+            print('Specializing', instr.func, 'for types', tps)
+
+            spec_func = specialize_types(code_gen, instr.func, tps)
+            print('Done specializing')
+
+            assert(isinstance(spec_func.instructions[-1], ReturnInstr))
+
+            res_tp = spec_func.symbol_type(spec_func.instructions[-1].val_name)
+            assert(res_tp != None)
+
+            print('res_tp =', res_tp)
+            f.set_symbol_type(instr.res, res_tp)
+            f.set_symbol_type(name_string(instr.func), FunctionType(tps, res_tp))
+
+            code_gen.functions[name_string(spec_func.get_name())] = spec_func
+
+            new_instructions.append(CallInstr(instr.res, spec_func.get_name(), instr.args))
+            
+            #print('Error: Unhandled call', new_instructions[-1])
+
             #new_instructions.append(instr)
 
         elif isinstance(instr, ReturnInstr):
@@ -573,8 +624,6 @@ def evaluate_integer_constants(values, f, code_gen):
             t = f.symbol_type(instr.arg)
             assert(isinstance(t, ArrayType))
 
-            print('Name = ', instr.table_name)
-            
             called_func = code_gen.get_function(instr.table_name)
             assert(len(called_func.args) == 1)
 
@@ -692,8 +741,13 @@ def make_result_names_unique(f):
             else:
                 used_names[old_name] = 0
 
-def specialize_types(code_gen, func_name, func_arg_types):
-    assert(isinstance(func_name, str))
+def specialize_types(code_gen, func_name_in, func_arg_types):
+
+
+    func_name = func_name_in
+    if not isinstance(func_name_in, str):
+        assert(isinstance(func_name_in, ast.Name))
+        func_name = func_name_in.id
 
     spec_name = func_name
     func = code_gen.get_function(func_name)
@@ -702,7 +756,8 @@ def specialize_types(code_gen, func_name, func_arg_types):
     i = 0
     for tp in func_arg_types:
         if isinstance(tp, Type):
-            spec_name += '_' + str(tp.width())
+            if isinstance(tp, ArrayType):
+                spec_name += '_' + str(tp.width())
             sym_map[func.get_arg(i)] = tp
         else:
             assert(isinstance(tp, int))
@@ -721,28 +776,17 @@ def specialize_types(code_gen, func_name, func_arg_types):
     for instr in func.instructions:
         spec_f.instructions.append(copy.deepcopy(instr))
         
-    # print('Before inlining')
-    # print(spec_f.to_string())
 
-    inline_all(spec_f, code_gen)
+    #inline_all(spec_f, code_gen)
     delete_unsynthesizable_instructions(spec_f, code_gen)
     delete_dead_instructions(spec_f)
     
-    # print('After inlining')
-    # print(spec_f.to_string())
-
     make_result_names_unique(spec_f)
 
     evaluate_integer_constants(values, spec_f, code_gen)
 
-    # print('After evaluating widths first')
-    # print(spec_f.to_string())
-
     simplify_integer_assigns(spec_f)
     delete_dead_instructions(spec_f)
-
-    # print('After second width evaluation')
-    # print(spec_f.to_string())
 
     all_values = set()
     for instr in spec_f.instructions:
@@ -760,8 +804,9 @@ def specialize_types(code_gen, func_name, func_arg_types):
     for s in to_erase:
         spec_f.erase_symbol(s)
 
-    # print('Final specialized functions')
-    # print(spec_f.to_string())
+    print('After specializing', name_string(spec_f.get_name()), 'context has functions')
+    for f_name in code_gen.functions:
+        print('\t', f_name)
 
     return spec_f
 

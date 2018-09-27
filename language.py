@@ -333,6 +333,9 @@ class LowFunctionDef:
         for arg in args:
             self.symbol_table[arg] = None
 
+    def get_name(self):
+        return self.name
+
     def get_module_name(self):
         return self.module_name
 

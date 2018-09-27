@@ -281,6 +281,10 @@ def get_unit(op, constraints, s, cycle_time):
 
 # Note: Assumption is that we have zero delay, but possible resource limited units
 def schedule(code_gen, f, constraints):
+    inline_all(f, code_gen)
+    print('after inlining')
+    print(f.to_string())
+
     s = Schedule()
     cycle_num = 0
     bound_instructions = set([])
