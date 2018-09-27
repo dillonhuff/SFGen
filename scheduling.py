@@ -185,7 +185,7 @@ def op_string(op):
 
 sameWidthOps = [ast.Invert, ast.Add, ast.Sub]
 
-def functional_unit(instr, f):
+def functional_unit(instr, f, code_gen):
     if isinstance(instr, BinopInstr) and is_shift(instr):
         name = op_string(instr.op)
         l_width = f.symbol_type(instr.lhs).width()
@@ -239,8 +239,13 @@ def functional_unit(instr, f):
         return Operation(instr.func.id + '_' + str(in0_width) + '_' + str(in1_width), [in0_width, in1_width])
         
     elif isinstance(instr, CallInstr):
-        assert(isinstance(instr.func, ast.Name))
-        assert(False)
+        #assert(isinstance(instr.func, ast.Name))
+        called_func = name_string(instr.func)
+        args = []
+        called_func_def = code_gen.get_function(called_func)
+        for arg in called_func_def.input_names():
+            args.append(called_func_def.symbol_type(arg).width())
+        return Operation(called_func, args)
 
     elif isinstance(instr, TableLookupInstr):
         return Operation('builtin_table_lookup_' + instr.table_name, [f.symbol_type(instr.arg).width(), f.symbol_type(instr.res).width(), instr.table_name, f.get_module_name()])
@@ -290,6 +295,14 @@ def schedule(code_gen, f, constraints):
     print(f.to_string())
 
     s = Schedule()
+    
+    for func_name in constraints.no_inlines:
+        inner_def = code_gen.get_function(func_name)
+        constr = ScheduleConstraints()
+        sub_sched = schedule(code_gen, inner_def, constr)
+        s.subschedules[func_name] = sub_sched
+        
+
     cycle_num = 0
     bound_instructions = set([])
     unbound_instructions = []
@@ -305,10 +318,10 @@ def schedule(code_gen, f, constraints):
 
         bound = True
         if not isinstance(instr, ReturnInstr) and not isinstance(instr, ConstDecl):
-            opN = functional_unit(instr, f)
+            opN = functional_unit(instr, f, code_gen)
             op = opN.name
 
-            unit_name = get_unit(functional_unit(instr, f), constraints, s, cycle_time)
+            unit_name = get_unit(functional_unit(instr, f, code_gen), constraints, s, cycle_time)
 
             if unit_name == None:
                 #print('Combinational schedule needs at least', units_used, 'of operation:', op, 'but only', constraints.available_units(op), 'are available. Adding a cycle')
