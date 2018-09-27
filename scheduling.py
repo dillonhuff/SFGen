@@ -10,6 +10,10 @@ class ScheduleConstraints:
     def __init__(self):
         self.num_cycles = 1
         self.resource_counts = {}
+        self.no_inlines = set()
+
+    def no_inline(self, function_name):
+        self.no_inlines.add(function_name)
 
     def set_resource_count(self, resource_name, count):
         self.resource_counts[resource_name] = count
