@@ -244,7 +244,7 @@ def functional_unit(instr, f, code_gen):
         args = []
         called_func_def = code_gen.get_function(called_func)
         for arg in called_func_def.input_names():
-            args.append(called_func_def.symbol_type(arg).width())
+            args.append((arg, called_func_def.symbol_type(arg).width()))
         return Operation(called_func, args)
 
     elif isinstance(instr, TableLookupInstr):

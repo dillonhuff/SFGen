@@ -210,8 +210,26 @@ def module_for_functional_unit(unit):
         m.add_parameter('out_width', out_width)        
 
         return m
-    print('Error: Unsupported functional unit:', unit.name, unit.parameters)
-    assert(False)
+
+    
+    print('Non builtin functional unit:', unit.name, unit.parameters)
+
+    m = Module(unit.name)
+    arg_widths = unit.parameters
+    m.add_parameter('args', unit.parameters)
+    for param in unit.parameters:
+        param_name = param[0]
+        param_type = param[1]
+
+        m.add_in_port(param_name, param_type)
+
+    # TODO: Fix this temporary hack
+    m.add_parameter('output_name', ('out', 32))
+    m.add_out_port('out', 32)
+
+    return m
+    
+    #assert(False)
 
 def get_port_map(i0, cell_module):
     wire_connections = {}
@@ -272,8 +290,17 @@ def get_port_map(i0, cell_module):
             wire_connections[out_port] = [None]
 
     else:
-         print('No connections for instruction', i0)
-         assert(False)
+        assert(isinstance(i0, p.CallInstr))
+        i = 0
+        for arg in cell_module.get_parameter('args'):
+            wire_connections[arg] = [i0.args[i][0]]
+            i += 1
+
+        # TODO: Add real output port naming
+        output_info = cell_module.get_parameter('output_name')
+        out_name = output_info[0]
+        out_width = output_info[1]
+        wire_connections[out_name] = [i0.result_name()]
 
     return wire_connections
     
@@ -477,6 +504,7 @@ def generate_rtl(f, sched):
                     wire_connections.append((port, connected_wires[0]))
 
             else:
+                print('port =', port)
                 assert(port in mod_fu.out_port_names())
                 out_w = mod.fresh_wire(mod_fu.get_wire_width(port))
 
