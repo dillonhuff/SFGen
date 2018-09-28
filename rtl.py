@@ -292,8 +292,10 @@ def get_port_map(i0, cell_module):
     else:
         assert(isinstance(i0, p.CallInstr))
         i = 0
+        print('Attaching args')
         for arg in cell_module.get_parameter('args'):
-            wire_connections[arg] = [i0.args[i][0]]
+            print('i0[args] =', i0.args[i])
+            wire_connections[arg[0]] = [i0.args[i]]
             i += 1
 
         # TODO: Add real output port naming
