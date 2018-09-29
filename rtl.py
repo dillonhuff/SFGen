@@ -42,38 +42,49 @@ class Wire:
     def is_output(self):
         return self.is_port and (not self.is_in)
 
+def binop_module(name, width):
+    m = Module('builtin_{0}_{1}'.format(name, width))
+    m.add_in_port('in0', width)
+    m.add_in_port('in1', width)
+    m.add_out_port('out', width)
+    return m
+    
 def module_for_functional_unit(unit):
     if (has_prefix(unit.name, 'add_')):
-        width = unit.parameters[0]
-        m = Module('builtin_add_' + str(width))
-        m.add_in_port('in0', width)
-        m.add_in_port('in1', width)
-        m.add_out_port('out', width)
-        return m
+        return binop_module(unit.name, unit.parameters[0])
+        # width = unit.parameters[0]
+        # m = Module('builtin_add_' + str(width))
+        # m.add_in_port('in0', width)
+        # m.add_in_port('in1', width)
+        # m.add_out_port('out', width)
+        # return m
 
     if (has_prefix(unit.name, 'mult_')):
-        width = unit.parameters[0]
-        m = Module('builtin_mult_' + str(width))
-        m.add_in_port('in0', width)
-        m.add_in_port('in1', width)
-        m.add_out_port('out', width)
-        return m
+        return binop_module(unit.name, unit.parameters[0])        
+        # width = unit.parameters[0]
+        # m = Module('builtin_mult_' + str(width))
+        # m.add_in_port('in0', width)
+        # m.add_in_port('in1', width)
+        # m.add_out_port('out', width)
+        # return m
     
     if (has_prefix(unit.name, 'unsigned_div_')):
-        width = unit.parameters[0]
-        m = Module('builtin_unsigned_div_' + str(width))
-        m.add_in_port('in0', width)
-        m.add_in_port('in1', width)
-        m.add_out_port('out', width)
-        return m
+        return binop_module(unit.name, unit.parameters[0])                
+        # width = unit.parameters[0]
+        # m = Module('builtin_unsigned_div_' + str(width))
+        # m.add_in_port('in0', width)
+        # m.add_in_port('in1', width)
+        # m.add_out_port('out', width)
+        # return m
     
     if (has_prefix(unit.name, 'sub_')):
-        width = unit.parameters[0]
-        m = Module('builtin_sub_' + str(width))
-        m.add_in_port('in0', width)
-        m.add_in_port('in1', width)
-        m.add_out_port('out', width)
-        return m
+        return binop_module(unit.name, unit.parameters[0])
+        # width = unit.parameters[0]
+        # m = Module('builtin_sub_' + str(width))
+        # m.add_in_port('in0', width)
+        # m.add_in_port('in1', width)
+        # m.add_out_port('out', width)
+        # return m
     
     if (has_prefix(unit.name, 'assign_')):
         width = unit.parameters[0]

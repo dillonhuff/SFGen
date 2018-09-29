@@ -12,12 +12,6 @@ def verilog_wire_decls(rtl_mod):
     return decls
 
 def verilog_port_connections(input_schedule, module):
-    #print('Input schedule for', module)
-    # for i in input_schedule:
-    #     print('\t', i)
-
-    #assert(len(input_schedule) == 1)
-    
     conn_strings = list(map(lambda x: '.{0}({1})'.format(x[0], x[1]), input_schedule))
     return conn_strings
 
