@@ -26,3 +26,5 @@ make_const_16_27
 make_const_16_27.v
 many_assigns_32
 many_assigns_32.v
+non_inlined_32
+non_inlined_32.v
