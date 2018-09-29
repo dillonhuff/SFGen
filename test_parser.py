@@ -28,32 +28,31 @@ def test_repeated_assignment():
     print('res =', res)
     assert(res == 'passed\n')
 
-# def test_non_inlined_functions():
-#     code_gen = codegen_for_module('non_inlined_function')    
-#     f_spec = specialize_types(code_gen, 'non_inlined', [l.ArrayType(32)])
+def test_non_inlined_functions():
+    code_gen = codegen_for_module('non_inlined_function')    
+    f_spec = specialize_types(code_gen, 'non_inlined', [l.ArrayType(32)])
 
-#     constraints = ScheduleConstraints()
-#     constraints.no_inline('plus_nums_32_32')
-#     constraints.set_resource_count('plus_nums_32_32', 1)
-#     sched = schedule(code_gen, f_spec, constraints)
+    constraints = ScheduleConstraints()
+    constraints.no_inline('plus_nums_32_32')
+    constraints.set_resource_count('plus_nums_32_32', 1)
+    sched = schedule(code_gen, f_spec, constraints)
 
-#     assert(sched.get_subschedule("plus_nums_32_32").num_cycles() == 0)
+    assert(sched.get_subschedule("plus_nums_32_32").num_cycles() == 0)
 
-#     print(sched.to_string())
+    print(sched.to_string())
 
-#     mod = generate_rtl(f_spec, sched)
+    mod = generate_rtl(f_spec, sched)
 
-#     assert(mod.name == f_spec.name)
+    assert(mod.name == f_spec.name)
 
-#     generate_verilog(mod)
+    generate_verilog(mod)
 
-#     print('Function before verilog tb run')
-#     print(f_spec.to_string())
+    print('Function before verilog tb run')
+    print(f_spec.to_string())
 
-#     res = run_iverilog_test(mod.name)
-#     print('res =', res)
-#     assert(res == 'passed\n')
-    
+    res = run_iverilog_test(mod.name)
+    print('res =', res)
+    assert(res == 'passed\n')    
 
 def test_tc_neg_parse():
     code_gen = codegen_for_module('tc_neg')
