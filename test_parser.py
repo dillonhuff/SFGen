@@ -29,7 +29,7 @@ def test_repeated_assignment():
     assert(res == 'passed\n')
 
 def test_non_inlined_functions():
-    code_gen = codegen_for_module('non_inlined_function')    
+    code_gen = codegen_for_module('non_inlined_function')
     f_spec = specialize_types(code_gen, 'non_inlined', [l.ArrayType(32)])
 
     constraints = ScheduleConstraints()

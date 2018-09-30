@@ -1,5 +1,12 @@
 import os
 
+def tab(indent):
+    s = ''
+    for i in range(indent):
+        s += '\t'
+
+    return s
+
 def has_prefix(name, prefix):
     return name[:len(prefix)] == prefix
 

@@ -30,6 +30,7 @@ class Schedule:
         self.functional_units = {}
         self.total_num_cycles = 0
         self.subschedules = {}
+        self.function = None
 
     def get_subschedule(self, name):
         return self.subschedules[name]
@@ -76,12 +77,21 @@ class Schedule:
     def get_schedule(self, unit_name):
         return self.functional_units[unit_name][1]
 
-    
-    def to_string(self):
-        s = '--- Schedule\n'
+
+    def to_string_ind(self, indent):
+        s = tab(indent) + '--- Schedule\n'
         for unit in self.functional_units:
-            s += '\t' + unit + ' -> ' + str(self.functional_units[unit]) + '\n'
+            s += tab(indent + 1) + unit + ' -> ' + str(self.functional_units[unit]) + '\n'
+
+        s += tab(indent) + '----- Subschedules\n'
+        for sub in self.subschedules:
+            s += tab(indent) + 'Subschedule for ' + sub + '\n'
+            s += tab(indent) + self.subschedules[sub].to_string_ind(indent + 1)
+
         return s
+        
+    def to_string(self):
+        return self.to_string_ind(0)
 
     def __repr__(self):
         return self.to_string()
@@ -295,13 +305,14 @@ def schedule(code_gen, f, constraints):
     print(f.to_string())
 
     s = Schedule()
+    s.function = f
     
     for func_name in constraints.no_inlines:
         inner_def = code_gen.get_function(func_name)
         constr = ScheduleConstraints()
         sub_sched = schedule(code_gen, inner_def, constr)
+        sub_sched.function = inner_def
         s.subschedules[func_name] = sub_sched
-        
 
     cycle_num = 0
     bound_instructions = set([])

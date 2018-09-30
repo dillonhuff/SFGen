@@ -462,6 +462,19 @@ def generate_rtl(f, sched):
         
         mod.add_cell(counter_mod, [('clk', 'clk'), ('rst', 'en'), ('out', 'global_stage_counter')], 'stage_counter')
 
+    mod_map = {}
+    for sub_name in sched.subschedules:
+        sub = sched.subschedules[sub_name]
+        sub_f = sub.function
+        assert(isinstance(sub_f, LowFunctionDef))
+        
+        f_mod = generate_rtl(sub_f, sub)
+        mod_map[f_mod.name] = f_mod
+
+    print('Mod map')
+    for submodule in mod_map:
+        print('Mod =', submodule)
+        
     for unit in sched.get_functional_units():
         print('Unit = ', unit)
         unit_type = unit[0]
@@ -471,7 +484,11 @@ def generate_rtl(f, sched):
         print('sched      = ', unit_sched)
         print('len(sched) = ', len(unit_sched))
 
-        mod_fu = module_for_functional_unit(unit_type)
+        if unit_type.name in mod_map:
+            mod_fu = mod_map[unit_type.name]
+        else:
+            mod_fu = module_for_functional_unit(unit_type)
+
         wire_connection_map = build_module_connections(mod_fu, unit_sched, cell_name)
 
         print('Wire connection map =', wire_connection_map)
