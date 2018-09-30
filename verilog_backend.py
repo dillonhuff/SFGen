@@ -38,16 +38,32 @@ def lead_zero_body(width):
     s += "\tassign out = out_reg;\n";
 
     return s
-    
-def verilog_string(rtl_mod):
 
-    mod_str = ''
-    used_mods = set()
+def all_used_mods(rtl_mod):
+    used_mod_names = set()
+    mod_list = []
+
     for cell in rtl_mod.all_cells():
         mod = cell[0]
-        if not mod.name in used_mods:
-            used_mods.add(mod.name)
-            mod_str += verilog_string(mod)
+        if not mod.name in used_mod_names:
+            used_mod_names.add(mod.name)
+            mod_list.append(mod)
+
+            for used_m in all_used_mods(mod):
+                if not used_m.name in used_mod_names:
+                    used_mod_names.add(used_m.name)
+                    mod_list.append(used_m)
+
+    return mod_list
+
+def verilog_string(rtl_mod):
+    mod_str = ''
+    # used_mods = set()
+    # for cell in rtl_mod.all_cells():
+    #     mod = cell[0]
+    #     if not mod.name in used_mods:
+    #         used_mods.add(mod.name)
+    #         mod_str += verilog_string(mod)
     
     mod_str += 'module {0}('.format(rtl_mod.name) + comma_list(rtl_mod.in_port_names() + rtl_mod.out_port_names()) + ');\n'
     mod_str += verilog_wire_decls(rtl_mod)
@@ -187,8 +203,18 @@ def verilog_string(rtl_mod):
 
     return mod_str
 
+def verilog_string_top(rtl_mod):
+    mod_str = ''
+    print('Used mods =', all_used_mods(rtl_mod))
+    for mod in all_used_mods(rtl_mod):
+        mod_str += verilog_string(mod)
+
+    mod_str += verilog_string(rtl_mod)
+
+    return mod_str
+    
 def generate_verilog(rtl_mod):
     f = open(rtl_mod.name + '.v', 'w')
-    f.write(verilog_string(rtl_mod))
+    f.write(verilog_string_top(rtl_mod))
     f.close()
     return None

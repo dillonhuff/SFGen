@@ -371,6 +371,15 @@ class Module:
     def add_cell(self, cell_module, wire_connections, cell_name):
         self.cells.append((cell_module, wire_connections, cell_name))
 
+    def to_string(self):
+        return 'Module[{0}]'.format(self.name)
+
+    def __str__(self):
+        return self.to_string()
+
+    def __repr__(self):
+        return self.to_string()
+    
     def fresh_name(self, prefix):
         n = prefix + '_' + str(self.unique_num)
         self.unique_num += 1
