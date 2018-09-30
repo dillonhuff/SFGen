@@ -448,6 +448,15 @@ def generate_rtl(f, sched):
         elif isinstance(f.symbol_type(sym), l.ArrayType):
             mod.add_wire(sym, f.symbol_type(sym).width())
 
+    arg_params = []
+    for arg in f.args:
+        # TODO: This should be assert(False), symbol table should cull unused
+        # symbols after specialization
+        if f.has_symbol(arg):
+            arg_params.append((arg, f.symbol_type(arg).width()))
+    mod.add_parameter('args', arg_params)
+    mod.add_parameter('output_name', (f.output_name(), f.symbol_type(f.output_name()).width()))
+
     if sched.num_cycles() > 1:
         stage_width = storage_width(sched.num_cycles()) #math.ceil(math.log2(sched.num_cycles())) + 1
         mod.add_reg('global_stage_counter', stage_width)
