@@ -652,40 +652,67 @@ def evaluate_integer_constants(values, f, code_gen):
                 print('\t', name_string(func))
             if code_gen.has_function(instr.func) or is_builtin(instr.func):
                 called_func = code_gen.get_function(instr.func)
+
+
+                tps = []
+                for arg in instr.args:
+                    arg_tp = f.symbol_type(arg)
+                    assert(isinstance(arg_tp, ArrayType) or isinstance(arg_tp, IntegerType))
+                    if isinstance(arg_tp, ArrayType):
+                        tps.append(arg_tp)
+                    else:
+                        tps.append(values[arg])
+
+                print('Specializing', instr.func, 'for types', tps)
+
+                spec_func = specialize_types(code_gen, instr.func, tps)
+                print('Done specializing')
+
+                assert(isinstance(spec_func.instructions[-1], ReturnInstr))
+
+                res_tp = spec_func.symbol_type(spec_func.instructions[-1].val_name)
+                assert(res_tp != None)
+
+                print('res_tp =', res_tp)
+                f.set_symbol_type(instr.res, res_tp)
+                f.set_symbol_type(name_string(instr.func), FunctionType(tps, res_tp))
+
+                code_gen.functions[name_string(spec_func.get_name())] = spec_func
+
+                new_instructions.append(CallInstr(instr.res, spec_func.get_name(), instr.args))
+
             else:
                 print('code gen has no function', name_string(instr.func))
                 assert(code_gen.has_class(instr.func))
                 called_func = code_gen.get_class(instr.func)
                 print('Called func = ', called_func)
                 assert(len(called_func.field_positions) == len(instr.args))
-                assert(False)
 
-            tps = []
-            for arg in instr.args:
-                arg_tp = f.symbol_type(arg)
-                assert(isinstance(arg_tp, ArrayType) or isinstance(arg_tp, IntegerType))
-                if isinstance(arg_tp, ArrayType):
-                    tps.append(arg_tp)
-                else:
-                    tps.append(values[arg])
+                tps = []
+                field_types = {}
+                for i in range(len(instr.args)):
+                    arg = instr.args[i]
+                    found_field = False
+                    af = None
+                    for field in called_func.field_positions:
+                        if i == called_func.field_positions[field]:
+                            found_field = True
+                            af = field
+                            break
 
-            print('Specializing', instr.func, 'for types', tps)
+                    assert(found_field)
 
-            spec_func = specialize_types(code_gen, instr.func, tps)
-            print('Done specializing')
+                    field_types[af] = f.symbol_type(arg)
 
-            assert(isinstance(spec_func.instructions[-1], ReturnInstr))
+                    tps.append(f.symbol_type(arg))
 
-            res_tp = spec_func.symbol_type(spec_func.instructions[-1].val_name)
-            assert(res_tp != None)
+                res_tp = StructType(name_string(called_func.name), field_types)
 
-            print('res_tp =', res_tp)
-            f.set_symbol_type(instr.res, res_tp)
-            f.set_symbol_type(name_string(instr.func), FunctionType(tps, res_tp))
-
-            code_gen.functions[name_string(spec_func.get_name())] = spec_func
-
-            new_instructions.append(CallInstr(instr.res, spec_func.get_name(), instr.args))
+                print('res_tp =', res_tp)
+                    
+                f.set_symbol_type(instr.res, res_tp)
+                f.set_symbol_type(name_string(instr.func), FunctionType(tps, res_tp))
+                new_instructions.append(instr)
             
         elif isinstance(instr, ReturnInstr):
             new_instructions.append(instr)

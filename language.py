@@ -12,6 +12,15 @@ class StructType(Type):
         self.name = name
         self.field_types = field_types
 
+    def to_string(self):
+        return 'struct[{0}]({1})'.format(self.name, self.field_types)
+
+    def __repr__(self):
+        return self.to_string()
+
+    def __str__(self):
+        return self.to_string()
+
 class IntegerType(Type):
     def __init__(self):
         Type.__init__(self)
@@ -252,7 +261,7 @@ class ReadFieldInstr(LowInstruction):
         return {self.field, self.struct}
     
     def used_values(self):
-        return {self.res, self.field, self.struct}
+        return {self.res, self.struct}
         
     def to_string(self):
         return 'read_field {0} {1}.{2}'.format(self.res, self.struct, self.field)
@@ -401,6 +410,9 @@ class LowFunctionDef:
         return self.args[ind]
 
     def symbol_type(self, name):
+        if not name in self.symbol_table:
+            print('Error: ', name, 'is not in symtab')
+            
         assert(name in self.symbol_table)
         return self.symbol_table[name]
 
