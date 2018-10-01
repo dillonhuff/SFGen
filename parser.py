@@ -44,11 +44,25 @@ class LowCodeGenerator(ast.NodeVisitor):
             assert(name.id in self.functions)
             return self.functions[name.id]
 
+    def get_class(self, name):
+        if isinstance(name, str):
+            assert(name in self.classes)
+            return self.classes[name]
+        else:
+            assert(name.id in self.classes)
+            return self.classes[name.id]
+        
     def has_function(self, name):
-        return name in self.functions
+        if isinstance(name, str):
+            return name in self.functions
+        else:
+            return name.id in self.functions
 
     def has_class(self, name):
-        return name in self.classes
+        if isinstance(name, str):
+            return name in self.classes
+        else:
+            return name.id in self.classes
     
     def visit_Stmt(self, stmt):
 
@@ -262,7 +276,9 @@ class LowCodeGenerator(ast.NodeVisitor):
 
         print('Class def =', ast.dump(node))
 
-        class_def = LowClassDef(node.name, {})
+        fields = {}
+        
+        class_def = LowClassDef(node.name, fields)
         self.classes[node.name] = class_def
 
         self.active_class = None
@@ -592,11 +608,19 @@ def evaluate_integer_constants(values, f, code_gen):
 
             print('Name = ', instr)
 
-            called_func = code_gen.get_function(instr.func)
+            print('Functions in code_gen')
+            for func in code_gen.functions:
+                print('\t', name_string(func))
+            if code_gen.has_function(instr.func) or is_builtin(instr.func):
+                called_func = code_gen.get_function(instr.func)
+            else:
+                print('code gen has no function', name_string(instr.func))
+                assert(code_gen.has_class(instr.func))
+                called_func = code_gen.get_class(instr.func)
+                print('Called func = ', called_func)
+                assert(len(called_func.field_positions) == len(instr.args))
+                assert(False)
 
-            #assert(len(called_func.args) == 1)
-
-            #print('Specializing in', f.to_string())
             tps = []
             for arg in instr.args:
                 arg_tp = f.symbol_type(arg)
@@ -624,10 +648,6 @@ def evaluate_integer_constants(values, f, code_gen):
 
             new_instructions.append(CallInstr(instr.res, spec_func.get_name(), instr.args))
             
-            #print('Error: Unhandled call', new_instructions[-1])
-
-            #new_instructions.append(instr)
-
         elif isinstance(instr, ReturnInstr):
             new_instructions.append(instr)
 
@@ -669,6 +689,14 @@ def evaluate_integer_constants(values, f, code_gen):
             f.set_symbol_type(instr.res, res_tp)
             f.set_symbol_type(instr.table_name, FunctionType([t], res_tp))
 
+            new_instructions.append(instr)
+
+        elif isinstance(instr, ReadFieldInstr):
+            print('Read field instr =', instr)
+            class_type = f.symbol_type(instr.struct)
+            print('Class type =', class_type)
+            field_type = class_type.field_types[instr.field]
+            f.set_symbol_type(instr.res, field_type)
             new_instructions.append(instr)
 
         else:

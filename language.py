@@ -353,6 +353,14 @@ class LowClassDef:
     def __init__(self, name, field_positions):
         self.name = name
         self.field_positions = field_positions
+
+    def to_string(self):
+        return 'class {0}({1})'.format(self.name, self.field_positions)
+
+    def __repr__(self):
+        return self.to_string()
+    def __str__(self):
+        return self.to_string()
         
 class LowFunctionDef:
     def __init__(self, name, module_name, args):
