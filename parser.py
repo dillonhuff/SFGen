@@ -31,7 +31,9 @@ class LowCodeGenerator(ast.NodeVisitor):
         ast.NodeVisitor.__init__(self)
         self.module_name = module_name
         self.active_function = None
+        self.active_class = None
         self.functions = {}
+        self.classes = {}
         self.expr_names = {}
 
     def get_function(self, name):
@@ -45,6 +47,9 @@ class LowCodeGenerator(ast.NodeVisitor):
     def has_function(self, name):
         return name in self.functions
 
+    def has_class(self, name):
+        return name in self.classes
+    
     def visit_Stmt(self, stmt):
 
         if isinstance(stmt, ast.Import):
@@ -75,6 +80,9 @@ class LowCodeGenerator(ast.NodeVisitor):
                 assert(False)
         elif isinstance(stmt, ast.Return):
             self.visit_Return(stmt)
+
+        elif isinstance(stmt, ast.ClassDef):
+            self.visit_ClassDef(stmt)
         else:
             self.generic_visit(stmt)
         
@@ -84,6 +92,8 @@ class LowCodeGenerator(ast.NodeVisitor):
 
 
     def expr_name(self, expr):
+        if not expr in self.expr_names:
+            print('Error:', ast.dump(expr), 'is not in ', self.expr_names)
         assert(expr in self.expr_names)
         return self.expr_names[expr]
 
@@ -148,6 +158,13 @@ class LowCodeGenerator(ast.NodeVisitor):
                 
                 self.active_function.add_instr(TableLookupInstr(res, arg, table_name.id))
 
+            # elif self.is_class_constructor_call(expr):
+            #     arg_exprs = []
+            #     for arg in expr.args:
+            #         self.visit_Expr(arg)
+            #         arg_exprs.append(self.expr_name(arg))
+            #     self.active_function.add_instr(CallInstr(res, expr.func, arg_exprs))
+
             else:
                 arg_exprs = []
                 for arg in expr.args:
@@ -195,6 +212,13 @@ class LowCodeGenerator(ast.NodeVisitor):
                                                       self.expr_name(expr.slice.lower),
                                                       self.expr_name(expr.slice.upper)))
             self.expr_names[expr] = res
+
+        elif isinstance(expr, ast.Attribute):
+            self.visit_Expr(expr.value)
+            assert(isinstance(expr.attr, str))
+            res = self.active_function.fresh_sym()
+            self.active_function.add_instr(ReadFieldInstr(res, self.expr_name(expr.value), expr.attr))
+            self.expr_names[expr] = res
             
         else:
             print('Error: Unhandled expression:', ast.dump(expr))
@@ -208,14 +232,14 @@ class LowCodeGenerator(ast.NodeVisitor):
     
     def visit_Return(self, node):
         assert(self.active_function != None)
-        
+
+        print('Return =', ast.dump(node))
         self.visit_Expr(node.value)
         val_name = self.expr_name(node.value)
         self.active_function.add_instr(ReturnInstr(val_name))
 
     def visit_FunctionDef(self, node):
         assert(self.active_function == None)
-
 
         print('Function def =', node.name)
         arg_names = []
@@ -232,6 +256,16 @@ class LowCodeGenerator(ast.NodeVisitor):
         self.functions[node.name] = fdef
 
         self.active_function = None
+
+    def visit_ClassDef(self, node):
+        assert(self.active_class == None)
+
+        print('Class def =', ast.dump(node))
+
+        class_def = LowClassDef(node.name, {})
+        self.classes[node.name] = class_def
+
+        self.active_class = None
 
     # def visit_Expr(self, node):
     #     print('Expr =', node.name)
@@ -295,6 +329,9 @@ def is_argument_of(v, instr):
                 return True
         return False
     if isinstance(instr, TableLookupInstr):
+        return v in instr.arguments()
+
+    if isinstance(instr, ReadFieldInstr):
         return v in instr.arguments()
     
     print('Error: Unsupported instruction type', instr)
@@ -697,7 +734,7 @@ def is_builtin(func_name):
     return False
 
 def is_synthesizable(func, spec_f, code_gen):
-    return code_gen.has_function(func) or is_builtin(func)
+    return code_gen.has_function(func) or code_gen.has_class(func) or is_builtin(func)
 
 def delete_unsynthesizable_instructions(spec_f, code_gen):
     new_instrs = []

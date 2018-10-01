@@ -7,6 +7,11 @@ class Type:
     def __init__(self):
         return None
 
+class StructType(Type):
+    def __init__(self, name, field_types):
+        self.name = name
+        self.field_types = field_types
+
 class IntegerType(Type):
     def __init__(self):
         Type.__init__(self)
@@ -229,6 +234,29 @@ class AssignInstr(LowInstruction):
     def to_string(self):
         return 'assign {0} {1}'.format(self.res, self.rhs)
 
+class ReadFieldInstr(LowInstruction):
+    def __init__(self, res, struct, field):
+        self.res = res
+        self.struct = struct
+        self.field = field
+
+    def result_name(self):
+        return self.res
+        
+    def replace_values(self, f):
+        self.res = f(self.res)
+        self.struct = f(self.struct)
+        self.field = f(self.field)        
+
+    def arguments(self):
+        return {self.field, self.struct}
+    
+    def used_values(self):
+        return {self.res, self.field, self.struct}
+        
+    def to_string(self):
+        return 'read_field {0} {1}.{2}'.format(self.res, self.struct, self.field)
+    
 class ReturnInstr(LowInstruction):
     def __init__(self, name):
         self.val_name = name
@@ -320,6 +348,11 @@ class CallInstr(LowInstruction):
         s += comma_list(arg_strs)
 
         return s
+
+class LowClassDef:
+    def __init__(self, name, field_positions):
+        self.name = name
+        self.field_positions = field_positions
         
 class LowFunctionDef:
     def __init__(self, name, module_name, args):
