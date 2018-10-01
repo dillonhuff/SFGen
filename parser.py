@@ -276,8 +276,47 @@ class LowCodeGenerator(ast.NodeVisitor):
 
         print('Class def =', ast.dump(node))
 
+        assert(len(node.body) == 1)
+        body_stmt = node.body[0]
+        print('body_stmt =', ast.dump(body_stmt))
+        assert(isinstance(body_stmt, ast.FunctionDef))
+
+        args = []
+        for arg in body_stmt.args.args:
+            name = arg.arg
+            assert(isinstance(name, str))
+            args.append(name)
+
+        print('args =', args)
         fields = {}
-        
+        for stmt in body_stmt.body:
+            print('stmt =', ast.dump(stmt))
+            assert(isinstance(stmt, ast.Assign))
+            assert(len(stmt.targets) == 1)
+
+            rhs = stmt.targets[0]
+            assert(isinstance(rhs, ast.Attribute))
+            assert(isinstance(rhs.value, ast.Name))
+            assert(rhs.value.id == 'self')
+
+            field_name = rhs.attr
+            print('Field name =', field_name)
+
+            lhs = stmt.value
+            assert(isinstance(lhs, ast.Name))
+            source = lhs.id
+
+            arg_pos = -1
+            for i in range(len(args)):
+                if args[i] == source:
+                    # The zeroth argument is always self
+                    assert(i != 0)
+                    arg_pos = i - 1
+                    break
+            assert(arg_pos >= 0)
+
+            fields[field_name] = arg_pos
+
         class_def = LowClassDef(node.name, fields)
         self.classes[node.name] = class_def
 
