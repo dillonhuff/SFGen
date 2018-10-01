@@ -6,6 +6,16 @@ import copy
 from parser import *
 from utils import *
 
+# I'm now considering adding some more complex constructs like arrays
+# of general classes (for example Array(Array(Bit))). How would these fit in?
+# I guess I would need more general constructs like map, maybe the APL operators
+# as well (rotate, reshape and so on). Maybe numpy -> verilog would actually be
+# interesting
+
+# Q: If I do this what will the intermediate representation look like? What will
+# scheduling of those kinds of operations look like? Would need to support fusion
+# of those ops as well to be efficient, so Im not sure if this would eventually just
+# boil down to being a standard IR?
 class ScheduleConstraints:
     def __init__(self):
         self.num_cycles = 1
