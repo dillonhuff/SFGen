@@ -28,3 +28,4 @@ many_assigns_32
 many_assigns_32.v
 non_inlined_32
 non_inlined_32.v
+cube_32.v

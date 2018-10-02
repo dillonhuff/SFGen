@@ -160,14 +160,14 @@ def test_approximate_reciprocal_parse():
 
     assert(f_spec.symbol_type('one_ext') == l.ArrayType(32))
 
-def parse_file(file_name):
-    code_str = open(file_name).read()
-    code = ast.parse(code_str)
+# def parse_file(file_name):
+#     code_str = open(file_name).read()
+#     code = ast.parse(code_str)
 
-    code_gen = LowCodeGenerator()
-    code_gen.visit(code)
+#     code_gen = LowCodeGenerator()
+#     code_gen.visit(code)
 
-    return code_gen
+#     return code_gen
 
 def test_approximate_divider_parse():
     #code_gen = parse_file("divider")
