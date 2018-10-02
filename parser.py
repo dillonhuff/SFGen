@@ -864,6 +864,51 @@ def make_result_names_unique(f):
             else:
                 used_names[old_name] = 0
 
+def built_layout(tp):
+    assert(isinstance(tp, StructType))
+    assert(False)
+    
+    offset = 0
+    layout = []
+#    for field in field_types:
+        
+    return layout
+
+def erase_record_types(f, code_gen):
+    # What should this function do?
+    # Replace symbol table types in records with arrays of length(sum len(field))
+    # Replace read_field calls with slices
+    # Replace calls to create records with concatentate calls
+    # Recursively erase record types from functions called by this function?
+
+    # struct_layouts = []
+    # for sym in f.symbol_table:
+    #     tp = f.symbol_type(f)
+
+    #     new_type = True
+    #     for s in struct_layouts:
+    #         if s[0] == tp:
+    #             new_type = False
+    #             break
+    #     if new_type:
+    #         struct_layouts.append((tp, build_layout(tp)))
+
+    new_instrs = []
+    for instr in f.instructions:
+        if isinstance(instr, ReadFieldInstr):
+            struct_tp = f.symbol_type(instr.struct)
+            print('struct_tp =', struct_tp)
+            assert(False)
+            
+        elif isinstance(instr, CallInstr):
+            if code_gen.has_class(instr.func):
+                assert(False)
+            else:
+                new_instrs.append(instr)
+        else:
+                new_instrs.append(instr)
+    swap_instrs(f, new_instrs)
+
 def specialize_types(code_gen, func_name_in, func_arg_types):
 
 
@@ -898,18 +943,18 @@ def specialize_types(code_gen, func_name_in, func_arg_types):
 
     for instr in func.instructions:
         spec_f.instructions.append(copy.deepcopy(instr))
-        
 
-    #inline_all(spec_f, code_gen)
     delete_unsynthesizable_instructions(spec_f, code_gen)
     delete_dead_instructions(spec_f)
-    
+
     make_result_names_unique(spec_f)
 
     evaluate_integer_constants(values, spec_f, code_gen)
 
     simplify_integer_assigns(spec_f)
     delete_dead_instructions(spec_f)
+
+    erase_record_types(spec_f, code_gen)
 
     all_values = set()
     for instr in spec_f.instructions:
