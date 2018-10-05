@@ -19,3 +19,5 @@ mod = generate_rtl(f_spec, sched)
 assert(mod.name == f_spec.name)
 
 generate_verilog(mod)
+
+

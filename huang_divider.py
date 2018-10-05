@@ -21,35 +21,6 @@ def normalize_left(a):
 def build_one_fp(width, dist):
     return bv_from_int(width, 1) << bv_from_int(width, dist)
 
-def compute_reciprocal(b):
-    width = b.width()
-    normed = normalize_left(b)
-
-    top_8 = normed
-
-    assert(top_8.width() == width)
-
-    one_ext = build_one_fp(2*width, 2*width - 1)
-    top_8_ext = zero_extend(2*width, top_8)
-    quote = one_ext / top_8_ext
-
-    sliced_quote = (normalize_left(quote))[quote.width() - width:quote.width() - 1]
-
-    return sliced_quote
-    
-def mul_fp(a, b, decimal_place):
-    assert(a.width() == b.width());
-    
-    width = a.width()
-    a_ext = zero_extend(2*width, a)
-    b_ext = zero_extend(2*width, b)
-    prod = a_ext * b_ext
-
-    shifted_prod = prod >> bv_from_int(width, decimal_place)
-    sliced_prod = shifted_prod[0:width - 1]
-
-    return sliced_prod
-
 def huang_square_reciprocal(a):
     a_p = concat(bv_from_int(1, 1), a)
 
@@ -79,8 +50,6 @@ def sub_yh(y_h, y_l):
 
     y_h_ext = zero_extend(2*m, y_h) << bv_from_int(width, 2*m - y_h.width())
 
-    #print('y_h_ext =', y_h_ext)
-
     assert(y_h_ext.get(y_h_ext.width() - 1) == QVB(1))
     
     y_l_ext = zero_extend(2*m, y_l)
@@ -96,13 +65,11 @@ def huang_div_normalized(x, y):
 
     width = x.width()
     m = width // 2
-
     y_l = y[0 : m - 2]
     y_h = y[width - m - 1 : width - 1]
 
     assert(y_l.width() == m - 1)
     assert(y_h.width() == m + 1)
-
     assert(y_h.get(y_h.width() - 1) == QVB(1))
     
     y_h_2_r_and_exp = lookup_in_table(y_h[0 : y_h.width() - 2], huang_square_reciprocal)
@@ -111,29 +78,19 @@ def huang_div_normalized(x, y):
 
     y_h2_exp = y_h_2_r_and_exp[0 : 1]
     y_h2r = y_h_2_r_and_exp[y_h_2_r_and_exp.width() - (2*m + 2) : y_h_2_r_and_exp.width() - 1]
-
     y_diff = sub_yh(y_h, y_l)
-
     prod = zero_extend(2*y_diff.width(), x) * zero_extend(2*y_diff.width(), y_diff)
-
-    #return prod
     prod0 = prod >> bv_from_int(width, y_diff.width() - 2)
     prod1 = prod0[0 : 2*m + 2 - 1]
 
     assert(prod1.width() == 2*m + 2)
-
-    # Final multiply
     assert(y_h2r.width() == prod1.width())
     
     final_q = zero_extend(2*prod1.width(), prod1) * zero_extend(2*prod1.width(), y_h2r)
-
-    # Now need to shift and round up.
     tbs = top_bits(final_q, 2*m + 2)
     round_bits = tbs[0:1]
     last_bits = top_bits(tbs, 2*m)
-    
     rounded_q = last_bits if round_bits == bv_from_int(2, 0) else last_bits + bv_from_int(2*m, 1)
-
     return concat(rounded_q, y_h2_exp)
 
 def huang_divide(n_in, d_in):
@@ -146,16 +103,10 @@ def huang_divide(n_in, d_in):
     n_abs = tc_abs(n_in)
     d_abs = tc_abs(d_in)
 
-    # print('n_abs =', n_abs)
-    # print('d_abs =', d_abs)
-
     lzd = leading_zero_count(d_abs)
     lzn = leading_zero_count(n_abs)
     d_norm = d_abs << lzd
     n_norm = n_abs << lzn
-
-    # print('n_norm =', n_norm)
-    # print('d_norm =', d_norm)
 
     x = n_norm
     y = d_norm
@@ -164,12 +115,6 @@ def huang_divide(n_in, d_in):
 
     exp = res_norm_with_exp[0:1]
     res_norm = res_norm_with_exp[2 : res_norm_with_exp.width() - 1]
-
-    # print('lzd =', lzd.to_int())
-    # print('lzn =', lzn.to_int())
-    # print('res_norm =', res_norm)
-    # print('res_exp  =', exp)
-
     
     res = res_norm >> (bv_from_int(width, width) + zero_extend(width, exp) - (lzd - lzn) - bv_from_int(width, 3))
 

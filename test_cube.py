@@ -6,5 +6,12 @@ def test_cube():
     a = bv_from_int(width, 7)
     correct = bv_from_int(width, 7*7*7)
 
-    print('a =', a)
+    print('a       =', a)    
+    print('correct =', correct)
+    print('cube(a) =', cube(a))
+
     assert(cube(a) == correct)
+
+
+    
+test_cube()

@@ -8,7 +8,7 @@ from verilog_backend import *
 
 def test_struct():
     code_gen = codegen_for_module('use_struct')
-    cmplx = l.StructType('Complex', {'real' : l.ArrayType(32), 'imag' : l.ArrayType(32)})
+    cmplx = l.StructType('Complex', {'real' : l.ArrayType(32), 'imag' : l.ArrayType(32)}, {'real' : 0, 'imag' : 1})
     f_spec = specialize_types(code_gen, 'add_complex', [cmplx, cmplx])
 
     constraints = ScheduleConstraints()

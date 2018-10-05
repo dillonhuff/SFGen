@@ -706,10 +706,10 @@ def evaluate_integer_constants(values, f, code_gen):
 
                     tps.append(f.symbol_type(arg))
 
-                res_tp = StructType(name_string(called_func.name), field_types)
+                res_tp = StructType(name_string(called_func.name), field_types, called_func.field_positions)
 
                 print('res_tp =', res_tp)
-                    
+
                 f.set_symbol_type(instr.res, res_tp)
                 f.set_symbol_type(name_string(instr.func), FunctionType(tps, res_tp))
                 new_instructions.append(instr)
@@ -881,33 +881,38 @@ def erase_record_types(f, code_gen):
     # Replace calls to create records with concatentate calls
     # Recursively erase record types from functions called by this function?
 
-    # struct_layouts = []
-    # for sym in f.symbol_table:
-    #     tp = f.symbol_type(f)
-
-    #     new_type = True
-    #     for s in struct_layouts:
-    #         if s[0] == tp:
-    #             new_type = False
-    #             break
-    #     if new_type:
-    #         struct_layouts.append((tp, build_layout(tp)))
-
+    for sym in f.symbol_table:
+        if isinstance(f.symbol_type(sym), StructType)
     new_instrs = []
     for instr in f.instructions:
         if isinstance(instr, ReadFieldInstr):
             struct_tp = f.symbol_type(instr.struct)
             print('struct_tp =', struct_tp)
-            assert(False)
+            print('field     =', instr.field)
+            low = struct_tp.field_start_offset(instr.field)
+            high = struct_tp.field_end_offset(instr.field)
+
+            low_s = f.fresh_sym()
+            high_s = f.fresh_sym()
+            new_instrs.append(ConstDecl(low_s, low))
+            new_instrs.append(ConstDecl(high_s, high))
+            f.set_symbol_type(low_s, IntegerType())
+            f.set_symbol_type(high_s, IntegerType())
+            new_instrs.append(SliceInstr(instr.result_name(), instr.struct, low_s, high_s))
             
         elif isinstance(instr, CallInstr):
             if code_gen.has_class(instr.func):
-                assert(False)
+                new_instrs.append(instr)
             else:
                 new_instrs.append(instr)
         else:
                 new_instrs.append(instr)
+
+
     swap_instrs(f, new_instrs)
+
+    print('After erasing types')
+    print(f.to_string())
 
 def specialize_types(code_gen, func_name_in, func_arg_types):
 

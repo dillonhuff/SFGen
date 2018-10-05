@@ -8,12 +8,43 @@ class Type:
         return None
 
 class StructType(Type):
-    def __init__(self, name, field_types):
+    def __init__(self, name, field_types, field_positions):
         self.name = name
         self.field_types = field_types
+        self.field_positions = field_positions
+
+    def get_field_at_position(self, position):
+        assert(isinstance(position, int))
+
+        for field in self.field_positions:
+            if self.field_positions[field] == position:
+                return field
+
+        assert(False)
+        
+    def field_end_offset(self, field_name):
+        assert(field_name in self.field_positions)
+        assert(field_name in self.field_types)
+
+        return self.field_start_offset(field_name) + self.field_types[field_name].width() - 1
+
+    def field_start_offset(self, field_name):
+        assert(field_name in self.field_positions)
+        assert(field_name in self.field_types)
+
+        pos = 0
+        for i in range(0, self.field_positions[field_name]):
+            field_i = self.get_field_at_position(i)
+            pos += self.field_types[field_i].width()
+
+        print('position of ', field_name, ' = ', pos)
+        return pos
+    
+        #pos = field_positions[field_name]
+        
 
     def to_string(self):
-        return 'struct[{0}]({1})'.format(self.name, self.field_types)
+        return 'struct[{0}]({1})({2})'.format(self.name, self.field_types, self.field_positions)
 
     def __repr__(self):
         return self.to_string()
