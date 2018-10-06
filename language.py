@@ -267,6 +267,9 @@ class AssignInstr(LowInstruction):
         self.res = res
         self.rhs = rhs
 
+    def arguments(self):
+        return {self.rhs}
+    
     def result_name(self):
         return self.res
         
@@ -329,6 +332,9 @@ class BinopInstr(LowInstruction):
     def result_name(self):
         return self.res
 
+    def arguments(self):
+        return {self.lhs, self.rhs}
+    
     def replace_values(self, f):
         self.res = f(self.res)
         self.lhs = f(self.lhs)
@@ -349,6 +355,9 @@ class UnopInstr(LowInstruction):
     def result_name(self):
         return self.res
 
+    def arguments(self):
+        return {self.in_name}
+    
     def replace_values(self, f):
         self.res = f(self.res)
         self.in_name = f(self.in_name)
@@ -367,7 +376,13 @@ class CallInstr(LowInstruction):
 
     def result_name(self):
         return self.res
-        
+
+    def arguments(self):
+        arguments = set()
+        for arg in self.args:
+            arguments.add(arg)
+        return arguments
+    
     def replace_values(self, f):
         self.res = f(self.res)
         new_args = []

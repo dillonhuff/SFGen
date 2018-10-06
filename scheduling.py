@@ -35,6 +35,11 @@ class ScheduleConstraints:
     def is_limited_unit(self, resource_name):
         return resource_name in self.resource_counts
 
+    def get_resource_latency(self, resource_name):
+        if not resource_name in self.resource_latencies:
+            return 0
+        return self.resource_latencies[resource_name]
+    
     def available_units(self, resource_name):
         return self.resource_counts[resource_name]
     
@@ -83,7 +88,7 @@ class Schedule:
                 print('i =', i)
                 it = sched[i]
                 if it == instr:
-                    return (func_name, i)
+                    return (func_name, i, func[0])
 
         print('Error: No binding for', instr)
         assert(False)
@@ -289,12 +294,16 @@ def functional_unit(instr, f, code_gen):
 def get_unit(op, constraints, s, cycle_time):
     num_units = s.num_units_of_type(op.name)
     print('# of units of type', op, '=', num_units)
+    # latency = constraints.get_resource_latency(op.name)
+    # print('latency = ', latency)
+    
     if not constraints.is_limited_unit(op.name) or s.num_units_of_type(op.name) < constraints.available_units(op.name):
         return s.add_unit(op)
 
     for unit in s.functional_units:
         n = s.get_operation(unit).name
         print('n = ', n)
+        
         if n == op.name:
             unit_sched = s.get_schedule(unit)
             print('Unit sched =', unit_sched)
@@ -303,6 +312,39 @@ def get_unit(op, constraints, s, cycle_time):
 
     print('Cannot schedule', op, 'at time', cycle_time)
     return None
+
+def inputs_available(instr, f, constraints, s, op_name, current_time):
+
+    avail = True
+    for arg in instr.arguments():
+        dep_instr = None
+        print('Finding instruction for ', arg)
+        is_arg = False
+        for a in f.args:
+            if arg == a:
+                is_arg = True
+                break
+        if is_arg:
+            continue
+
+        for di in f.instructions:
+            if di.result_name() == arg:
+                dep_instr = di
+                break
+        assert(dep_instr != None)
+
+        binding = s.get_binding(dep_instr)
+        dep_op_name = binding[2].name
+        dep_latency = constraints.get_resource_latency(dep_op_name)
+        print('depends on instruction ', dep_instr, 'with latency', dep_latency)
+        bind_time = binding[1]
+        avail_time = bind_time + dep_latency
+
+        if avail_time > current_time:
+            avail = False
+            break
+
+    return avail
 
 # Simpler IR: Just have instruction resource pairs, or just instructions
 # that respect the total resource counts available? Schedule is a list of lists
@@ -346,11 +388,14 @@ def schedule(code_gen, f, constraints):
             opN = functional_unit(instr, f, code_gen)
             op = opN.name
 
+            if not inputs_available(instr, f, constraints, s, op, cycle_time):
+                cycle_time += 1
+                bound = False
+                continue
+
             unit_name = get_unit(functional_unit(instr, f, code_gen), constraints, s, cycle_time)
-
+            
             if unit_name == None:
-                #print('Combinational schedule needs at least', units_used, 'of operation:', op, 'but only', constraints.available_units(op), 'are available. Adding a cycle')
-
                 cycle_time += 1
                 bound = False
             else:
@@ -361,7 +406,6 @@ def schedule(code_gen, f, constraints):
         if bound:
             bound_instructions.add(instr)
             unbound_instructions.pop(0)
-            #unbound_instructions.remove(instr)
 
     s.total_num_cycles = cycle_time
 

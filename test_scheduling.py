@@ -33,14 +33,17 @@ def instructions_in_order(sched, f):
 
     return True
 
-def test_schedule_with_II():
+def test_schedule_with_non_zero_latency():
     code_gen = codegen_for_module('mult')
     f_spec = specialize_types(code_gen, 'mult', [l.ArrayType(16), l.ArrayType(16)])
     constraints = ScheduleConstraints()
     constraints.set_resource_latency('mult_16', 2)
     sched = schedule(code_gen, f_spec, constraints)
 
-    assert(sched.num_cycles() == 6)
+    print('non-zero latency sched')
+    print(sched)
+
+    assert(sched.num_cycles() == 7)
     assert(instructions_in_order(sched, f_spec))
 
     # mod = generate_rtl(f_spec, sched)
