@@ -253,17 +253,18 @@ def get_port_map(i0, cell_module):
 
     elif isinstance(i0, p.ConstBVDecl):
         wire_connections['out'] = [i0.res_name]
+    elif isinstance(i0, p.CallInstr) and name_string(i0.func) == 'concat':
+        wire_connections['in0'] = [i0.args[0]]
+        wire_connections['in1'] = [i0.args[1]]
+        wire_connections['out'] = [i0.res]
+
     elif isinstance(i0, p.CallInstr) and isinstance(i0.func, ast.Name):
         if i0.func.id == 'leading_zero_count':
             wire_connections['in'] = [i0.args[0]]
             wire_connections['out'] = [i0.res]
+
         elif i0.func.id == 'zero_extend':
             wire_connections['in'] = [i0.args[1]]
-            wire_connections['out'] = [i0.res]
-
-        elif i0.func.id == 'concat':
-            wire_connections['in0'] = [i0.args[0]]
-            wire_connections['in1'] = [i0.args[1]]
             wire_connections['out'] = [i0.res]
 
         else:

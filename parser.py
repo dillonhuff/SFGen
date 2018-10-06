@@ -900,7 +900,24 @@ def erase_record_types(f, code_gen):
             
         elif isinstance(instr, CallInstr):
             if code_gen.has_class(instr.func):
-                new_instrs.append(instr)
+                struct_tp = f.symbol_type(instr.result_name())
+                assert(isinstance(struct_tp, StructType))
+                assert(len(instr.args) == len(struct_tp.field_types))
+                assert(len(instr.args) > 0)
+
+                # What is the goal of this loop? To create a sequence of
+                # concatentations that places the zeroth field in the LSBs
+                # a large bit vector, the second field in the next LSBs
+                # of the bit vector, etc
+                concat_res = instr.args[0]
+                for i in range(1, len(instr.args)):
+                    arg = instr.args[i]
+                    fresh_conc = f.fresh_sym()
+                    f.set_symbol_type(fresh_conc, ArrayType(f.symbol_type(concat_res).width() + f.symbol_type(concat_res).width()))
+                    new_instrs.append(CallInstr(fresh_conc, 'concat', [arg, concat_res]))
+                    concat_res = fresh_conc
+                    
+                new_instrs.append(AssignInstr(instr.result_name(), concat_res))
             else:
                 new_instrs.append(instr)
         else:

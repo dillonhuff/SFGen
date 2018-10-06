@@ -251,12 +251,12 @@ def functional_unit(instr, f, code_gen):
         out_width = f.get_int_constant_value(instr.args[0])
         in_width = f.symbol_type(instr.args[1]).width()
         return Operation(instr.func.id + '_' + str(out_width) + '_' + str(in_width), [out_width, in_width])
-    elif isinstance(instr, CallInstr) and isinstance(instr.func, ast.Name) and (instr.func.id == 'concat'):
+    elif isinstance(instr, CallInstr) and (name_string(instr.func) == 'concat'):
         assert(len(instr.args) == 2)
 
         in0_width = f.symbol_type(instr.args[0]).width()
         in1_width = f.symbol_type(instr.args[1]).width()
-        return Operation(instr.func.id + '_' + str(in0_width) + '_' + str(in1_width), [in0_width, in1_width])
+        return Operation(name_string(instr.func) + '_' + str(in0_width) + '_' + str(in1_width), [in0_width, in1_width])
         
     elif isinstance(instr, CallInstr):
         #assert(isinstance(instr.func, ast.Name))
