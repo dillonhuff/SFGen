@@ -20,6 +20,7 @@ class ScheduleConstraints:
     def __init__(self):
         self.num_cycles = 1
         self.resource_counts = {}
+        self.resource_latencies = {}
         self.no_inlines = set()
 
     def no_inline(self, function_name):
@@ -28,6 +29,9 @@ class ScheduleConstraints:
     def set_resource_count(self, resource_name, count):
         self.resource_counts[resource_name] = count
 
+    def set_resource_latency(self, resource_name, latency):
+        self.resource_latencies[resource_name] = latency
+        
     def is_limited_unit(self, resource_name):
         return resource_name in self.resource_counts
 
