@@ -46,17 +46,17 @@ def test_schedule_with_non_zero_latency():
     assert(sched.num_cycles() == 7)
     assert(instructions_in_order(sched, f_spec))
 
-    # mod = generate_rtl(f_spec, sched)
+    mod = generate_rtl(f_spec, sched)
 
-    # assert(mod.name == f_spec.name)
+    assert(mod.name == f_spec.name)
 
-    # generate_verilog(mod)
+    generate_verilog(mod)
 
-    # print('Function')
-    # print(f_spec.to_string())
+    print('Function')
+    print(f_spec.to_string())
 
-    # res = run_iverilog_test(mod.name)
-    # assert(res == 'passed\n')
+    res = run_iverilog_test(mod.name)
+    assert(res == 'passed\n')
     
 def test_schedule():
     code_gen = codegen_for_module('mult')
