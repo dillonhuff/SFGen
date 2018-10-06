@@ -881,8 +881,6 @@ def erase_record_types(f, code_gen):
     # Replace calls to create records with concatentate calls
     # Recursively erase record types from functions called by this function?
 
-    for sym in f.symbol_table:
-        if isinstance(f.symbol_type(sym), StructType)
     new_instrs = []
     for instr in f.instructions:
         if isinstance(instr, ReadFieldInstr):
@@ -908,7 +906,11 @@ def erase_record_types(f, code_gen):
         else:
                 new_instrs.append(instr)
 
-
+    for sym in f.symbol_table:
+        if isinstance(f.symbol_type(sym), StructType):
+            width = f.symbol_type(sym).width()
+            f.set_symbol_type(sym, ArrayType(width))
+            
     swap_instrs(f, new_instrs)
 
     print('After erasing types')

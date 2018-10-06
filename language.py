@@ -28,6 +28,12 @@ class StructType(Type):
 
         return self.field_start_offset(field_name) + self.field_types[field_name].width() - 1
 
+    def width(self):
+        w = 0
+        for field in self.field_types:
+            w += self.field_types[field].width()
+        return w
+
     def field_start_offset(self, field_name):
         assert(field_name in self.field_positions)
         assert(field_name in self.field_types)
