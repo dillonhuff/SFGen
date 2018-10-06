@@ -29,3 +29,5 @@ many_assigns_32.v
 non_inlined_32
 non_inlined_32.v
 cube_32.v
+add_complex
+add_complex.v
