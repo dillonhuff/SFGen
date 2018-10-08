@@ -6,6 +6,24 @@ from scheduling import *
 from utils import *
 from verilog_backend import generate_verilog
 
+def unit_schedules_same_length(sched):
+    subs_pass = True
+    for sub in self.subschedules:
+        if not unit_schedules_same_length(sched.subschedules[sub]):
+            return False
+
+    sched_len = None
+    first_sched = True
+    for unit in sched.functional_units:
+        sched = sched.get_schedule(unit)
+        if first_sched:
+            sched_len = len(sched)
+        else:
+            if len(sched) != sched_len:
+                return False
+
+    return True
+            
 def instructions_in_order(sched, f):
     assert(isinstance(sched, Schedule))
     assert(isinstance(f, LowFunctionDef))
@@ -43,6 +61,7 @@ def test_schedule_with_non_zero_latency():
     print('non-zero latency sched')
     print(sched)
 
+    assert(unit_schedules_same_length(sched))
     assert(sched.num_cycles() == 7)
     assert(instructions_in_order(sched, f_spec))
 
