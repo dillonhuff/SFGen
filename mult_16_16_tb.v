@@ -2,13 +2,13 @@
 
 module top();
 
-   reg [7:0] a;
-   reg [7:0] b;
+   reg [15:0] a;
+   reg [15:0] b;
    reg       en;
    reg       clk;
    
    
-   wire [7:0] out;
+   wire [15:0] out;
    
    initial begin
       #1 clk = 0;
@@ -39,7 +39,7 @@ module top();
       
    end
 
-   mult_8_8 div(.a(a), .b(b), .out(out), .en(en), .clk(clk));
+   mult_16_16 mult(.a(a), .b(b), .out(out), .en(en), .clk(clk));
    
 
 endmodule
