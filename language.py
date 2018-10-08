@@ -150,7 +150,10 @@ class ITEInstr(LowInstruction):
 
     def result_name(self):
         return self.res
-        
+
+    def arguments(self):
+        return {self.test, self.true_exp, self.false_exp}
+
     def replace_values(self, f):
         self.res = f(self.res)
         self.test = f(self.test)
@@ -169,6 +172,9 @@ class SliceInstr(LowInstruction):
         self.value = value
         self.low = low
         self.high = high
+
+    def arguments(self):
+        return {self.value, self.low, self.high}
 
     def result_name(self):
         return self.res
@@ -192,6 +198,9 @@ class CompareInstr(LowInstruction):
         self.lhs = lhs
         self.rhs = rhs
 
+    def arguments(self):
+        return {self.lhs, self.rhs}
+    
     def result_name(self):
         return self.res
         
@@ -239,6 +248,9 @@ class ConstDecl(LowInstruction):
     def replace_values(self, f):
         self.res_name = f(self.res_name)
 
+    def arguments(self):
+        return {}
+        
     def used_values(self):
         return {self.res_name}
         
@@ -250,6 +262,9 @@ class ConstBVDecl:
         self.res_name = res_name
         self.value = b.bv_from_int(width, val)
 
+    def arguments(self):
+        return {}
+        
     def result_name(self):
         return self.res_name
         

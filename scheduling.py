@@ -324,14 +324,22 @@ def inputs_available(instr, f, constraints, s, op_name, current_time):
             if arg == a:
                 is_arg = True
                 break
-        if is_arg:
+
+        is_lookup_function = isinstance(instr, TableLookupInstr) and instr.table_name == arg
+        if is_arg or is_lookup_function:
             continue
 
         for di in f.instructions:
             if di.result_name() == arg:
                 dep_instr = di
                 break
+
+        if dep_instr == None:
+            print('Error: Could not find instruction for', arg, 'which is used by', instr)
         assert(dep_instr != None)
+
+        if isinstance(dep_instr, ConstDecl) or isinstance(dep_instr, ConstBVDecl) or isinstance(dep_instr, ReturnInstr):
+            continue
 
         binding = s.get_binding(dep_instr)
         dep_op_name = binding[2].name
