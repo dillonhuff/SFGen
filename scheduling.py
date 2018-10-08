@@ -417,6 +417,11 @@ def schedule(code_gen, f, constraints):
 
     s.total_num_cycles = cycle_time
 
+    for unit in s.functional_units:
+        sched = s.get_schedule(unit)
+        if len(sched) < s.num_cycles():
+            for i in range(s.num_cycles() - len(sched)):
+                sched.append(None)
     # Check that resource usage matches synthesis constraints
     total_resources = {}
     print('Units')

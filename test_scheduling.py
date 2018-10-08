@@ -8,18 +8,18 @@ from verilog_backend import generate_verilog
 
 def unit_schedules_same_length(sched):
     subs_pass = True
-    for sub in self.subschedules:
+    for sub in sched.subschedules:
         if not unit_schedules_same_length(sched.subschedules[sub]):
             return False
 
     sched_len = None
     first_sched = True
     for unit in sched.functional_units:
-        sched = sched.get_schedule(unit)
+        s = sched.get_schedule(unit)
         if first_sched:
-            sched_len = len(sched)
+            sched_len = len(s)
         else:
-            if len(sched) != sched_len:
+            if len(s) != sched_len:
                 return False
 
     return True
