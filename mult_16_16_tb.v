@@ -29,9 +29,38 @@ module top();
 
       #1 clk = 1;
       #1 clk = 0;
-      
 
-//      #1 $display("out = %d", out);
+      #1 $display("out = %d", out);
+
+      #1 clk = 1;
+      #1 clk = 0;
+
+      #1 $display("out = %d", out);
+
+      #1 clk = 1;
+      #1 clk = 0;
+
+      #1 $display("out = %d", out);
+      #1 clk = 1;
+      #1 clk = 0;
+
+      #1 $display("out = %d", out);
+      #1 clk = 1;
+      #1 clk = 0;
+
+      #1 $display("out = %d", out);
+      #1 clk = 1;
+      #1 clk = 0;
+
+      #1 $display("out = %d", out);
+      #1 clk = 1;
+      #1 clk = 0;
+
+      #1 $display("out = %d", out);
+      #1 clk = 1;
+      #1 clk = 0;
+
+      #1 $display("out = %d", out);
       
       #1 `assert(out, 2 * 3 * 3 * 3);
 
