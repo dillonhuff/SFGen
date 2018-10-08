@@ -31,3 +31,5 @@ non_inlined_32.v
 cube_32.v
 add_complex
 add_complex.v
+mult_16_16
+mult_16_16.v
