@@ -6,6 +6,25 @@ from scheduling import *
 from utils import *
 from verilog_backend import *
 
+def test_table_lookup():
+    code_gen = codegen_for_module('table_lookup')    
+    f_spec = specialize_types(code_gen, 'foo', [l.ArrayType(4)])
+
+    constraints = ScheduleConstraints()
+    sched = schedule(code_gen, f_spec, constraints)
+
+    print(sched.to_string())
+
+    mod = generate_rtl(f_spec, sched)
+
+    assert(mod.name == f_spec.name)
+
+    generate_verilog(mod)
+
+    res = run_iverilog_test(mod.name)
+    print('res =', res)
+    assert(res == 'passed\n')
+
 def test_struct():
     code_gen = codegen_for_module('use_struct')
     cmplx = l.StructType('Complex', {'real' : l.ArrayType(32), 'imag' : l.ArrayType(32)}, {'real' : 0, 'imag' : 1})
