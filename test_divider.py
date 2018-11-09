@@ -63,19 +63,20 @@ def test_huang_reciprocal_table_1001():
     y_h = bv("4'b1001")
     res = huang_square_reciprocal(y_h[0:y_h.width() - 2])
 
-    assert(res == concat(bv("8'b11001010"), bv("2'b01")))
+    assert(res == ReciprocalResult(bv("8'b11001010"), bv("2'b01")))
 
 def test_huang_reciprocal_table_1111():
     y_h = bv("4'b1111")
     res = huang_square_reciprocal(y_h[0:y_h.width() - 2])
 
-    assert(res == concat(bv("8'b10010001"), bv("2'b10")))
+    assert(res == ReciprocalResult(bv("8'b10010001"), bv("2'b10")))
 
 def test_huang_reciprocal_table_1011():
     y_h = bv("4'b1011")
     res = huang_square_reciprocal(y_h[0:y_h.width() - 2])
 
-    assert(res == concat(bv("8'b10000111"), bv("2'b01")))
+    assert(res.reciprocal == bv("8'b10000111"))
+    assert(res.exponent == bv("2'b01"))
     
 def test_huang():
     width = 16

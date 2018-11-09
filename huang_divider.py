@@ -21,6 +21,12 @@ def normalize_left(a):
 def build_one_fp(width, dist):
     return bv_from_int(width, 1) << bv_from_int(width, dist)
 
+class ReciprocalResult:
+    def __init__(self, reciprocal, exponent):
+        self.reciprocal = reciprocal
+        self.exponent = exponent
+
+
 def huang_square_reciprocal(a):
     a_p = concat(bv_from_int(1, 1), a)
 
@@ -41,8 +47,10 @@ def huang_square_reciprocal(a):
     q_reshifted = q_shifted << lzc
 
     #print('q_reshifted =', q_reshifted)
+
+    return ReciprocalResult(q_reshifted[a_sq.width() : 2*a_sq.width() - 1], lzc[0:1])
     
-    return concat(q_reshifted[a_sq.width() : 2*a_sq.width() - 1], lzc[0:1])
+    #return concat(q_reshifted[a_sq.width() : 2*a_sq.width() - 1], lzc[0:1])
 
 def sub_yh(y_h, y_l):
     m = y_h.width() - 1
@@ -74,10 +82,12 @@ def huang_div_normalized(x, y):
     
     y_h_2_r_and_exp = lookup_in_table(y_h[0 : y_h.width() - 2], huang_square_reciprocal)
 
-    assert(y_h_2_r_and_exp.width() == (2*m + 2 + 2))
+    #assert(y_h_2_r_and_exp.width() == (2*m + 2 + 2))
 
-    y_h2_exp = y_h_2_r_and_exp[0 : 1]
-    y_h2r = y_h_2_r_and_exp[y_h_2_r_and_exp.width() - (2*m + 2) : y_h_2_r_and_exp.width() - 1]
+    #y_h2_exp = y_h_2_r_and_exp[0 : 1]
+    y_h2_exp = y_h_2_r_and_exp.exponent
+    y_h2r = y_h_2_r_and_exp.reciprocal
+    #y_h2r = y_h_2_r_and_exp[y_h_2_r_and_exp.width() - (2*m + 2) : y_h_2_r_and_exp.width() - 1]
     y_diff = sub_yh(y_h, y_l)
     prod = zero_extend(2*y_diff.width(), x) * zero_extend(2*y_diff.width(), y_diff)
     prod0 = prod >> bv_from_int(width, y_diff.width() - 2)
