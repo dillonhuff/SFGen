@@ -1,7 +1,7 @@
 import ast
 import sfgen.bit_vector as b
 import copy
-from utils import *
+from sfgen.utils import *
 
 class Type:
     def __init__(self):

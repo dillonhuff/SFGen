@@ -1,4 +1,4 @@
-from utils import *
+from sfgen.utils import *
 import sfgen.language as l
 import sfgen.parser as p
 import ast

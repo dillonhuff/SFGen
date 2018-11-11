@@ -3,7 +3,7 @@ from sfgen.language import *
 import sfgen.bit_vector as b
 import copy
 
-from utils import *
+from sfgen.utils import *
 
 def name_string(n):
     if isinstance(n, ast.Name):

@@ -3,11 +3,11 @@ import sfgen.language as l
 import ast
 from sfgen.rtl import *
 from sfgen.scheduling import *
-from utils import *
+from sfgen.utils import *
 from sfgen.verilog_backend import *
 
 def test_table_lookup():
-    code_gen = codegen_for_module('table_lookup')    
+    code_gen = codegen_for_module('table_lookup')
     f_spec = specialize_types(code_gen, 'foo', [l.ArrayType(4)])
 
     constraints = ScheduleConstraints()

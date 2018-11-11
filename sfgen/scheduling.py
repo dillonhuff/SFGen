@@ -4,7 +4,7 @@ import sfgen.bit_vector as b
 import copy
 
 from sfgen.parser import *
-from utils import *
+from sfgen.utils import *
 
 # I'm now considering adding some more complex constructs like arrays
 # of general classes (for example Array(Array(Bit))). How would these fit in?
