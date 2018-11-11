@@ -9,6 +9,7 @@ code_gen = codegen_for_module('cube')
 f_spec = specialize_types(code_gen, 'cube', [l.ArrayType(32)])
 
 constraints = ScheduleConstraints()
+constraints.set_resource_count('mult_32', 1)
 sched = schedule(code_gen, f_spec, constraints)
 
 print(sched.to_string())
