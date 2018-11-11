@@ -3,7 +3,7 @@ from sfgen.language import *
 import bit_vector as b
 import copy
 
-from parser import *
+from sfgen.parser import *
 from utils import *
 
 # I'm now considering adding some more complex constructs like arrays

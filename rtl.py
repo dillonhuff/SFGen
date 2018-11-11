@@ -1,10 +1,10 @@
 from utils import *
 import sfgen.language as l
-import parser as p
+import sfgen.parser as p
 import ast
 import importlib
 import bit_vector
-from scheduling import *
+from sfgen.scheduling import *
 import math
 
 def storage_width(w):
