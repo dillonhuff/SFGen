@@ -1,5 +1,5 @@
 import ast
-import bit_vector as b
+import sfgen.bit_vector as b
 import copy
 from utils import *
 

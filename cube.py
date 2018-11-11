@@ -1,4 +1,4 @@
-from bit_vector import *
+from sfgen.bit_vector import *
 
 def cube(x):
     out = x * x * x

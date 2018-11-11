@@ -1,4 +1,4 @@
-from bit_vector import *
+from sfgen.bit_vector import *
 
 def test_quad_value_bit_1_equals_2():
     a = QuadValueBit(1)

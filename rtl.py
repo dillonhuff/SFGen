@@ -3,7 +3,7 @@ import sfgen.language as l
 import sfgen.parser as p
 import ast
 import importlib
-import bit_vector
+import sfgen.bit_vector as bit_vector
 from sfgen.scheduling import *
 import math
 

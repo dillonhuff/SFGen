@@ -1,6 +1,6 @@
 import ast
 from sfgen.language import *
-import bit_vector as b
+import sfgen.bit_vector as b
 import copy
 
 from utils import *

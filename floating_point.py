@@ -1,4 +1,4 @@
-from bit_vector import *
+from sfgen.bit_vector import *
 
 def high_bit(a):
     return a[a.width() - 1 : a.width() - 1]

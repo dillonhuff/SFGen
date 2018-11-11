@@ -1,4 +1,5 @@
 from rtl import *
+import sfgen.bit_vector as bit_vector
 
 def verilog_wire_decls(rtl_mod):
     decls = ''

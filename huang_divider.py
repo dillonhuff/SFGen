@@ -1,4 +1,4 @@
-from bit_vector import *
+from sfgen.bit_vector import *
 
 def top_bits(b, num_bits):
     return b[b.width() - num_bits : b.width() - 1]

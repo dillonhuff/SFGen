@@ -1,4 +1,4 @@
-from bit_vector import *
+from sfgen.bit_vector import *
 
 def table_func(a):
     return a - bv_from_int(a.width(), 1)
