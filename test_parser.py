@@ -4,7 +4,7 @@ import ast
 from sfgen.rtl import *
 from sfgen.scheduling import *
 from utils import *
-from verilog_backend import *
+from sfgen.verilog_backend import *
 
 def test_table_lookup():
     code_gen = codegen_for_module('table_lookup')    

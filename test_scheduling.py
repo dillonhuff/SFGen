@@ -4,7 +4,7 @@ import ast
 from sfgen.rtl import *
 from sfgen.scheduling import *
 from utils import *
-from verilog_backend import generate_verilog
+from sfgen.verilog_backend import generate_verilog
 
 def unit_schedules_same_length(sched):
     subs_pass = True
