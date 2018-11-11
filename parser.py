@@ -934,8 +934,7 @@ def erase_record_types(f, code_gen):
     print('After erasing types')
     print(f.to_string())
 
-def specialize_types(code_gen, func_name_in, func_arg_types):
-
+def specialize_types_with_records(code_gen, func_name_in, func_arg_types):
 
     func_name = func_name_in
     if not isinstance(func_name_in, str):
@@ -978,6 +977,11 @@ def specialize_types(code_gen, func_name_in, func_arg_types):
 
     simplify_integer_assigns(spec_f)
     delete_dead_instructions(spec_f)
+
+    return spec_f
+
+def specialize_types(code_gen, func_name_in, func_arg_types):
+    spec_f = specialize_types_with_records(code_gen, func_name_in, func_arg_types)
 
     erase_record_types(spec_f, code_gen)
 
