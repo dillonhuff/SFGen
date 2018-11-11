@@ -877,6 +877,18 @@ def built_layout(tp):
 
 def erase_record_types(f, code_gen):
     # What should this function do?
+
+    # Recursively build a map from struct types (or functions) to layouts
+    # of structs that they return.
+    # Walk over function call tree recursively transforming each call
+    # by:
+    #  1. Changing the functions type signature to return a bit vector
+    #  2. Replacing all read fields in that function with slices from
+    #     the pre-built type map
+    #  3. Changing all function types in the symbol table to return bit vectors
+    #  4. Replacing all function calls with struct mappings
+
+
     # Replace symbol table types in records with arrays of length(sum len(field))
     # Replace read_field calls with slices
     # Replace calls to create records with concatentate calls
