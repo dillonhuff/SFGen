@@ -1,7 +1,7 @@
 from sfgen.parser import *
 import sfgen.language as l
 import ast
-from rtl import *
+from sfgen.rtl import *
 from sfgen.scheduling import *
 from utils import *
 from verilog_backend import generate_verilog
