@@ -1,5 +1,5 @@
-from parser import *
-import language as l
+from sfgen.parser import *
+import sfgen.language as l
 import ast
 from rtl import *
 from scheduling import *

@@ -1,5 +1,5 @@
 import ast
-from language import *
+from sfgen.language import *
 import bit_vector as b
 import copy
 

@@ -1,5 +1,5 @@
 from utils import *
-import language as l
+import sfgen.language as l
 import parser as p
 import ast
 import importlib
