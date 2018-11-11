@@ -761,6 +761,7 @@ def evaluate_integer_constants(values, f, code_gen):
             print('Read field instr =', instr)
             class_type = f.symbol_type(instr.struct)
             print('Class type =', class_type)
+            print('In function =', f.to_string())
             field_type = class_type.field_types[instr.field]
             f.set_symbol_type(instr.res, field_type)
             new_instructions.append(instr)

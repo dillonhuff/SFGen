@@ -94,11 +94,17 @@ class FunctionType(Type):
                 return False
         return True
 
+    def __str__(self):
+        return self.to_string()
+
+    def __repr__(self):
+        return self.to_string()
+    
     def to_string(self):
         s = ''
-        s += comma_list(list(map(lambda n : n.to_string(), self.arg_types)))
-        s += ' -> ' + self.out_type.to_string()
-        return '[' + str(self.w) + ']'
+        s += comma_list(list(map(lambda n : str(n), self.arg_types)))
+        s += ' -> ' + str(self.out_type)
+        return s
 
 class ArrayType(Type):
     def __init__(self, w):
