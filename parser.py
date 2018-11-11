@@ -665,7 +665,7 @@ def evaluate_integer_constants(values, f, code_gen):
 
                 print('Specializing', instr.func, 'for types', tps)
 
-                spec_func = specialize_types(code_gen, instr.func, tps)
+                spec_func = specialize_types_with_records(code_gen, instr.func, tps)
                 print('Done specializing')
 
                 assert(isinstance(spec_func.instructions[-1], ReturnInstr))
@@ -743,7 +743,7 @@ def evaluate_integer_constants(values, f, code_gen):
             assert(len(called_func.args) == 1)
 
             print('Specializing', instr.table_name, 'for type', t)
-            spec_func = specialize_types(code_gen, instr.table_name, [t])
+            spec_func = specialize_types_with_records(code_gen, instr.table_name, [t])
             print('Done specializing')
 
             assert(isinstance(spec_func.instructions[-1], ReturnInstr))
@@ -902,6 +902,9 @@ def erase_record_types(f, code_gen):
         elif isinstance(instr, CallInstr):
             if code_gen.has_class(instr.func):
                 struct_tp = f.symbol_type(instr.result_name())
+
+                erase_record_types(code_gen.get_function(instr.func))
+
                 assert(isinstance(struct_tp, StructType))
                 assert(len(instr.args) == len(struct_tp.field_types))
                 assert(len(instr.args) > 0)
