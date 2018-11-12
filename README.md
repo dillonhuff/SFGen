@@ -252,8 +252,9 @@ endmodule
 
 # More Complicated Examples
 
-* [examples/huang_divider.py](examples/huang_divider.py) - A lookup table based Taylor series divider
-* [examples/divider.py](examples/divider.py) - A Newton-Raphson divider that uses a lookup table and one iteration of refinement
+* [examples/huang_divider.py](examples/huang_divider.py) - A lookup table based Taylor series divider.
+* [examples/divider.py](examples/divider.py) - A Newton-Raphson divider that uses a lookup table and one iteration of refinement.
+* [examples/floating_point.py](examples/floating_point.py) - A partially implemented floating point multiplier. WARNING: This example is a work in progress.
 
 # The Supported Subset of Python
 
