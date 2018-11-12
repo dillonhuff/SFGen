@@ -132,7 +132,7 @@ the synthesis program to do both operations on the same multiplier by splitting
 the operations up over two cycles.
 
 You can see how to do this in the synthesis script in
-[examples/synthesize_cube_one_mult.py](examples/synthesize_cube_one_mult.py).
+[examples/synthesize_cube_one_mult.py](https://github.com/dillonhuff/SFGen/blob/902742efb62be839dc306b14d5b6ed32ab0d7bf1/examples/synthesize_cube_one_mult.py#L11).
 The script is the same as the previous one with one added line after the creation
 of the ```constraints``` variable:
 
