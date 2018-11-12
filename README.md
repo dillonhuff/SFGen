@@ -20,7 +20,8 @@ pytest
 ## Example: Cubing a Number
 
 Look in the file [./examples/cube.py](examples/cube.py). You should
-see this:
+see a function ```cube(x)``` that takes in one argument and returns the
+cube of the argument:
 
 ```python
 from sfgen.bit_vector import *
