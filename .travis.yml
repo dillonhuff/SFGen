@@ -9,9 +9,7 @@ addons:
     - g++-4.9
 
 install:
-- pip install python-coveralls
-- pip install pytest-cov pytest-pep8
-- pip install -e .
+- pip install pytest
 
 script:
 - pytest
