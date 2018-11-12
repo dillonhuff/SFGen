@@ -15,15 +15,54 @@ pytest
 
 ## Example: Cubing a Number
 
-To see an example of synthesis run:
+```python
+from sfgen.bit_vector import *
 
-```bash
-python synthesize_cube.py
+def cube(x):
+    out = x * x * x
+    return out
+
 ```
 
-## Synthesizing the Python Function
+### Synthesizing the Python Function
+
+```python
+from sfgen.parser import *
+import sfgen.language as l
+from sfgen.rtl import *
+from sfgen.scheduling import *
+from sfgen.utils import *
+from sfgen.verilog_backend import *
+    
+code_gen = codegen_for_module('cube')
+f_spec = specialize_types(code_gen, 'cube', [l.ArrayType(32)])
+
+constraints = ScheduleConstraints()
+sched = schedule(code_gen, f_spec, constraints)
+
+print(sched.to_string())
+
+mod = generate_rtl(f_spec, sched)
+
+assert(mod.name == f_spec.name)
+
+generate_verilog(mod)
+```
+
+```bash
+python ./examples/synthesize_cube.py
+```
+
 
 ### Adding a Resource Constraint
+
+```python
+constraints.set_resource_count('mult_32', 1)
+```
+
+```bash
+python ./examples/synthesize_cube.py
+```
 
 # Dependencies
 

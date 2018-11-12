@@ -1,9 +1,9 @@
-from parser import *
-import language as l
-from rtl import *
-from scheduling import *
-from utils import *
-from verilog_backend import *
+from sfgen.parser import *
+import sfgen.language as l
+from sfgen.rtl import *
+from sfgen.scheduling import *
+from sfgen.utils import *
+from sfgen.verilog_backend import *
     
 code_gen = codegen_for_module('cube')
 f_spec = specialize_types(code_gen, 'cube', [l.ArrayType(32)])
