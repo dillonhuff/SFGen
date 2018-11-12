@@ -269,7 +269,7 @@ through the ```lookup_in_table``` function. This is a cue to the compiler to
 pre-compute all possible values of table func and implement it as a table in
 verilog.
 
-If we run the synthesis script for ```foo`` using a 4 bit wide argument located in
+If we run the synthesis script for ```foo``` using a 4 bit wide argument located in
 [examples/synthesize_table_lookup.py](examples/synthesize_table_lookup.py) we
 get verilog like this:
 
