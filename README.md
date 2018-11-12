@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/dillonhuff/SFGen.svg?branch=master)](https://travis-ci.org/dillonhuff/SFGen)
+
 # A Python HLS Tool for Writing Special Functions
 
 This repo is a simple synthesis tool that lets you write functional units
