@@ -9,9 +9,11 @@ to synthesize them.
 
 # Getting started
 
-After cloning this repo you can run the unit tests like so (if you do not have icarus verilog installed the tests that use it will fail):
+Run the following commands
 
 ```bash
+git clone https://github.com/dillonhuff/SFGen.git
+cd SFGen
 pytest
 ```
 
