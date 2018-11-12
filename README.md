@@ -333,8 +333,8 @@ to calculate!
 
 # More Complicated Examples
 
-* [examples/huang_divider.py](examples/huang_divider.py) - A lookup table based Taylor series divider.
-* [examples/divider.py](examples/divider.py) - A Newton-Raphson divider that uses a lookup table and one iteration of refinement.
+* [examples/huang_divider.py](examples/huang_divider.py) - A lookup table based Taylor series divider for signed integers.
+* [examples/divider.py](examples/divider.py) - A Newton-Raphson divider for signed integers that uses a lookup table and one iteration of refinement.
 
 # The Supported Subset of Python
 
