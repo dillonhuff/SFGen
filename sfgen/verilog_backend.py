@@ -222,3 +222,14 @@ def generate_verilog(rtl_mod):
     f.write(verilog_string_top(rtl_mod))
     f.close()
     return None
+
+def synthesize_verilog(module_path, function_name, argument_types, constraints):
+    code_gen = codegen_for_module(module_path)
+    f_spec = specialize_types(code_gen, function_name, argument_types)
+    sched = schedule(code_gen, f_spec, constraints)
+    mod = generate_rtl(f_spec, sched)
+
+    assert(mod.name == f_spec.name)
+
+    generate_verilog(mod)
+    
