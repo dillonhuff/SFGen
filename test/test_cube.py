@@ -11,7 +11,3 @@ def test_cube():
     print('cube(a) =', cube(a))
 
     assert(cube(a) == correct)
-
-
-    
-test_cube()

@@ -28,9 +28,35 @@ def cube(x):
     return out
 ```
 
+A simple python testbench for this function is shown in [test/test_cube.py](test/test_cube.py):
+
+```python
+from sfgen.bit_vector import *
+from examples.cube import *
+
+def test_cube():
+    width = 32
+    a = bv_from_int(width, 7)
+    correct = bv_from_int(width, 7*7*7)
+
+    print('a       =', a)    
+    print('correct =', correct)
+    print('cube(a) =', cube(a))
+
+    assert(cube(a) == correct)
+
+```
+
+We can run it like so:
+
+```bash
+pytest test_main.py test/test_cube.py
+```
+
 ### Synthesizing the Python Function
 
-Now we need to generate verilog for this code. We do this using a synthesis script
+With all tests passing we are ready to generate Verilog for our design.
+To generate verilog from ```cube``` we use a synthesis script
 located in [examples/synthesize_cube.py](examples/synthesize_cube.py). The code
 looks like so:
 
