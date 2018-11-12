@@ -78,7 +78,7 @@ def instructions_in_order(sched, f):
 #     assert(res == 'passed\n')
     
 def test_schedule():
-    code_gen = codegen_for_module('mult')
+    code_gen = codegen_for_module('examples/mult')
     f_spec = specialize_types(code_gen, 'mult', [l.ArrayType(8), l.ArrayType(8)])
     constraints = ScheduleConstraints()
     constraints.set_resource_count('mult_8', 1)

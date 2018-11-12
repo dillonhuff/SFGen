@@ -7,7 +7,7 @@ from sfgen.utils import *
 from sfgen.verilog_backend import *
 
 def test_table_lookup():
-    code_gen = codegen_for_module('table_lookup')
+    code_gen = codegen_for_module('examples/table_lookup')
     f_spec = specialize_types(code_gen, 'foo', [l.ArrayType(4)])
 
     constraints = ScheduleConstraints()
@@ -26,7 +26,7 @@ def test_table_lookup():
     assert(res == 'passed\n')
 
 def test_struct():
-    code_gen = codegen_for_module('use_struct')
+    code_gen = codegen_for_module('examples/use_struct')
     cmplx = l.StructType('Complex', {'real' : l.ArrayType(32), 'imag' : l.ArrayType(32)}, {'real' : 0, 'imag' : 1})
     f_spec = specialize_types(code_gen, 'add_complex', [cmplx, cmplx])
 
@@ -49,7 +49,7 @@ def test_struct():
     assert(res == 'passed\n')
 
 def test_repeated_assignment():
-    code_gen = codegen_for_module('many_assigns')    
+    code_gen = codegen_for_module('examples/many_assigns')    
     f_spec = specialize_types(code_gen, 'many_assigns', [l.ArrayType(32)])
 
     constraints = ScheduleConstraints()
@@ -71,7 +71,7 @@ def test_repeated_assignment():
     assert(res == 'passed\n')
 
 def test_non_inlined_functions():
-    code_gen = codegen_for_module('non_inlined_function')
+    code_gen = codegen_for_module('examples/non_inlined_function')
     f_spec = specialize_types(code_gen, 'non_inlined', [l.ArrayType(32)])
 
     constraints = ScheduleConstraints()
@@ -97,7 +97,7 @@ def test_non_inlined_functions():
     assert(res == 'passed\n')    
 
 def test_tc_neg_parse():
-    code_gen = codegen_for_module('tc_neg')
+    code_gen = codegen_for_module('examples/tc_neg')
     print(code_gen.get_function("tc_neg").to_string())
 
     constraints = ScheduleConstraints()
@@ -129,13 +129,8 @@ def test_tc_neg_parse():
     assert(res == 'passed\n')
     
 def test_tc_abs_parse():
-    # code_str = open('tc_abs.py').read()
-    # code = ast.parse(code_str)
 
-    # code_gen = LowCodeGenerator()
-    # code_gen.visit(code)
-
-    code_gen = codegen_for_module('tc_abs')
+    code_gen = codegen_for_module('examples/tc_abs')
     print(code_gen.get_function("tc_abs").to_string())
 
     constraints = ScheduleConstraints()
@@ -233,7 +228,7 @@ def test_huang_divider():
 
 def test_make_const():
 
-    code_gen = codegen_for_module('make_const')    
+    code_gen = codegen_for_module('examples/make_const')    
     f_spec = specialize_types(code_gen, 'make_const', [l.ArrayType(16), 27])
 
     constraints = ScheduleConstraints()

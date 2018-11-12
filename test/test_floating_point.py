@@ -1,5 +1,5 @@
-from bit_vector import *
-from floating_point import *
+from sfgen.bit_vector import *
+from examples.floating_point import *
 import random
 
 def test_float_conversion_neg():
