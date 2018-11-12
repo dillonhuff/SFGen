@@ -13,4 +13,4 @@ install:
 - pip install pytest
 
 script:
-- pytest
+- pytest test_main.py ./test/test_bit_vector.py ./test/test_floating_point.py ./test/test_cube.py ./test/test_divider.py
