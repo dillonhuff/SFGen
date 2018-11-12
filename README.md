@@ -13,11 +13,17 @@ After cloning this repo run the unit tests like so:
 pytest
 ```
 
+## Example: Cubing a Number
+
 To see an example of synthesis run:
 
 ```bash
 python synthesize_cube.py
 ```
+
+## Synthesizing the Python Function
+
+### Adding a Resource Constraint
 
 # Dependencies
 
