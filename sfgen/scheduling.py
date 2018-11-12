@@ -67,8 +67,8 @@ class Schedule:
             func = self.functional_units[func_name]
             sched = func[1]
 
-            print('checking', func_name)
-            print('\tsched =', sched)
+            # print('checking', func_name)
+            # print('\tsched =', sched)
 
             for i in range(0, len(sched)):
 
@@ -83,9 +83,9 @@ class Schedule:
         for func_name in self.functional_units:
             func = self.functional_units[func_name]
             sched = func[1]
-            print('Checking', sched)
+            #print('Checking', sched)
             for i in range(0, len(sched)):
-                print('i =', i)
+                #print('i =', i)
                 it = sched[i]
                 if it == instr:
                     return (func_name, i, func[0])

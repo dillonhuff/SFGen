@@ -1,6 +1,6 @@
-from bit_vector import *
-from divider import *
-from huang_divider import *
+from sfgen.bit_vector import *
+from examples.divider import *
+from examples.huang_divider import *
 
 def divide_case(f, width, n_int, d_int):
     res = f(bv_from_int(width, n_int), bv_from_int(width, d_int))

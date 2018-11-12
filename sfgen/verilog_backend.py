@@ -134,7 +134,10 @@ def verilog_string(rtl_mod):
 
             # NOTE: Assumes the module is huang divider!!
             mod_name = rtl_mod.get_parameter('module_name')
-            mod = importlib.import_module(mod_name)
+            print('mod_name =', mod_name)
+            finished_name = mod_name.replace('/', '.')
+            print('finished_name = ', finished_name)
+            mod = importlib.import_module(finished_name)
             table_function = getattr(mod, table_name)
             
             in_width = rtl_mod.get_parameter('in_width')
