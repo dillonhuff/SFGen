@@ -1,21 +1,11 @@
-from parser import *
-import language as l
-import ast
-from rtl import *
-from scheduling import *
-from utils import *
-from verilog_backend import *
+import os
+import os.path
+import sys
 
-code_gen = codegen_for_module('table_lookup')    
-f_spec = specialize_types(code_gen, 'foo', [l.ArrayType(4)])
+dir_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.abspath(os.path.join(dir_path, os.pardir)))
 
+from sfgen.verilog_backend import *
+    
 constraints = ScheduleConstraints()
-sched = schedule(code_gen, f_spec, constraints)
-
-print(sched.to_string())
-
-mod = generate_rtl(f_spec, sched)
-
-assert(mod.name == f_spec.name)
-
-generate_verilog(mod)
+synthesize_verilog('examples/table_lookup', 'foo', [l.ArrayType(4)], constraints)

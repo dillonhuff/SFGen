@@ -243,6 +243,93 @@ module cube_32(x, en, clk, out);
 endmodule
 ```
 
+## Example: Creating a Pre-Computed Table
+
+Often real functional units like reciprocal dividers or the CORDIC algorithm need
+to read from a table of values that is pre-computed at design time. This tool
+supports pre-computed tables through a special higher-order function ```lookup_in_table```.
+
+For an example consider the function ```foo``` in [examples/table_lookup.py](examples/table_lookup.py):
+
+```python
+from sfgen.bit_vector import *
+
+def table_func(a):
+    return a - bv_from_int(a.width(), 1)
+
+def foo(a):
+    res = lookup_in_table(a, table_func)
+
+    return res
+```
+
+```foo`` calls the ordinary function ```table_func``` which subtracts 1 from its
+argument, but instead of calling it directly it calls ```table_func``` on ```a```
+through the ```lookup_in_table``` function. This is a cue to the compiler to
+pre-compute all possible values of table func and implement it as a table.
+
+If we run the synthesis script for ```foo`` using a 4 bit wide argument located in
+[examples/synthesize_table_lookup.py](examples/synthesize_table_lookup.py) we
+get verilog like this:
+
+```verilog
+module builtin_assign_4(in, out);
+	input [3:0] in;
+	output [3:0] out;
+
+	assign out = in;
+
+endmodule
+
+module builtin_table_lookup_table_func_4_4(in, out);
+	input [3:0] in;
+	output [3:0] out;
+
+	reg [3:0] out_reg;
+	always @(*) begin
+		case(in)
+			4'b0000: out_reg = 4'b1111;
+			4'b0001: out_reg = 4'b0000;
+			4'b0010: out_reg = 4'b0001;
+			4'b0011: out_reg = 4'b0010;
+			4'b0100: out_reg = 4'b0011;
+			4'b0101: out_reg = 4'b0100;
+			4'b0110: out_reg = 4'b0101;
+			4'b0111: out_reg = 4'b0110;
+			4'b1000: out_reg = 4'b0111;
+			4'b1001: out_reg = 4'b1000;
+			4'b1010: out_reg = 4'b1001;
+			4'b1011: out_reg = 4'b1010;
+			4'b1100: out_reg = 4'b1011;
+			4'b1101: out_reg = 4'b1100;
+			4'b1110: out_reg = 4'b1101;
+			4'b1111: out_reg = 4'b1110;
+		endcase
+	end
+	assign out = out_reg;
+
+endmodule
+
+module foo_4(a, res);
+	input [3:0] a;
+	output [3:0] res;
+	wire [3:0] fs_1;
+	wire [3:0] fresh_wire_0;
+	wire [3:0] fresh_wire_2;
+
+	builtin_assign_4 fresh_assign_1(.in(fresh_wire_0), .out(fs_1));
+	builtin_table_lookup_table_func_4_4 builtin_table_lookup_table_func_0(.in(a), .out(fresh_wire_0));
+	builtin_assign_4 fresh_assign_3(.in(fresh_wire_2), .out(res));
+	builtin_assign_4 assign_4_1(.in(fs_1), .out(fresh_wire_2));
+
+endmodule
+
+```
+
+The ```table_function``` has been pre-compiled in to a giant case statement that
+can be synthesized as an SRAM. Be warned that large tables may take a long time
+to calculate!
+
 # More Complicated Examples
 
 * [examples/huang_divider.py](examples/huang_divider.py) - A lookup table based Taylor series divider.
