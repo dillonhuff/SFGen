@@ -15,16 +15,22 @@ pytest
 
 ## Example: Cubing a Number
 
+Look in the file [./examples/cube.py](examples/cube.py). You should
+see this:
+
 ```python
 from sfgen.bit_vector import *
 
 def cube(x):
     out = x * x * x
     return out
-
 ```
 
 ### Synthesizing the Python Function
+
+Now we need to generate verilog for this code. We do this using a synthesis script
+located in [examples/synthesize_cube.py](examples/synthesize_cube.py). The code
+looks like so:
 
 ```python
 from sfgen.parser import *

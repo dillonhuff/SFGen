@@ -1,9 +1,8 @@
 import sys
 import os.path
 
-print('path =', sys.path)
-sys.path.append(os.path.abspath(os.path.join('.', os.pardir)))
-print('path =', sys.path)
+dir_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.abspath(os.path.join(dir_path, os.pardir)))
 
 from sfgen.parser import *
 import sfgen.language as l
