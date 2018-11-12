@@ -62,9 +62,22 @@ python ./examples/synthesize_cube.py
 
 ### Adding a Resource Constraint
 
+The implementation of ```cube``` above uses 2 multipliers, but what if we
+only want to use one multiplier? We can add a resource constraint that forces
+the synthesis program to do both operations on the same multiplier by splitting
+the operations up over two cycles.
+
+You can see how to do this in the synthesis script in
+[examples/synthesize_cube_one_mult.py](examples/synthesize_cube_one_mult.py).
+The script is the same as the previous one with one added line after the creation
+of the ```constraints``` variable:
+
 ```python
 constraints.set_resource_count('mult_32', 1)
 ```
+
+This line tells the compiler that only one multiplier can be used to implement the
+circuit. We run this new synthesis script like so:
 
 ```bash
 python ./examples/synthesize_cube.py
@@ -72,8 +85,8 @@ python ./examples/synthesize_cube.py
 
 # More Complicated Examples
 
-* examples/huang_divider.py - A lookup table based Taylor series divider
-* examples/divider.py - A Newton-Raphson divider that uses a lookup table and one iteration of refinement
+* [examples/huang_divider.py](examples/huang_divider.py) - A lookup table based Taylor series divider
+* [examples/divider.py](examples/divider.py) - A Newton-Raphson divider that uses a lookup table and one iteration of refinement
 
 # Dependencies
 
