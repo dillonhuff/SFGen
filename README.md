@@ -64,6 +64,11 @@ constraints.set_resource_count('mult_32', 1)
 python ./examples/synthesize_cube.py
 ```
 
+# More Complicated Examples
+
+* examples/huang_divider.py - A lookup table based Taylor series divider
+* examples/divider.py - A Newton-Raphson divider that uses a lookup table and one iteration of refinement
+
 # Dependencies
 
 * Python 3
