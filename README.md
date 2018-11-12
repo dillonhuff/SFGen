@@ -9,7 +9,7 @@ to synthesize them.
 
 # Getting started
 
-Run the following commands
+Run the following commands to install and run the unit tests (note that you will need icarus verilog for some of the unit tests):
 
 ```bash
 git clone https://github.com/dillonhuff/SFGen.git
