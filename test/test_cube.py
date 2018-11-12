@@ -1,5 +1,5 @@
 from sfgen.bit_vector import *
-from cube import *
+from examples.cube import *
 
 def test_cube():
     width = 32
