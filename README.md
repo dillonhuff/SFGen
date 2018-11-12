@@ -255,6 +255,16 @@ endmodule
 * [examples/huang_divider.py](examples/huang_divider.py) - A lookup table based Taylor series divider
 * [examples/divider.py](examples/divider.py) - A Newton-Raphson divider that uses a lookup table and one iteration of refinement
 
+# The Supported Subset of Python
+
+* Operations on bit vectors from the pre-made bit vector library in
+[sfgen/bit_vector](sfgen/bit_vector.py)
+* Function calls
+* Lookup in pre-computed tables
+* Conditional assignment statements
+
+I am working on adding support for structs, if-else statements, and fixed bound loops.
+
 # Dependencies
 
 * Python 3
