@@ -9,7 +9,7 @@ to synthesize them.
 
 # Getting started
 
-After cloning this repo run the unit tests like so:
+After cloning this repo you can run the unit tests like so (if you do not have icarus verilog installed the tests that use it will fail):
 
 ```bash
 pytest
@@ -262,3 +262,4 @@ I am working on adding support for structs, if-else statements, and fixed bound 
 
 * Python 3
 * pytest
+* Icarus Verilog for the unit test suite
